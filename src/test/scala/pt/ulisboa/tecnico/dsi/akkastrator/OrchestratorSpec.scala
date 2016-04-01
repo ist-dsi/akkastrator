@@ -28,7 +28,7 @@ class OrchestratorSpec extends TestKit(ActorSystem("Orchestrator", ConfigFactory
     import orchestrator.context
     new Command(name, dependencies) {
       val destination: ActorPath = _destination
-      val createMessage: (MessageId) => Message = message
+      def createMessage(id: MessageId): Message = message(id)
 
       def behavior: Receive = LoggingReceive {
         case m: SimpleMessage if matchSenderAndId(m) =>

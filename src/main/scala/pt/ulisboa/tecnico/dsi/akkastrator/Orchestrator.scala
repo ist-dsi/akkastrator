@@ -1,11 +1,8 @@
 package pt.ulisboa.tecnico.dsi.akkastrator
 
-import pt.ulisboa.tecnico.dsi.akkastrator.ResourceActor.Create
-
-import scala.concurrent.Future
 import scala.language.reflectiveCalls
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.ActorLogging
 import akka.event.LoggingReceive
 import akka.persistence._
 import Message.Message
