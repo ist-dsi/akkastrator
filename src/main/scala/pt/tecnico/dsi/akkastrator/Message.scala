@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.dsi.akkastrator
+package pt.tecnico.dsi.akkastrator
 
 object Message {
   type MessageId = Long

@@ -1,6 +1,5 @@
-package pt.ulisboa.tecnico.dsi.akkastrator
+package pt.tecnico.dsi.akkastrator
 
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import akka.actor.Actor.Receive
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor._
@@ -9,7 +8,9 @@ import akka.persistence.Recovery
 import akka.testkit.{TestKit, TestProbe}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import pt.ulisboa.tecnico.dsi.akkastrator.Message.{Message, MessageId}
+import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
+
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 
 case class SimpleMessage(id: MessageId)
 

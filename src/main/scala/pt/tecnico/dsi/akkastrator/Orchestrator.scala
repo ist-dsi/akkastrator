@@ -1,13 +1,12 @@
-package pt.ulisboa.tecnico.dsi.akkastrator
+package pt.tecnico.dsi.akkastrator
 
-import scala.language.reflectiveCalls
-import scala.concurrent.duration.{Duration, FiniteDuration}
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
 import akka.persistence._
-import Message.Message
+import pt.tecnico.dsi.akkastrator.Message.Message
 
-import scala.util.{Failure, Success}
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.language.reflectiveCalls
 
 object Orchestrator {
   case object StartReadyCommands

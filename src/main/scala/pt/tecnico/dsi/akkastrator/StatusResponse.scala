@@ -1,6 +1,6 @@
-package pt.ulisboa.tecnico.dsi.akkastrator
+package pt.tecnico.dsi.akkastrator
 
-import Message.{MessageId, Message}
+import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
 
 sealed trait StatusResponse { self: Message =>
 }

@@ -1,6 +1,6 @@
-organization := "pt.ulisboa.tecnico.dsi"
+organization := "pt.tecnico.dsi"
 name := "akkastrator"
-version := "0.1"
+version := "0.0.1"
 
 scalaVersion := "2.11.8"
 initialize := {
@@ -10,20 +10,20 @@ initialize := {
 }
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-val akkaVersion = "2.4.0"
+val akkaVersion = "2.4.3"
 libraryDependencies ++= Seq(
   //Akka
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   //Persistence
   "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
-  "org.iq80.leveldb" % "leveldb" % "0.7" % "test",
-  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8" % "test",
+  "org.iq80.leveldb" % "leveldb" % "0.7" % Test,
+  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8" % Test,
   //Logging
-  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % "test",
-  "ch.qos.logback" % "logback-classic" % "1.1.3" % "test",
+  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
+  "ch.qos.logback" % "logback-classic" % "1.1.7" % Test,
   //Testing
-  "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
+  "org.scalatest" %% "scalatest" % "2.2.4" % Test,
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
   //Configuration
   "com.typesafe" % "config" % "1.3.0"
 )

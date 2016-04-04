@@ -1,6 +1,6 @@
-package pt.ulisboa.tecnico.dsi.akkastrator
+package pt.tecnico.dsi.akkastrator
 
-import scala.concurrent.duration.{FiniteDuration, DurationInt}
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 object Backoff {
   /**

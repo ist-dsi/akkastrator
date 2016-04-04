@@ -1,11 +1,12 @@
-package pt.ulisboa.tecnico.dsi.akkastrator
+package pt.tecnico.dsi.akkastrator
 
-import scala.language.reflectiveCalls
 import akka.actor.Actor.Receive
 import akka.actor.ActorPath
-import Message.{Message, MessageId}
-import Orchestrator.{Retry, ResponseReceived, MessageSent, StartReadyCommands}
-import Task.{Finished, WaitingToRetry, Waiting, Unstarted}
+import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
+import pt.tecnico.dsi.akkastrator.Orchestrator.{MessageSent, ResponseReceived, Retry, StartReadyCommands}
+import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting, WaitingToRetry}
+
+import scala.language.reflectiveCalls
 
 /**
  * A Command executes a Task. A task corresponds to sending a message to an actor, handling its response and possibly
