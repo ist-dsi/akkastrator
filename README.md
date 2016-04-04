@@ -1,0 +1,1 @@
+# Akkastrator [![Build Status](https://travis-ci.org/ist-dsi/akkastrator.svg?branch=master)](https://travis-ci.org/ist-dsi/akkastrator) [![Codacy Badge](https://api.codacy.com/project/badge/grade/75210854e9b945df97a8408e4975a067)](https://www.codacy.com/app/Whatever/akkastrator)

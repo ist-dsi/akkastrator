@@ -2,7 +2,7 @@ organization := "pt.ulisboa.tecnico.dsi"
 name := "akkastrator"
 version := "0.1"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 initialize := {
   val required = "1.8"
   val current  = sys.props("java.specification.version")
@@ -43,6 +43,11 @@ scalacOptions ++= Seq(
   "-Yno-adapted-args", //Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
   "-Ywarn-dead-code" //Warn when dead code is identified.
 )
+
+site.settings
+site.includeScaladoc()
+ghpages.settings
+git.remoteRepo := s"git@github.com:ist-dsi/${name.value}.git"
 
 homepage := Some(url(s"https://github.com/ist-dsi/${name.value}"))
 licenses += "MIT" -> url("http://opensource.org/licenses/MIT")
