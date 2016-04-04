@@ -2,8 +2,8 @@ package pt.tecnico.dsi.akkastrator
 
 import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
 
-sealed trait StatusResponse { self: Message =>
-}
+//Request
+case class Status(id: MessageId) extends Message
 
 object Task {
   sealed trait Status {
@@ -19,5 +19,5 @@ object Task {
 //TODO: Should we state the dependencies between tasks?
 case class Task(description: String, status: Task.Status)
 
-case class Status(tasks: Seq[Task], id: MessageId) extends StatusResponse
-case class PendingRequests(requests: Set[Message], id: MessageId) extends StatusResponse
+//Response
+case class StatusResponse(tasks: Seq[Task], id: MessageId) extends Message

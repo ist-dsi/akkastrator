@@ -3,6 +3,7 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
 import akka.persistence._
+import pt.tecnico.dsi.Backoff
 import pt.tecnico.dsi.akkastrator.Message.Message
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -77,6 +78,29 @@ abstract class Orchestrator(action: Message) extends PersistentActor with ActorL
   val saveSnapshotInterval: FiniteDuration
 
   /**
+    * How long to wait when performing a business resend.
+    *
+    * Be default this is an exponential backoff where each iteration will wait the double
+    * amount of time of the last iteration.
+    *
+    * Simply override this method to obtain a different behavior.
+    *
+    * By default the backoff of every command in this orchestrator simply calls this one.
+    * You can specify a different backoff for a specific command by overriding its backoff function.
+    *
+    * @param iteration how many times was the message sent
+    * @return how long to wait
+    */
+  def backoff(iteration: Int): FiniteDuration = {
+    require(iteration >= 0, "Iteration must be positive.")
+    Backoff.exponential(iteration)
+  }
+
+  //TODO: If an orchestrator has more than on command talking with the same actor simultaneously the method matchSenderAndId
+  //TODO: wont be sufficient to disambiguate for which command the message was destined, specially if both messages are of
+  //TODO: the same type and the commands are all waiting for that message type.
+
+  /**
    * @return the behaviors of the commands which are waiting plus `orchestratorReceive`.
    */
   protected[akkastrator] def updateCurrentBehavior(): Unit = {
@@ -96,10 +120,8 @@ abstract class Orchestrator(action: Message) extends PersistentActor with ActorL
       }
     case Retry(commandIndex) =>
       commands(commandIndex).start()
-    case StatusById(messageID, id) if messageID == action.id =>
-      sender() ! Status(commands.map(_.toTask), id)
-    case StatusByMessage(m, id) if m == action => //the == must ignore the id, otherwise this wont work
-      sender() ! Status(commands.map(_.toTask), id)
+    case Status(id) =>
+      sender() ! StatusResponse(commands.map(_.toTask), id)
     case SaveSnapshot =>
       saveSnapshot(_state)
   }

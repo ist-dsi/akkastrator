@@ -6,6 +6,7 @@ import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
 import pt.tecnico.dsi.akkastrator.Orchestrator.{MessageSent, ResponseReceived, Retry, StartReadyCommands}
 import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting, WaitingToRetry}
 
+import scala.concurrent.duration.FiniteDuration
 import scala.language.reflectiveCalls
 
 /**
@@ -47,6 +48,18 @@ abstract class Command(val description: String, val dependencies: Set[Command] =
    * Which means we might have to send more than one message. These messages will only differ on the messageID.
    */
   def createMessage(id: MessageId): Message
+
+  /**
+    * How long to wait when performing a business resend.
+    *
+    * Be default this function just calls the same function of orchestrator, thus "inheriting" its backoff function.
+    *
+    * You can specify a different backoff for this command by overriding this function.
+    *
+    * @param iteration how many times was the message sent
+    * @return how long to wait
+    */
+  def backoff(iteration: Int): FiniteDuration = orchestrator.backoff(iteration)
 
   /**
    * Effectively sends a message to destination.
@@ -93,7 +106,7 @@ abstract class Command(val description: String, val dependencies: Set[Command] =
    * the sender path is the same path as `destination`. False otherwise. If the current state of this command is not
    * waiting false will be returned.
    * @note This check is necessary because the orchestrator is ready to receive the responses to multiple commands
-   *       at the same time.
+   *       at the same time. And all of these responses might have the same id.
    */
   final def matchSenderAndId(receivedMessage: Message): Boolean = {
     orchestrator.log.info(s"$loggingPrefix MatchSenderAndId with receivedMessage: " + receivedMessage.getClass().getName)
@@ -129,7 +142,8 @@ abstract class Command(val description: String, val dependencies: Set[Command] =
         orchestrator.confirmDelivery(m.id)
       }
 
-      val delay = Backoff.exponentialCapped(status.retryIteration)
+      //TODO: reimplement this functionality val delay = Backoff.exponentialCapped(status.retryIteration)
+      val delay = backoff(status.retryIteration)
       import orchestrator.context.dispatcher
       orchestrator.context.system.scheduler.scheduleOnce(delay) {
         orchestrator.self ! Retry(index)
