@@ -1,0 +1,803 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>Command - pt.ulisboa.tecnico.dsi.akkastrator.Command</title>
+          <meta name="description" content="Command - pt.ulisboa.tecnico.dsi.akkastrator.Command" />
+          <meta name="keywords" content="Command pt.ulisboa.tecnico.dsi.akkastrator.Command" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../../index.html';
+            var hash = 'pt.ulisboa.tecnico.dsi.akkastrator.Command';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <img alt="Class" src="../../../../../lib/class_big.png" />
+        <p id="owner"><a href="../../../../package.html" class="extype" name="pt">pt</a>.<a href="../../../package.html" class="extype" name="pt.ulisboa">ulisboa</a>.<a href="../../package.html" class="extype" name="pt.ulisboa.tecnico">tecnico</a>.<a href="../package.html" class="extype" name="pt.ulisboa.tecnico.dsi">dsi</a>.<a href="package.html" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator">akkastrator</a></p>
+        <h1>Command</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator">package akkastrator</a>
+          </div></span></h3><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Command</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A Command executes a Task. A task corresponds to sending a message to an actor, handling its response and possibly
+mutate the internal state of the Orchestrator.
+The answer(s) to the sent message must be handled in <code>behavior</code>.
+<code>behavior</code> must invoke <code>finish</code> when no further processing is necessary.
+The pattern matching inside <code>behavior</code> should invoke <code>matchSenderAndID</code> to ensure
+the received message is in fact the one that we were waiting to receive.
+The internal state of the orchestrator might be mutated inside <code>behavior</code>.
+If a business resend is necessary <code>retry</code> should be invoked inside <code>behavior</code>.</p><p>This class is super tightly coupled with Orchestrator and the reverse is also true.</p><p>This class changes the internal state of the orchestrator:</p><ul><li>The command constructor adds the constructed command to the <code>commands</code> variable.</li><li>Inside the <code>behavior</code> of the command the internal state of the orchestrator may be changed.</li><li>If all commands are finished the <code>finish</code>(of the orchestrator) will stop the orchestrator.</li><li>Otherwise, the next behavior of the orchestrator will be computed.</li></ul><p>In exchange the orchestrator changes the internal state of the Command:</p><ul><li>By invoking <code>start</code> which changes the command status to Waiting.
+</li></ul></div><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="pt.ulisboa.tecnico.dsi.akkastrator.Command"><span>Command</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show All</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(description:String,dependencies:Set[pt.ulisboa.tecnico.dsi.akkastrator.Command])(implicitorchestrator:pt.ulisboa.tecnico.dsi.akkastrator.Orchestrator):pt.ulisboa.tecnico.dsi.akkastrator.Command"></a>
+      <a id="&lt;init&gt;:Command"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Command</span><span class="params">(<span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="dependencies">dependencies: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Command">Command</a>] = <span class="symbol">Set.empty[Command]</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="orchestrator">orchestrator: <a href="Orchestrator.html" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a></span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@&lt;init&gt;(description:String,dependencies:Set[pt.ulisboa.tecnico.dsi.akkastrator.Command])(implicitorchestrator:pt.ulisboa.tecnico.dsi.akkastrator.Orchestrator):pt.ulisboa.tecnico.dsi.akkastrator.Command" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#behavior" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="behavior:akka.actor.Actor.Receive"></a>
+      <a id="behavior:Receive"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">behavior</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">Receive</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@behavior:akka.actor.Actor.Receive" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The behavior of this command.</p><div class="fullcomment"><div class="comment cmt"><p>The behavior of this command. This is akin to the receive method of an actor, except for the fact that an
+all catching pattern match will cause the orchestrator to fail. For example:</p><pre><span class="kw">def</span> behavior = Receive {
+  <span class="kw">case</span> m <span class="kw">if</span> matchSenderAndId(m) <span class="kw">=&gt;</span> <span class="cmt">//Some code</span>
+}</pre><p>Will cause the orchestrator to fail.
+</p></div></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#createMessage" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="createMessage(id:pt.ulisboa.tecnico.dsi.akkastrator.Message.MessageId):pt.ulisboa.tecnico.dsi.akkastrator.Message.Message"></a>
+      <a id="createMessage(MessageId):Message"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">createMessage</span><span class="params">(<span name="id">id: <a href="Message$.html#MessageId=Long" class="extmbr" name="pt.ulisboa.tecnico.dsi.akkastrator.Message.MessageId">MessageId</a></span>)</span><span class="result">: <a href="Message$.html#Message=AnyRef{defid:pt.ulisboa.tecnico.dsi.akkastrator.Message.MessageId}" class="extmbr" name="pt.ulisboa.tecnico.dsi.akkastrator.Message.Message">Message</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@createMessage(id:pt.ulisboa.tecnico.dsi.akkastrator.Message.MessageId):pt.ulisboa.tecnico.dsi.akkastrator.Message.Message" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The &quot;constructor&quot; of the message(s) to be sent.</p><div class="fullcomment"><div class="comment cmt"><p>The &quot;constructor&quot; of the message(s) to be sent.
+There is the need to have a &quot;constructor&quot; because we want to send messages with at-least-once semantics.
+Which means we might have to send more than one message. These messages will only differ on the messageID.
+</p></div></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#destination" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="destination:akka.actor.ActorPath"></a>
+      <a id="destination:ActorPath"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">destination</span><span class="result">: <span class="extype" name="akka.actor.ActorPath">ActorPath</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@destination:akka.actor.ActorPath" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The ActorPath to whom this Command will send the message(s).</p>
+    </li></ol>
+            </div>
+
+        <div id="values" class="values members">
+              <h3>Concrete Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@##():Int" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#canStart" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="canStart:Boolean"></a>
+      <a id="canStart:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">canStart</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@canStart:Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>whether this command is able to start. A command is ready to start if its status is Unstarted and all its
+        dependencies have finished.</p></dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@clone():Object" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#dependencies" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="dependencies:Set[pt.ulisboa.tecnico.dsi.akkastrator.Command]"></a>
+      <a id="dependencies:Set[Command]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">dependencies</span><span class="result">: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Command">Command</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@dependencies:Set[pt.ulisboa.tecnico.dsi.akkastrator.Command]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#description" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="description:String"></a>
+      <a id="description:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">description</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@description:String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(other:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@equals(other:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Command">Command</a> → AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#finish" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="finish(receivedMessage:pt.ulisboa.tecnico.dsi.akkastrator.Message.Message):Unit"></a>
+      <a id="finish(Message):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finish</span><span class="params">(<span name="receivedMessage">receivedMessage: <a href="Message$.html#Message=AnyRef{defid:pt.ulisboa.tecnico.dsi.akkastrator.Message.MessageId}" class="extmbr" name="pt.ulisboa.tecnico.dsi.akkastrator.Message.Message">Message</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@finish(receivedMessage:pt.ulisboa.tecnico.dsi.akkastrator.Message.Message):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#hasFinished" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hasFinished:Boolean"></a>
+      <a id="hasFinished:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hasFinished</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@hasFinished:Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>whether this command has finished. A command has finished when the <code>finish</code> method is invoked.</p></dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Command">Command</a> → AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#isWaiting" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isWaiting:Boolean"></a>
+      <a id="isWaiting:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isWaiting</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@isWaiting:Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>whether this command is waiting for a response. A command is waiting if a message has been
+        sent to <code>destination</code> and the finish method hasn't been invoked.</p></dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#loggingPrefix" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="loggingPrefix:String"></a>
+      <a id="loggingPrefix:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">loggingPrefix</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@loggingPrefix:String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#matchSenderAndId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="matchSenderAndId(receivedMessage:pt.ulisboa.tecnico.dsi.akkastrator.Message.Message):Boolean"></a>
+      <a id="matchSenderAndId(Message):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">matchSenderAndId</span><span class="params">(<span name="receivedMessage">receivedMessage: <a href="Message$.html#Message=AnyRef{defid:pt.ulisboa.tecnico.dsi.akkastrator.Message.MessageId}" class="extmbr" name="pt.ulisboa.tecnico.dsi.akkastrator.Message.Message">Message</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@matchSenderAndId(receivedMessage:pt.ulisboa.tecnico.dsi.akkastrator.Message.Message):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">receivedMessage</dt><dd class="cmt"><p>the received message.</p></dd><dt>returns</dt><dd class="cmt"><p>true if the id of <code>receivedMessage</code> is the same as the one in the <code>Waiting</code> status and
+the sender path is the same path as <code>destination</code>. False otherwise. If the current state of this command is not
+waiting false will be returned.</p></dd></dl><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>This check is necessary because the orchestrator is ready to receive the responses to multiple commands
+      at the same time.</p></span></dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#orchestrator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="orchestrator:pt.ulisboa.tecnico.dsi.akkastrator.Orchestrator"></a>
+      <a id="orchestrator:Orchestrator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">orchestrator</span><span class="result">: <a href="Orchestrator.html" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@orchestrator:pt.ulisboa.tecnico.dsi.akkastrator.Orchestrator" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#retry" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="retry(receivedMessage:pt.ulisboa.tecnico.dsi.akkastrator.Message.Message):Unit"></a>
+      <a id="retry(Message):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">retry</span><span class="params">(<span name="receivedMessage">receivedMessage: <a href="Message$.html#Message=AnyRef{defid:pt.ulisboa.tecnico.dsi.akkastrator.Message.MessageId}" class="extmbr" name="pt.ulisboa.tecnico.dsi.akkastrator.Message.Message">Message</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@retry(receivedMessage:pt.ulisboa.tecnico.dsi.akkastrator.Message.Message):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Re-sends the message.</p><div class="fullcomment"><div class="comment cmt"><p>Re-sends the message.
+A Command can only be retried if its state is Waiting. Any other state will cause an error to be logged.</p><p>Retries are attempted in a exponential backoff manner.</p></div></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#start" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="start(retryIteration:Int):Unit"></a>
+      <a id="start(Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">start</span><span class="params">(<span name="retryIteration">retryIteration: <span class="extype" name="scala.Int">Int</span> = <span class="symbol"><span class="name"><a href="#status:pt.ulisboa.tecnico.dsi.akkastrator.Task.Status">status.retryIteration</a></span></span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@start(retryIteration:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Starts the execution of this Command task.</p><div class="fullcomment"><div class="comment cmt"><p>Starts the execution of this Command task.
+A Command can only be started if its state is either Unstarted or WaitingToRetry.
+Any other state will cause an error to be logged.</p><p>We first persist that the message was sent, then we send it.
+If the Orchestrator is recovering then we just send the message because there is
+no need to persist that the message was sent.
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator">pt.ulisboa.tecnico.dsi.akkastrator</a>] </dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#status" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="status:pt.ulisboa.tecnico.dsi.akkastrator.Task.Status"></a>
+      <a id="status:Task.Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">status</span><span class="result">: <a href="Task$$Status.html" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Task.Status">Task.Status</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@status:pt.ulisboa.tecnico.dsi.akkastrator.Task.Status" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the current status of the command.</p></dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@toString():String" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Command">Command</a> → AnyRef → Any</dd></dl></div>
+    </li><li name="pt.ulisboa.tecnico.dsi.akkastrator.Command#toTask" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toTask:pt.ulisboa.tecnico.dsi.akkastrator.Task"></a>
+      <a id="toTask:Task"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toTask</span><span class="result">: <a href="Task.html" class="extype" name="pt.ulisboa.tecnico.dsi.akkastrator.Task">Task</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@toTask:pt.ulisboa.tecnico.dsi.akkastrator.Task" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>The Task representation of this Command.</p></dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#pt.ulisboa.tecnico.dsi.akkastrator.Command@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
