@@ -233,5 +233,5 @@ abstract class Command(val description: String, val dependencies: Set[Command] =
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 
-  override def toString = s"Command($description, $destination, $status)"
+  override def toString: String = s"Command($description, $destination, $status)"
 }

@@ -72,7 +72,7 @@ abstract class Orchestrator(action: Message) extends PersistentActor with ActorL
   /** The state that this orchestrator maintains. */
   private[this] var _state: State = EmptyState
   def state[S <: State]: S = _state.asInstanceOf[S]
-  def state_=[S <: State](state: S) = _state = state
+  def state_=[S <: State](state: S): Unit = _state = state
 
   /** The interval at which snapshots will be saved. Use Duration.Zero to disable snapshots. */
   val saveSnapshotInterval: FiniteDuration

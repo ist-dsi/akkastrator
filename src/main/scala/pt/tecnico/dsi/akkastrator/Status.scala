@@ -1,9 +1,9 @@
 package pt.tecnico.dsi.akkastrator
 
-import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
+import pt.tecnico.dsi.akkastrator.Message.MessageId
 
 //Request
-case class Status(id: MessageId) extends Message
+case class Status(id: MessageId)
 
 object Task {
   sealed trait Status {
@@ -20,4 +20,4 @@ object Task {
 case class Task(description: String, status: Task.Status)
 
 //Response
-case class StatusResponse(tasks: Seq[Task], id: MessageId) extends Message
+case class StatusResponse(tasks: Seq[Task], id: MessageId)
