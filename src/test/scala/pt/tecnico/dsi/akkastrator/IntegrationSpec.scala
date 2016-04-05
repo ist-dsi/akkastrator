@@ -4,12 +4,13 @@ import akka.actor.Actor._
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor.{Actor, ActorPath, ActorRef, ActorSystem, OneForOneStrategy, Props}
 import akka.event.LoggingReceive
+import akka.persistence.Recovery
 import akka.testkit.{TestKit, TestProbe}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
 import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 
 abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", ConfigFactory.load()))
   with FunSuiteLike
@@ -18,6 +19,13 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
 
   override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
+  }
+
+  abstract class StatelessOrchestrator[M <: Message](m: Message) extends Orchestrator(m) {
+    //No state, snapshots and recovery
+    var state = Orchestrator.EmptyState
+    val saveSnapshotInterval: FiniteDuration = Duration.Zero
+    override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
   }
 
   def echoCommand(name: String, _destination: ActorPath, message: MessageId => SimpleMessage,
@@ -45,6 +53,7 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
       }
 
       val child = context.actorOf(childProps, childName)
+
       def receive = {
         case x if sender == child => parentProxy.ref forward x
         case x => child forward x

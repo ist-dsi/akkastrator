@@ -10,12 +10,7 @@ class DependenciesSpec extends IntegrationSpec {
   test("Case 1: Send one message, handle the response and finish") {
     val destinationActor0 = TestProbe()
 
-    class OneCommandOrchestrator(m: SimpleMessage) extends Orchestrator(m) {
-      //No state, snapshots and recovery
-      var state = Orchestrator.EmptyState
-      val saveSnapshotInterval: FiniteDuration = Duration.Zero
-      override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
-
+    class OneCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
       echoCommand("Zero Command", destinationActor0.ref.path, id => SimpleMessage(id))
     }
 
@@ -34,12 +29,7 @@ class DependenciesSpec extends IntegrationSpec {
     val destinationActor0 = TestProbe()
     val destinationActor1 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends Orchestrator(m) {
-      //No state, snapshots and recovery
-      var state = Orchestrator.EmptyState
-      val saveSnapshotInterval: FiniteDuration = Duration.Zero
-      override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
-
+    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
       echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       echoCommand("One Command", destinationActor1.ref.path, SimpleMessage)
     }
@@ -62,12 +52,7 @@ class DependenciesSpec extends IntegrationSpec {
     val destinationActor0 = TestProbe()
     val destinationActor1 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends Orchestrator(m) {
-      //No state, snapshots and recovery
-      var state = Orchestrator.EmptyState
-      val saveSnapshotInterval: FiniteDuration = Duration.Zero
-      override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
-
+    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
       val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       echoCommand("One Command", destinationActor1.ref.path, SimpleMessage, Set(zeroCommand))
     }
@@ -92,12 +77,7 @@ class DependenciesSpec extends IntegrationSpec {
     val destinationActor1 = TestProbe()
     val destinationActor2 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends Orchestrator(m) {
-      //No state, snapshots and recovery
-      var state = Orchestrator.EmptyState
-      val saveSnapshotInterval: FiniteDuration = Duration.Zero
-      override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
-
+    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
       val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       val oneCommand = echoCommand("One Command", destinationActor1.ref.path, SimpleMessage, Set(zeroCommand))
       echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(oneCommand))
@@ -128,12 +108,7 @@ class DependenciesSpec extends IntegrationSpec {
     val destinationActor1 = TestProbe()
     val destinationActor2 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends Orchestrator(m) {
-      //No state, snapshots and recovery
-      var state = Orchestrator.EmptyState
-      val saveSnapshotInterval: FiniteDuration = Duration.Zero
-      override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
-
+    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
       val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       val oneCommand = echoCommand("One Command", destinationActor1.ref.path, SimpleMessage)
       echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(zeroCommand, oneCommand))

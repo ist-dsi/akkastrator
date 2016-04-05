@@ -10,14 +10,14 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.language.reflectiveCalls
 
 object Orchestrator {
-  case object StartReadyCommands
+  private[akkastrator] case object StartReadyCommands
 
-  case object SaveSnapshot
-  case class Retry(commandIndex: Int)
+  private case object SaveSnapshot
+  private[akkastrator] case class Retry(commandIndex: Int)
 
-  sealed trait Event
-  case class MessageSent(commandIndex: Int, retryIteration: Int) extends Event
-  case class ResponseReceived(response: Message, commandIndex: Int) extends Event
+  private[akkastrator] sealed trait Event
+  private[akkastrator] case class MessageSent(commandIndex: Int, retryIteration: Int) extends Event
+  private[akkastrator] case class ResponseReceived(response: Message, commandIndex: Int) extends Event
 
   trait State
   case object EmptyState extends State

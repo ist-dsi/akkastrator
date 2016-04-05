@@ -159,7 +159,7 @@ abstract class Command(val description: String, val dependencies: Set[Command] =
   /**
    * Confirms the message with id `deliveryId` was delivered.
    * Asks the orchestrator to start commands that are able to start.
-   * Updates the Orchestrator behavior to include this Command behavior.
+   * Updates the Orchestrator behavior to exclude this Command behavior.
    */
   final private def finishMessage(deliveryId: Long): Unit = {
     orchestrator.confirmDelivery(deliveryId)
@@ -168,7 +168,6 @@ abstract class Command(val description: String, val dependencies: Set[Command] =
     orchestrator.log.info(s"$loggingPrefix Finished(messageID=$deliveryId, retryIteration=${status.retryIteration})")
     //This starts commands that have a dependency on this command
     orchestrator.self ! StartReadyCommands
-    orchestrator.updateCurrentBehavior()
   }
   final def finish(receivedMessage: Message): Unit = status match {
     case Finished(id, _) if matchSenderAndId(receivedMessage) =>
