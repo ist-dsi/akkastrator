@@ -2,22 +2,11 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor._
 import akka.persistence.Recovery
-import akka.testkit.{TestKit, TestProbe}
-import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
+import akka.testkit.TestProbe
 
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 
-class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigFactory.load()))
-  with FunSuiteLike
-  with Matchers
-  with BeforeAndAfterAll
-  with TestUtils {
-
-  override def afterAll(): Unit = {
-    TestKit.shutdownActorSystem(system)
-  }
-
+class DependenciesSpec extends IntegrationSpec {
   test("Case 1: Send one message, handle the response and finish") {
     val destinationActor0 = TestProbe()
 
@@ -30,15 +19,16 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
       echoCommand("Zero Command", destinationActor0.ref.path, id => SimpleMessage(id))
     }
 
+    val actionId = 1L
     val (parentProxy, _) = fabricatedParent(
-      Props(new OneCommandOrchestrator(SimpleMessage(id = 1L))),
+      Props(new OneCommandOrchestrator(SimpleMessage(actionId))),
       "OneSimpleCommandOrchestrator"
     )
 
     val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
     destinationActor0.reply(SimpleMessage(a0m.id))
 
-    parentProxy.expectMsg(5.seconds, ActionFinished(id = 1L))
+    parentProxy.expectMsg(5.seconds, ActionFinished(actionId))
   }
   test("Case 2: Send two messages, handle the response with the same type and finish") {
     val destinationActor0 = TestProbe()
@@ -54,8 +44,9 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
       echoCommand("One Command", destinationActor1.ref.path, SimpleMessage)
     }
 
+    val actionId = 2L
     val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(id = 2L))),
+      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
       "TwoSimpleCommandOrchestrator"
     )
 
@@ -64,7 +55,7 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
     destinationActor0.reply(SimpleMessage(a0m.id))
     destinationActor1.reply(SimpleMessage(a1m.id))
 
-    parentProxy.expectMsg(5.seconds, ActionFinished(id = 2L))
+    parentProxy.expectMsg(5.seconds, ActionFinished(actionId))
   }
 
   test("Case 3: Handle dependencies: Zero -> One") {
@@ -81,8 +72,9 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
       echoCommand("One Command", destinationActor1.ref.path, SimpleMessage, Set(zeroCommand))
     }
 
+    val actionId = 3L
     val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(id = 3L))),
+      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
       "TwoDependentCommandOrchestrator"
     )
 
@@ -93,7 +85,7 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
     val a1m = destinationActor1.expectMsgClass(10.seconds, classOf[SimpleMessage])
     destinationActor1.reply(SimpleMessage(a1m.id))
 
-    parentProxy.expectMsg(15.seconds, ActionFinished(id = 3L))
+    parentProxy.expectMsg(15.seconds, ActionFinished(actionId))
   }
   test("Case 4: Handle dependencies: Zero -> One -> Two") {
     val destinationActor0 = TestProbe()
@@ -111,8 +103,9 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
       echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(oneCommand))
     }
 
+    val actionId = 4L
     val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(id = 4L))),
+      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
       "ThreeDependentCommandOrchestrator"
     )
 
@@ -128,7 +121,7 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
     val a2m = destinationActor2.expectMsgClass(10.seconds, classOf[SimpleMessage])
     destinationActor2.reply(SimpleMessage(a2m.id))
 
-    parentProxy.expectMsg(15.seconds, ActionFinished(id = 4L))
+    parentProxy.expectMsg(15.seconds, ActionFinished(actionId))
   }
   test("Case 5: Handle dependencies: (Zero, One) -> Two") {
     val destinationActor0 = TestProbe()
@@ -146,8 +139,9 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
       echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(zeroCommand, oneCommand))
     }
 
+    val actionId = 5L
     val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(id = 5L))),
+      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
       "ThreeDependentCommandOrchestrator"
     )
 
@@ -162,6 +156,6 @@ class Step1_DependenciesSpec extends TestKit(ActorSystem("Orchestrator", ConfigF
     val a2m = destinationActor2.expectMsgClass(10.seconds, classOf[SimpleMessage])
     destinationActor2.reply(SimpleMessage(a2m.id))
 
-    parentProxy.expectMsg(15.seconds, ActionFinished(id = 5L))
+    parentProxy.expectMsg(15.seconds, ActionFinished(actionId))
   }
 }

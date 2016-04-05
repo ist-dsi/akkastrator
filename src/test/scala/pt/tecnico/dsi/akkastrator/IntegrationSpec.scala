@@ -2,14 +2,23 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor.Actor._
 import akka.actor.SupervisorStrategy.Stop
-import akka.actor.{Actor, ActorPath, ActorRef, OneForOneStrategy, Props}
+import akka.actor.{Actor, ActorPath, ActorRef, ActorSystem, OneForOneStrategy, Props}
 import akka.event.LoggingReceive
 import akka.testkit.{TestKit, TestProbe}
+import com.typesafe.config.ConfigFactory
+import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
 import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
 
 import scala.concurrent.duration.DurationInt
 
-trait TestUtils { self: TestKit =>
+abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", ConfigFactory.load()))
+  with FunSuiteLike
+  with Matchers
+  with BeforeAndAfterAll {
+
+  override def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
+  }
 
   def echoCommand(name: String, _destination: ActorPath, message: MessageId => SimpleMessage,
                   dependencies: Set[Command] = Set.empty[Command])(implicit orchestrator: Orchestrator): Command = {
