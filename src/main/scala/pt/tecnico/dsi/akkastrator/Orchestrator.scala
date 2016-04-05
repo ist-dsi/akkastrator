@@ -24,7 +24,7 @@ object Orchestrator {
 }
 
 /**
- * An Orchestrator executes an Action, which is a set of Tasks. A Command executes a Task.
+ * An Orchestrator executes a set of, possibly dependent, tasks. Each individual task is executed by a Command.
  * A task corresponds to sending a message to an actor, handling its response and possibly
  * mutate the internal state of the Orchestrator.
  *
@@ -33,9 +33,9 @@ object Orchestrator {
  *  - Handling the persistence of the internal state maintained by both the Orchestrator and the Commands.
  *  - Delivering messages with at-least-once delivery guarantee.
  *  - Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
- *    status, the Orchestrator will respond with the status of each Task. The dependencies between tasks are not stated.
- *  - Performing business level retries. This is useful if one of the responses to a Task implies
- *    that the Task must be retried.
+ *    status, the Orchestrator will respond with the status of each task. The dependencies between tasks are not stated.
+ *  - Performing business level retries. This is useful if one of the responses to a task implies
+ *    that the task must be retried.
  *  - Commands that have no dependencies will be started right away and the Orchestrator will, from that point
  *    onwards, be prepared to handle the responses to the sent messages.
  *  - If the Orchestrator crashes, the state it maintains will be correctly restored.
@@ -44,22 +44,19 @@ object Orchestrator {
  *
  * In order for the Orchestrator and the Commands to be able to achieve all of this they have to access and/or modify
  * each others state directly. This means they are very tightly coupled with each other.
- *
- * @param action the action message that prompted the construction of this orchestrator.
- *                Used to verify if this orchestrator should respond to Status messages.
  */
-abstract class Orchestrator(action: Message) extends PersistentActor with ActorLogging with AtLeastOnceDelivery {
+trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDelivery {
   import Orchestrator._
   //This exists to make the creation of Commands more simple.
   implicit val orchestrator = this
 
-  log.info(s"Started for action message: $action")
+  log.info(s"Started Orchestrator ${this.getClass.getSimpleName}")
 
   /**
    * The persistenceId used by the akka-persistence module.
-   * The default value is this class simple name plus the id of `action`.
+   * The default value is this class simple name.
    */
-  val persistenceId: String = this.getClass.getSimpleName + action.id.toString
+  val persistenceId: String = this.getClass.getSimpleName
 
   private var commands: IndexedSeq[Command] = Vector.empty
   private[akkastrator] def addCommand(command: Command): Int = {
@@ -114,7 +111,6 @@ abstract class Orchestrator(action: Message) extends PersistentActor with ActorL
     case StartReadyCommands =>
       commands.filter(_.canStart).foreach(_.start())
       if (commands.forall(_.hasFinished)) {
-        onFinish()
         log.info(s"Finished!")
         context stop self
       }
@@ -124,20 +120,6 @@ abstract class Orchestrator(action: Message) extends PersistentActor with ActorL
       sender() ! StatusResponse(commands.map(_.toTask), id)
     case SaveSnapshot =>
       saveSnapshot(_state)
-  }
-
-  /**
-   * Once every command in the Orchestrator finishes this method is invoked.
-   * The default implementation sends an `ActionFinished` to the Orchestrator parent and deletes all
-   * persisted messages and snapshots. Simply override this method to obtain a different behavior.
-   *
-   * After this method executes the orchestrator is stopped.
-   */
-  def onFinish(): Unit = {
-    context.parent ! ActionFinished(action.id)
-    deleteMessages(lastSequenceNr + 1)
-    deleteSnapshots(SnapshotSelectionCriteria())
-    //Should we handle DeleteMessagesSuccess and DeleteSnapshotsSuccess?
   }
 
   final def receiveCommand: Receive = orchestratorReceive

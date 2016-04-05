@@ -1,67 +1,54 @@
 package pt.tecnico.dsi.akkastrator
 
 import akka.actor._
-import akka.persistence.Recovery
 import akka.testkit.TestProbe
 
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
+import scala.concurrent.duration.DurationInt
 
 class DependenciesSpec extends IntegrationSpec {
   test("Case 1: Send one message, handle the response and finish") {
     val destinationActor0 = TestProbe()
 
-    class OneCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
+    val probe = TestProbe()
+    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
       echoCommand("Zero Command", destinationActor0.ref.path, id => SimpleMessage(id))
-    }
+    }))
+    probe.watch(orchestrator)
 
-    val actionId = 1L
-    val (parentProxy, _) = fabricatedParent(
-      Props(new OneCommandOrchestrator(SimpleMessage(actionId))),
-      "OneSimpleCommandOrchestrator"
-    )
-
-    val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
+    val a0m = destinationActor0.expectMsgClass(3.seconds, classOf[SimpleMessage])
     destinationActor0.reply(SimpleMessage(a0m.id))
 
-    parentProxy.expectMsg(5.seconds, ActionFinished(actionId))
+    probe.expectMsgPF(5.seconds){ case Terminated(o) if o == orchestrator => true }
   }
   test("Case 2: Send two messages, handle the response with the same type and finish") {
     val destinationActor0 = TestProbe()
     val destinationActor1 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
+    val probe = TestProbe()
+    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
       echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       echoCommand("One Command", destinationActor1.ref.path, SimpleMessage)
-    }
-
-    val actionId = 2L
-    val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
-      "TwoSimpleCommandOrchestrator"
-    )
+    }))
+    probe.watch(orchestrator)
 
     val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
     val a1m = destinationActor1.expectMsgClass(2.seconds, classOf[SimpleMessage])
     destinationActor0.reply(SimpleMessage(a0m.id))
     destinationActor1.reply(SimpleMessage(a1m.id))
 
-    parentProxy.expectMsg(5.seconds, ActionFinished(actionId))
+    probe.expectMsgPF(5.seconds){ case Terminated(o) if o == orchestrator => true }
   }
 
   test("Case 3: Handle dependencies: Zero -> One") {
     val destinationActor0 = TestProbe()
     val destinationActor1 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
+    val probe = TestProbe()
+    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
       val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       echoCommand("One Command", destinationActor1.ref.path, SimpleMessage, Set(zeroCommand))
-    }
-
-    val actionId = 3L
-    val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
-      "TwoDependentCommandOrchestrator"
-    )
+    }))
+    probe.watch(orchestrator)
 
     val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
     destinationActor1.expectNoMsg(2.seconds)
@@ -70,24 +57,20 @@ class DependenciesSpec extends IntegrationSpec {
     val a1m = destinationActor1.expectMsgClass(10.seconds, classOf[SimpleMessage])
     destinationActor1.reply(SimpleMessage(a1m.id))
 
-    parentProxy.expectMsg(15.seconds, ActionFinished(actionId))
+    probe.expectMsgPF(15.seconds){ case Terminated(o) if o == orchestrator => true }
   }
   test("Case 4: Handle dependencies: Zero -> One -> Two") {
     val destinationActor0 = TestProbe()
     val destinationActor1 = TestProbe()
     val destinationActor2 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
+    val probe = TestProbe()
+    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
       val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       val oneCommand = echoCommand("One Command", destinationActor1.ref.path, SimpleMessage, Set(zeroCommand))
       echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(oneCommand))
-    }
-
-    val actionId = 4L
-    val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
-      "ThreeDependentCommandOrchestrator"
-    )
+    }))
+    probe.watch(orchestrator)
 
     val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
     destinationActor1.expectNoMsg(2.seconds)
@@ -101,24 +84,20 @@ class DependenciesSpec extends IntegrationSpec {
     val a2m = destinationActor2.expectMsgClass(10.seconds, classOf[SimpleMessage])
     destinationActor2.reply(SimpleMessage(a2m.id))
 
-    parentProxy.expectMsg(15.seconds, ActionFinished(actionId))
+    probe.expectMsgPF(15.seconds){ case Terminated(o) if o == orchestrator => true }
   }
   test("Case 5: Handle dependencies: (Zero, One) -> Two") {
     val destinationActor0 = TestProbe()
     val destinationActor1 = TestProbe()
     val destinationActor2 = TestProbe()
 
-    class TwoCommandOrchestrator(m: SimpleMessage) extends StatelessOrchestrator(m) {
+    val probe = TestProbe()
+    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
       val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
       val oneCommand = echoCommand("One Command", destinationActor1.ref.path, SimpleMessage)
       echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(zeroCommand, oneCommand))
-    }
-
-    val actionId = 5L
-    val (parentProxy, _) = fabricatedParent(
-      Props(new TwoCommandOrchestrator(SimpleMessage(actionId))),
-      "ThreeDependentCommandOrchestrator"
-    )
+    }))
+    probe.watch(orchestrator)
 
     val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
     destinationActor2.expectNoMsg(2.seconds)
@@ -131,6 +110,6 @@ class DependenciesSpec extends IntegrationSpec {
     val a2m = destinationActor2.expectMsgClass(10.seconds, classOf[SimpleMessage])
     destinationActor2.reply(SimpleMessage(a2m.id))
 
-    parentProxy.expectMsg(15.seconds, ActionFinished(actionId))
+    probe.expectMsgPF(15.seconds){ case Terminated(o) if o == orchestrator => true }
   }
 }

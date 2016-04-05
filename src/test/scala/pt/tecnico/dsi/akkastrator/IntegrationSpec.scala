@@ -4,7 +4,7 @@ import akka.actor.Actor._
 import akka.actor.SupervisorStrategy.Stop
 import akka.actor.{Actor, ActorPath, ActorRef, ActorSystem, OneForOneStrategy, Props}
 import akka.event.LoggingReceive
-import akka.persistence.Recovery
+import akka.persistence.{Recovery, SnapshotSelectionCriteria}
 import akka.testkit.{TestKit, TestProbe}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
@@ -21,11 +21,17 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     TestKit.shutdownActorSystem(system)
   }
 
-  abstract class StatelessOrchestrator[M <: Message](m: Message) extends Orchestrator(m) {
+  abstract class StatelessOrchestrator extends Orchestrator {
     //No state, snapshots and recovery
     var state = Orchestrator.EmptyState
     val saveSnapshotInterval: FiniteDuration = Duration.Zero
     override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
+
+    override def postStop(): Unit = {
+      super.postStop()
+      deleteMessages(lastSequenceNr + 1)
+      deleteSnapshots(SnapshotSelectionCriteria())
+    }
   }
 
   def echoCommand(name: String, _destination: ActorPath, message: MessageId => SimpleMessage,
@@ -44,14 +50,10 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     }
   }
 
-  def fabricatedParent(childProps: Props, childName: String): (TestProbe, ActorRef) = {
+  /*def fabricatedParent(childProps: Props, childName: String): (TestProbe, ActorRef) = {
     val parentProxy = TestProbe()
+
     val parent = system.actorOf(Props(new Actor {
-
-      override def supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 2, withinTimeRange = 1.minute) {
-        case _: Throwable => Stop
-      }
-
       val child = context.actorOf(childProps, childName)
 
       def receive = {
@@ -61,6 +63,6 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     }))
 
     (parentProxy, parent)
-  }
+  }*/
   
 }
