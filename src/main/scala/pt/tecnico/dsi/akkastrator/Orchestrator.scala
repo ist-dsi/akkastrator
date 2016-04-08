@@ -16,7 +16,7 @@ object Orchestrator {
   private[akkastrator] case class Retry(commandIndex: Int)
 
   private[akkastrator] sealed trait Event
-  private[akkastrator] case class MessageSent(commandIndex: Int, retryIteration: Int) extends Event
+  private[akkastrator] case class MessageSent(commandIndex: Int) extends Event
   private[akkastrator] case class ResponseReceived(response: Message, commandIndex: Int) extends Event
 
   trait State
@@ -75,7 +75,7 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
   val saveSnapshotInterval: FiniteDuration
 
   /**
-    * How long to wait when performing a business resend.
+    * How long to wait when performing a business retry.
     *
     * Be default this is an exponential backoff where each iteration will wait the double
     * amount of time of the last iteration.
@@ -111,7 +111,7 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
     case StartReadyCommands =>
       commands.filter(_.canStart).foreach(_.start())
       if (commands.forall(_.hasFinished)) {
-        log.info(s"Finished!")
+        log.info(s"Orchestrator Finished!")
         context stop self
       }
     case Retry(commandIndex) =>
@@ -127,13 +127,13 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
   final def receiveRecover: Receive = {
     case SnapshotOffer(metadata, offeredSnapshot) =>
       state = offeredSnapshot.asInstanceOf[State]
-    case MessageSent(commandIndex, retryIteration) =>
+    case MessageSent(commandIndex) =>
       val command = commands(commandIndex)
-      log.info(s"${command.loggingPrefix} Recovering MessageSent")
-      command.start(retryIteration)
+      log.info(command.withLoggingPrefix("Recovering MessageSent"))
+      command.start()
     case ResponseReceived(_message, commandIndex) =>
       val command = commands(commandIndex)
-      log.info(s"${command.loggingPrefix} Recovering ResponseReceived")
+      log.info(command.withLoggingPrefix("Recovering ResponseReceived"))
       command.behavior.apply(_message)
     case RecoveryCompleted =>
       //This gets us started

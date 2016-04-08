@@ -1,10 +1,9 @@
 package pt.tecnico.dsi.akkastrator
 
 import akka.actor.Actor._
-import akka.actor.SupervisorStrategy.Stop
-import akka.actor.{Actor, ActorPath, ActorRef, ActorSystem, OneForOneStrategy, Props}
+import akka.actor.{ActorPath, ActorRef, ActorSystem, Props, Terminated}
 import akka.event.LoggingReceive
-import akka.persistence.{Recovery, SnapshotSelectionCriteria}
+import akka.persistence.SnapshotSelectionCriteria
 import akka.testkit.{TestKit, TestProbe}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
@@ -25,7 +24,6 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     //No state, snapshots and recovery
     var state = Orchestrator.EmptyState
     val saveSnapshotInterval: FiniteDuration = Duration.Zero
-    override def preStart(): Unit = self ! Recovery(toSequenceNr = 0L)
 
     override def postStop(): Unit = {
       super.postStop()
@@ -44,25 +42,65 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
 
       def behavior: Receive = LoggingReceive {
         case m: SimpleMessage if matchSenderAndId(m) =>
-          orchestrator.log.info(s"$loggingPrefix Received $m from ${orchestrator.sender()}")
           finish(m)
       }
     }
   }
 
-  /*def fabricatedParent(childProps: Props, childName: String): (TestProbe, ActorRef) = {
-    val parentProxy = TestProbe()
+  def NChainedCommandsOrchestrator(n: Int): (Array[TestProbe], ActorRef) = {
+    require(n >= 2, "Must have at least 2 commands")
+    val destinations = Array.fill(n)(TestProbe())
 
-    val parent = system.actorOf(Props(new Actor {
-      val child = context.actorOf(childProps, childName)
+    val letters = 'A' to 'Z'
+    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
+      var last = echoCommand(letters(0).toString, destinations(0).ref.path, SimpleMessage)
 
-      def receive = {
-        case x if sender == child => parentProxy.ref forward x
-        case x => child forward x
+      for (i <- 1 until n) {
+        val current = echoCommand(letters(i).toString, destinations(i).ref.path, SimpleMessage, Set(last))
+        last = current
       }
     }))
 
-    (parentProxy, parent)
-  }*/
-  
+    (destinations, orchestrator)
+  }
+  def testNChainedEchoCommands(n: Int): Unit = {
+    require(n >= 2, "Must have at least 2 commands")
+    val (destinations, orchestrator) = NChainedCommandsOrchestrator(n)
+
+    val probe = TestProbe()
+    probe.watch(orchestrator)
+
+    for (i <- 0 until n) {
+      val message = destinations(i).expectMsgClass(100.millis, classOf[SimpleMessage])
+      for (j <- (i + 1) until n) {
+        destinations(j).expectNoMsg(50.millis)
+      }
+      destinations(i).reply(SimpleMessage(message.id))
+    }
+
+    probe.expectMsgPF((n * 200).millis){ case Terminated(o) if o == orchestrator => true }
+  }
+
+  def withOrchestratorTermination(orchestrator: ActorRef, maxDuration: Duration = 1.second)(f: TestProbe => Unit): Unit = {
+    val probe = TestProbe()
+    probe.watch(orchestrator)
+    f(probe)
+    probe.expectMsgPF(maxDuration){ case Terminated(o) if o == orchestrator => true }
+  }
+
+  var _seqCounter = 0L
+  def nextSeq() = {
+    val ret = _seqCounter
+    _seqCounter += 1
+    ret
+  }
+
+  def testStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: Duration = 200.millis)
+                   (obtainedTasksMatch: Seq[Task] => Boolean): Unit = {
+    val statusId = nextSeq()
+    orchestrator.tell(Status(statusId), probe.ref)
+    probe.expectMsgPF(maxDuration) {
+      case StatusResponse(obtainedTasks, `statusId`) if obtainedTasksMatch(obtainedTasks) => true
+    }
+  }
 }

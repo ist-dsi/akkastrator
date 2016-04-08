@@ -9,107 +9,61 @@ class DependenciesSpec extends IntegrationSpec {
   test("Case 1: Send one message, handle the response and finish") {
     val destinationActor0 = TestProbe()
 
-    val probe = TestProbe()
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      echoCommand("Zero Command", destinationActor0.ref.path, id => SimpleMessage(id))
+      echoCommand("A", destinationActor0.ref.path, id => SimpleMessage(id))
     }))
-    probe.watch(orchestrator)
 
-    val a0m = destinationActor0.expectMsgClass(3.seconds, classOf[SimpleMessage])
-    destinationActor0.reply(SimpleMessage(a0m.id))
-
-    probe.expectMsgPF(5.seconds){ case Terminated(o) if o == orchestrator => true }
+    withOrchestratorTermination(orchestrator) { _ =>
+      val a0m = destinationActor0.expectMsgClass(500.millis, classOf[SimpleMessage])
+      destinationActor0.reply(SimpleMessage(a0m.id))
+    }
   }
   test("Case 2: Send two messages, handle the response with the same type and finish") {
-    val destinationActor0 = TestProbe()
-    val destinationActor1 = TestProbe()
+    val destinations = Array.fill(2)(TestProbe())
 
-    val probe = TestProbe()
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
-      echoCommand("One Command", destinationActor1.ref.path, SimpleMessage)
+      echoCommand("A", destinations(0).ref.path, SimpleMessage)
+      echoCommand("B", destinations(1).ref.path, SimpleMessage)
     }))
-    probe.watch(orchestrator)
 
-    val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
-    val a1m = destinationActor1.expectMsgClass(2.seconds, classOf[SimpleMessage])
-    destinationActor0.reply(SimpleMessage(a0m.id))
-    destinationActor1.reply(SimpleMessage(a1m.id))
-
-    probe.expectMsgPF(5.seconds){ case Terminated(o) if o == orchestrator => true }
+    withOrchestratorTermination(orchestrator) { _ =>
+      val a0m = destinations(0).expectMsgClass(500.millis, classOf[SimpleMessage])
+      val a1m = destinations(1).expectMsgClass(500.millis, classOf[SimpleMessage])
+      destinations(0).reply(SimpleMessage(a0m.id))
+      destinations(1).reply(SimpleMessage(a1m.id))
+    }
   }
 
-  test("Case 3: Handle dependencies: Zero -> One") {
-    val destinationActor0 = TestProbe()
-    val destinationActor1 = TestProbe()
-
-    val probe = TestProbe()
-    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
-      echoCommand("One Command", destinationActor1.ref.path, SimpleMessage, Set(zeroCommand))
-    }))
-    probe.watch(orchestrator)
-
-    val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
-    destinationActor1.expectNoMsg(2.seconds)
-    destinationActor0.reply(SimpleMessage(a0m.id))
-
-    val a1m = destinationActor1.expectMsgClass(10.seconds, classOf[SimpleMessage])
-    destinationActor1.reply(SimpleMessage(a1m.id))
-
-    probe.expectMsgPF(15.seconds){ case Terminated(o) if o == orchestrator => true }
+  test("Case 3: Handle dependencies: A -> B") {
+    testNChainedEchoCommands(2)
   }
-  test("Case 4: Handle dependencies: Zero -> One -> Two") {
-    val destinationActor0 = TestProbe()
-    val destinationActor1 = TestProbe()
-    val destinationActor2 = TestProbe()
-
-    val probe = TestProbe()
-    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
-      val oneCommand = echoCommand("One Command", destinationActor1.ref.path, SimpleMessage, Set(zeroCommand))
-      echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(oneCommand))
-    }))
-    probe.watch(orchestrator)
-
-    val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
-    destinationActor1.expectNoMsg(2.seconds)
-    destinationActor2.expectNoMsg(2.seconds)
-    destinationActor0.reply(SimpleMessage(a0m.id))
-
-    val a1m = destinationActor1.expectMsgClass(7.seconds, classOf[SimpleMessage])
-    destinationActor2.expectNoMsg(2.seconds)
-    destinationActor1.reply(SimpleMessage(a1m.id))
-
-    val a2m = destinationActor2.expectMsgClass(10.seconds, classOf[SimpleMessage])
-    destinationActor2.reply(SimpleMessage(a2m.id))
-
-    probe.expectMsgPF(15.seconds){ case Terminated(o) if o == orchestrator => true }
+  test("Case 4: Handle dependencies: A -> B -> C") {
+    testNChainedEchoCommands(3)
   }
-  test("Case 5: Handle dependencies: (Zero, One) -> Two") {
-    val destinationActor0 = TestProbe()
-    val destinationActor1 = TestProbe()
-    val destinationActor2 = TestProbe()
+  test("Case 5: Handle dependencies: A -> ... -> J") {
+    //We want 10 commands to ensure the command colors will repeat
+    testNChainedEchoCommands(10)
+  }
+  test("Case 6: Handle dependencies: (A, B) -> C") {
+    val destinations = Array.fill(3)(TestProbe())
 
-    val probe = TestProbe()
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      val zeroCommand = echoCommand("Zero Command", destinationActor0.ref.path, SimpleMessage)
-      val oneCommand = echoCommand("One Command", destinationActor1.ref.path, SimpleMessage)
-      echoCommand("Two Command", destinationActor2.ref.path, SimpleMessage, Set(zeroCommand, oneCommand))
+      val A = echoCommand("A", destinations(0).ref.path, SimpleMessage)
+      val B = echoCommand("B", destinations(1).ref.path, SimpleMessage)
+      echoCommand("C", destinations(2).ref.path, SimpleMessage, Set(A, B))
     }))
-    probe.watch(orchestrator)
 
-    val a0m = destinationActor0.expectMsgClass(2.seconds, classOf[SimpleMessage])
-    destinationActor2.expectNoMsg(2.seconds)
-    destinationActor0.reply(SimpleMessage(a0m.id))
+    withOrchestratorTermination(orchestrator) { _ =>
+      val a0m = destinations(0).expectMsgClass(500.millis, classOf[SimpleMessage])
+      destinations(2).expectNoMsg(100.millis)
+      destinations(0).reply(SimpleMessage(a0m.id))
 
-    val a1m = destinationActor1.expectMsgClass(2.seconds, classOf[SimpleMessage])
-    destinationActor2.expectNoMsg(2.seconds)
-    destinationActor1.reply(SimpleMessage(a1m.id))
+      val a1m = destinations(1).expectMsgClass(500.millis, classOf[SimpleMessage])
+      destinations(2).expectNoMsg(100.millis)
+      destinations(1).reply(SimpleMessage(a1m.id))
 
-    val a2m = destinationActor2.expectMsgClass(10.seconds, classOf[SimpleMessage])
-    destinationActor2.reply(SimpleMessage(a2m.id))
-
-    probe.expectMsgPF(15.seconds){ case Terminated(o) if o == orchestrator => true }
+      val a2m = destinations(2).expectMsgClass(500.millis, classOf[SimpleMessage])
+      destinations(2).reply(SimpleMessage(a2m.id))
+    }
   }
 }

@@ -6,18 +6,14 @@ import pt.tecnico.dsi.akkastrator.Message.MessageId
 case class Status(id: MessageId)
 
 object Task {
-  sealed trait Status {
-    val retryIteration: Int
-  }
-  case object Unstarted extends Status {
-    val retryIteration = 0
-  }
-  case class Waiting(messageId: MessageId, retryIteration: Int = 0) extends Status
-  case class WaitingToRetry(retryIteration: Int) extends Status
-  case class Finished(messageId: MessageId, retryIteration: Int = 0) extends Status
+  sealed trait Status
+  case object Unstarted extends Status
+  case object Waiting extends Status
+  case object WaitingToRetry extends Status
+  case object Finished extends Status
 }
 //TODO: Should we state the dependencies between tasks?
-case class Task(description: String, status: Task.Status)
+case class Task(description: String, status: Task.Status, numberOfRetries: Int)
 
 //Response
 case class StatusResponse(tasks: Seq[Task], id: MessageId)
