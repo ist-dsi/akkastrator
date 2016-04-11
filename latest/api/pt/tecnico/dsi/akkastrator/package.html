@@ -1,0 +1,237 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>akkastrator - pt.tecnico.dsi.akkastrator</title>
+          <meta name="description" content="akkastrator - pt.tecnico.dsi.akkastrator" />
+          <meta name="keywords" content="akkastrator pt.tecnico.dsi.akkastrator" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'pt.tecnico.dsi.akkastrator.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="pt">pt</a>.<a href="../../package.html" class="extype" name="pt.tecnico">tecnico</a>.<a href="../package.html" class="extype" name="pt.tecnico.dsi">dsi</a></p>
+        <h1>akkastrator</h1><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">akkastrator</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="pt.tecnico.dsi.akkastrator.Orchestrator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="OrchestratorextendsPersistentActorwithActorLoggingwithAtLeastOnceDelivery"></a>
+      <a id="Orchestrator:Orchestrator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Orchestrator.html"><span class="name">Orchestrator</span></a><span class="result"> extends <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.3/akka-persistence_2.11-2.4.3-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.3/akka-actor_2.11-2.4.3-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.3/akka-persistence_2.11-2.4.3-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@OrchestratorextendsPersistentActorwithActorLoggingwithAtLeastOnceDelivery" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">An Orchestrator executes a set of, possibly dependent, <code>Task</code>s.</p><div class="fullcomment"><div class="comment cmt"><p>An Orchestrator executes a set of, possibly dependent, <code>Task</code>s.
+A task corresponds to sending a message to an actor, handling its response and possibly
+mutate the internal state of the Orchestrator.</p><p>The Orchestrator together with the Task is able to:</p><ul><li>Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.</li><li>Delivering messages with at-least-once delivery guarantee.</li><li>Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
+   status, the Orchestrator will respond with the status of each task.</li><li>Tasks that have no dependencies will be started right away and the Orchestrator will, from that point
+   onwards, be prepared to handle the responses to the sent messages.</li><li>If the Orchestrator crashes, the state it maintains will be correctly restored.</li></ul><p>NOTE: the responses that are received must be Serializable.</p><p>In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and/or modify
+each others state directly. This means they are very tightly coupled with each other.
+</p></div></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Status" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StatusextendsProductwithSerializable"></a>
+      <a id="Status:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Status.html"><span class="name">Status</span></a><span class="params">(<span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@StatusextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.StatusResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StatusResponseextendsProductwithSerializable"></a>
+      <a id="StatusResponse:StatusResponse"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="StatusResponse.html"><span class="name">StatusResponse</span></a><span class="params">(<span name="tasks">tasks: <span class="extype" name="scala.Seq">Seq</span>[<a href="TaskStatus.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskStatus">TaskStatus</a>]</span>, <span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@StatusResponseextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Task" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="TaskextendsAnyRef"></a>
+      <a id="Task:Task"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Task.html"><span class="name">Task</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TaskextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A task corresponds to sending a message to an actor, handling its response and possibly
+mutate the internal state of the Orchestrator.</p><div class="fullcomment"><div class="comment cmt"><p>A task corresponds to sending a message to an actor, handling its response and possibly
+mutate the internal state of the Orchestrator.
+The answer(s) to the sent message must be handled in <code>behavior</code>.
+<code>behavior</code> must invoke <code>finish</code> when no further processing is necessary.
+The pattern matching inside <code>behavior</code> should invoke <code>matchSenderAndID</code> to ensure
+the received message is in fact the one that we were waiting to receive.
+The internal state of the orchestrator might be mutated inside <code>behavior</code>.</p><p>This class is super tightly coupled with Orchestrator and the reverse is also true.</p><p>This class changes the internal state of the orchestrator:</p><ul><li>The task constructor adds the constructed task to the <code>tasks</code> variable.</li><li>Inside <code>behavior</code> the internal state of the orchestrator may be changed.</li><li>If all tasks are finished the orchestrator will be stopped.</li><li>Otherwise, the next behavior of the orchestrator will be computed.</li></ul><p>In exchange the orchestrator changes the internal state of the task:</p><ul><li>By invoking <code>start</code> which changes the task status to Waiting.
+</li></ul></div></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TaskStatusextendsProductwithSerializable"></a>
+      <a id="TaskStatus:TaskStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="TaskStatus.html"><span class="name">TaskStatus</span></a><span class="params">(<span name="index">index: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="status">status: <a href="Task$$Status.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task.Status">Task.Status</a></span>, <span name="dependencies">dependencies: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TaskStatusextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="pt.tecnico.dsi.akkastrator.Orchestrator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Orchestrator"></a>
+      <a id="Orchestrator:Orchestrator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Orchestrator$.html"><span class="name">Orchestrator</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Orchestrator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Task" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Task"></a>
+      <a id="Task:Task"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Task$.html"><span class="name">Task</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Task" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
