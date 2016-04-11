@@ -10,7 +10,7 @@ class DependenciesSpec extends IntegrationSpec {
     val destinationActor0 = TestProbe()
 
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      echoCommand("A", destinationActor0.ref.path, id => SimpleMessage(id))
+      echoTask("A", destinationActor0.ref.path)
     }))
 
     withOrchestratorTermination(orchestrator) { _ =>
@@ -22,8 +22,8 @@ class DependenciesSpec extends IntegrationSpec {
     val destinations = Array.fill(2)(TestProbe())
 
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      echoCommand("A", destinations(0).ref.path, SimpleMessage)
-      echoCommand("B", destinations(1).ref.path, SimpleMessage)
+      echoTask("A", destinations(0).ref.path)
+      echoTask("B", destinations(1).ref.path)
     }))
 
     withOrchestratorTermination(orchestrator) { _ =>
@@ -35,22 +35,22 @@ class DependenciesSpec extends IntegrationSpec {
   }
 
   test("Case 3: Handle dependencies: A -> B") {
-    testNChainedEchoCommands(2)
+    testNChainedEchoTasks(2)
   }
   test("Case 4: Handle dependencies: A -> B -> C") {
-    testNChainedEchoCommands(3)
+    testNChainedEchoTasks(3)
   }
   test("Case 5: Handle dependencies: A -> ... -> J") {
     //We want 10 commands to ensure the command colors will repeat
-    testNChainedEchoCommands(10)
+    testNChainedEchoTasks(10)
   }
   test("Case 6: Handle dependencies: (A, B) -> C") {
     val destinations = Array.fill(3)(TestProbe())
 
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      val A = echoCommand("A", destinations(0).ref.path, SimpleMessage)
-      val B = echoCommand("B", destinations(1).ref.path, SimpleMessage)
-      echoCommand("C", destinations(2).ref.path, SimpleMessage, Set(A, B))
+      val A = echoTask("A", destinations(0).ref.path)
+      val B = echoTask("B", destinations(1).ref.path)
+      echoTask("C", destinations(2).ref.path, Set(A, B))
     }))
 
     withOrchestratorTermination(orchestrator) { _ =>

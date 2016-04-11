@@ -25,9 +25,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.4" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
   //Configuration
-  "com.typesafe" % "config" % "1.3.0",
-  "pt.tecnico.dsi" %% "backoff" % "1.0.3"
-)
+  "com.typesafe" % "config" % "1.3.0"
+}
 
 //This is needed for LevelDB to work in tests
 fork in Test := true

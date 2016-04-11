@@ -3,51 +3,45 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.ActorLogging
 import akka.event.LoggingReceive
 import akka.persistence._
-import pt.tecnico.dsi.Backoff
-import pt.tecnico.dsi.akkastrator.Message.Message
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.language.reflectiveCalls
 
 object Orchestrator {
-  private[akkastrator] case object StartReadyCommands
+  private[akkastrator] case object StartReadyTasks
 
   private case object SaveSnapshot
-  private[akkastrator] case class Retry(commandIndex: Int)
 
   private[akkastrator] sealed trait Event
-  private[akkastrator] case class MessageSent(commandIndex: Int) extends Event
-  private[akkastrator] case class ResponseReceived(response: Message, commandIndex: Int) extends Event
+  private[akkastrator] case class MessageSent(taskIndex: Int) extends Event
+  private[akkastrator] case class ResponseReceived(response: Any, taskIndex: Int) extends Event
 
   trait State
   case object EmptyState extends State
 }
 
 /**
- * An Orchestrator executes a set of, possibly dependent, tasks. Each individual task is executed by a Command.
+ * An Orchestrator executes a set of, possibly dependent, `Task`s.
  * A task corresponds to sending a message to an actor, handling its response and possibly
  * mutate the internal state of the Orchestrator.
  *
- * The Orchestrator together with the Command is able to:
+ * The Orchestrator together with the Task is able to:
  *
- *  - Handling the persistence of the internal state maintained by both the Orchestrator and the Commands.
+ *  - Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.
  *  - Delivering messages with at-least-once delivery guarantee.
  *  - Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
- *    status, the Orchestrator will respond with the status of each task. The dependencies between tasks are not stated.
- *  - Performing business level retries. This is useful if one of the responses to a task implies
- *    that the task must be retried.
- *  - Commands that have no dependencies will be started right away and the Orchestrator will, from that point
+ *    status, the Orchestrator will respond with the status of each task.
+ *  - Tasks that have no dependencies will be started right away and the Orchestrator will, from that point
  *    onwards, be prepared to handle the responses to the sent messages.
  *  - If the Orchestrator crashes, the state it maintains will be correctly restored.
  *
  * NOTE: the responses that are received must be Serializable.
  *
- * In order for the Orchestrator and the Commands to be able to achieve all of this they have to access and/or modify
+ * In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and/or modify
  * each others state directly. This means they are very tightly coupled with each other.
  */
 trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDelivery {
   import Orchestrator._
-  //This exists to make the creation of Commands more simple.
+  //This exists to make the creation of Tasks more simple.
   implicit val orchestrator = this
 
   log.info(s"Started Orchestrator ${this.getClass.getSimpleName}")
@@ -58,11 +52,10 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
    */
   val persistenceId: String = this.getClass.getSimpleName
 
-  private var commands: IndexedSeq[Command] = Vector.empty
-  private[akkastrator] def addCommand(command: Command): Int = {
-    require(commands.contains(command) == false, "Command already exists. Commands must be unique.")
-    val index = commands.length
-    commands :+= command
+  private var tasks: IndexedSeq[Task] = Vector.empty
+  private[akkastrator] def addTask(task: Task): Int = {
+    val index = tasks.length
+    tasks :+= task
     index
   }
 
@@ -75,49 +68,24 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
   val saveSnapshotInterval: FiniteDuration
 
   /**
-    * How long to wait when performing a business retry.
-    *
-    * Be default this is an exponential backoff where each iteration will wait the double
-    * amount of time of the last iteration.
-    *
-    * Simply override this method to obtain a different behavior.
-    *
-    * By default the backoff of every command in this orchestrator simply calls this one.
-    * You can specify a different backoff for a specific command by overriding its backoff function.
-    *
-    * @param iteration how many times was the message sent
-    * @return how long to wait
-    */
-  def backoff(iteration: Int): FiniteDuration = {
-    require(iteration >= 0, "Iteration must be positive.")
-    Backoff.exponential(iteration)
-  }
-
-  //TODO: If an orchestrator has more than on command talking with the same actor simultaneously the method matchSenderAndId
-  //TODO: wont be sufficient to disambiguate for which command the message was destined, specially if both messages are of
-  //TODO: the same type and the commands are all waiting for that message type.
-
-  /**
-   * @return the behaviors of the commands which are waiting plus `orchestratorReceive`.
+   * @return the behaviors of the tasks which are waiting plus `orchestratorReceive`.
    */
   protected[akkastrator] def updateCurrentBehavior(): Unit = {
-    val commandBehaviors = commands.filter(_.isWaiting).map(_.behavior)
+    val taskBehaviors = tasks.filter(_.isWaiting).map(_.behavior)
     //Since orchestratorReceive always exists the reduce wont fail
-    val newBehavior = (commandBehaviors :+ orchestratorReceive).reduce(_ orElse _)
+    val newBehavior = (taskBehaviors :+ orchestratorReceive).reduce(_ orElse _)
     context.become(newBehavior)
   }
 
   private def orchestratorReceive: Receive = LoggingReceive {
-    case StartReadyCommands =>
-      commands.filter(_.canStart).foreach(_.start())
-      if (commands.forall(_.hasFinished)) {
+    case StartReadyTasks =>
+      tasks.filter(_.canStart).foreach(_.start())
+      if (tasks.forall(_.hasFinished)) {
         log.info(s"Orchestrator Finished!")
         context stop self
       }
-    case Retry(commandIndex) =>
-      commands(commandIndex).start()
     case Status(id) =>
-      sender() ! StatusResponse(commands.map(_.toTask), id)
+      sender() ! StatusResponse(tasks.map(_.toTaskStatus), id)
     case SaveSnapshot =>
       saveSnapshot(_state)
   }
@@ -127,17 +95,17 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
   final def receiveRecover: Receive = {
     case SnapshotOffer(metadata, offeredSnapshot) =>
       state = offeredSnapshot.asInstanceOf[State]
-    case MessageSent(commandIndex) =>
-      val command = commands(commandIndex)
-      log.info(command.withLoggingPrefix("Recovering MessageSent"))
-      command.start()
-    case ResponseReceived(_message, commandIndex) =>
-      val command = commands(commandIndex)
-      log.info(command.withLoggingPrefix("Recovering ResponseReceived"))
-      command.behavior.apply(_message)
+    case MessageSent(taskIndex) =>
+      val task = tasks(taskIndex)
+      log.info(task.withLoggingPrefix("Recovering MessageSent"))
+      task.start()
+    case ResponseReceived(message, taskIndex) =>
+      val task = tasks(taskIndex)
+      log.info(task.withLoggingPrefix("Recovering ResponseReceived"))
+      task.behavior.apply(message)
     case RecoveryCompleted =>
       //This gets us started
-      self ! StartReadyCommands
+      self ! StartReadyTasks
 
       import context.dispatcher
       if (saveSnapshotInterval != Duration.Zero) {

@@ -6,48 +6,48 @@ import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting}
 
 import scala.concurrent.duration.DurationInt
 
-class BusinessRetryAndStatusSpec extends IntegrationSpec {
+class StatusSpec extends IntegrationSpec {
   test("Case 1: a command status should be Unstarted -> Waiting -> Finished") {
     val destinationActor0 = TestProbe()
 
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      echoCommand("Command0", destinationActor0.ref.path, SimpleMessage)
+      echoTask("Command0", destinationActor0.ref.path)
     }))
 
     withOrchestratorTermination(orchestrator){ probe =>
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Unstarted | Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Unstarted | Waiting, _)) => true
       }
 
       val a0m = destinationActor0.expectMsgClass(1.seconds, classOf[SimpleMessage])
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Waiting | Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Waiting | Waiting, _)) => true
       }
 
       destinationActor0.reply(SimpleMessage(a0m.id))
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Finished | Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Finished | Waiting, _)) => true
       }
     }
   }
 
   test("Case 2: status of two sequential commands should be independent") {
-    val (destinations, orchestrator) = NChainedCommandsOrchestrator(2)
+    val (destinations, orchestrator) = NChainedTasksOrchestrator(2)
 
     withOrchestratorTermination(orchestrator) { probe =>
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Unstarted | Waiting, 0),
-                 Task(_, Unstarted, 0)) => true
+        case Seq(TaskStatus(0, _, Unstarted | Waiting, _),
+                 TaskStatus(1, _, Unstarted, _)) => true
       }
 
       val a0m = destinations(0).expectMsgClass(100.millis, classOf[SimpleMessage])
       destinations(1).expectNoMsg(50.millis)
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Waiting, 0),
-                 Task(_, Unstarted, 0)) => true
+        case Seq(TaskStatus(0, _, Waiting, _),
+                 TaskStatus(1, _, Unstarted, _)) => true
       }
 
       destinations(0).reply(SimpleMessage(a0m.id))
@@ -56,16 +56,16 @@ class BusinessRetryAndStatusSpec extends IntegrationSpec {
       //destinations(1).expectNoMsg(50.millis)
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Waiting | Finished, 0),
-                 Task(_, Unstarted | Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Waiting | Finished, _),
+                 TaskStatus(1, _, Unstarted | Waiting, _)) => true
       }
 
       val a1m = destinations(1).expectMsgClass(100.millis, classOf[SimpleMessage])
       destinations(0).expectNoMsg(50.millis)
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Finished, 0),
-                 Task(_, Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Finished, _),
+                 TaskStatus(1, _, Waiting, _)) => true
       }
 
       destinations(1).reply(SimpleMessage(a1m.id))
@@ -75,8 +75,8 @@ class BusinessRetryAndStatusSpec extends IntegrationSpec {
       //destinations(0).expectNoMsg(50.millis)
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Finished, 0),
-                 Task(_, Finished, 0)) => true
+        case Seq(TaskStatus(0, _, Finished, _),
+                 TaskStatus(1, _, Finished, _)) => true
       }
     }
   }
@@ -84,36 +84,36 @@ class BusinessRetryAndStatusSpec extends IntegrationSpec {
   test("Case 3: status of two parallel commands should be independent - Command0 replies first") {
     val destinations = Array.fill(2)(TestProbe())
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      echoCommand("Command0", destinations(0).ref.path, SimpleMessage)
-      echoCommand("Command1", destinations(1).ref.path, SimpleMessage)
+      echoTask("Command0", destinations(0).ref.path)
+      echoTask("Command1", destinations(1).ref.path)
     }))
 
     withOrchestratorTermination(orchestrator) { probe =>
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Unstarted | Waiting, 0),
-                 Task(_, Unstarted | Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Unstarted | Waiting, _),
+                 TaskStatus(1, _, Unstarted | Waiting, _)) => true
       }
 
       val a0m = destinations(0).expectMsgClass(100.millis, classOf[SimpleMessage])
       val a1m = destinations(1).expectMsgClass(100.millis, classOf[SimpleMessage])
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Waiting, 0),
-                 Task(_, Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Waiting, _),
+                 TaskStatus(1, _, Waiting, _)) => true
       }
 
       destinations(0).reply(SimpleMessage(a0m.id))
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Finished, 0),
-                 Task(_, Waiting, 0)) => true
+        case Seq(TaskStatus(0, _, Finished, _),
+                 TaskStatus(1, _, Waiting, _)) => true
       }
 
       destinations(1).reply(SimpleMessage(a1m.id))
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Finished, 0),
-                 Task(_, Finished, 0)) => true
+        case Seq(TaskStatus(0, _, Finished, _),
+                 TaskStatus(1, _, Finished, _)) => true
       }
     }
   }
@@ -121,36 +121,36 @@ class BusinessRetryAndStatusSpec extends IntegrationSpec {
   test("Case 4: status of two parallel commands should be independent - Command1 replies first") {
     val destinations = Array.fill(2)(TestProbe())
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      echoCommand("Command0", destinations(0).ref.path, SimpleMessage)
-      echoCommand("Command1", destinations(1).ref.path, SimpleMessage)
+      echoTask("Command0", destinations(0).ref.path)
+      echoTask("Command1", destinations(1).ref.path)
     }))
 
     withOrchestratorTermination(orchestrator) { probe =>
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Unstarted | Waiting, 0),
-                 Task(_, Unstarted | Waiting, 0)) => true
+        case Seq(TaskStatus(_, _, Unstarted | Waiting, _),
+                 TaskStatus(_, _, Unstarted | Waiting, _)) => true
       }
 
       val a0m = destinations(0).expectMsgClass(100.millis, classOf[SimpleMessage])
       val a1m = destinations(1).expectMsgClass(100.millis, classOf[SimpleMessage])
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Waiting, 0),
-                 Task(_, Waiting, 0)) => true
+        case Seq(TaskStatus(_, _, Waiting, _),
+                 TaskStatus(_, _, Waiting, _)) => true
       }
 
       destinations(1).reply(SimpleMessage(a1m.id))
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Waiting, 0),
-                 Task(_, Finished, 0)) => true
+        case Seq(TaskStatus(_, _, Waiting, _),
+                 TaskStatus(_, _, Finished, _)) => true
       }
 
       destinations(0).reply(SimpleMessage(a0m.id))
 
       testStatus(orchestrator, probe) {
-        case Seq(Task(_, Finished, 0),
-                 Task(_, Finished, 0)) => true
+        case Seq(TaskStatus(_, _, Finished, _),
+                 TaskStatus(_, _, Finished, _)) => true
       }
     }
   }

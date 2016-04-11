@@ -7,7 +7,6 @@ import akka.persistence.SnapshotSelectionCriteria
 import akka.testkit.{TestKit, TestProbe}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
-import pt.tecnico.dsi.akkastrator.Message.{Message, MessageId}
 
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 
@@ -32,53 +31,56 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     }
   }
 
-  def echoCommand(name: String, _destination: ActorPath, message: MessageId => SimpleMessage,
-                  dependencies: Set[Command] = Set.empty[Command])(implicit orchestrator: Orchestrator): Command = {
+  def echoTask(name: String, _destination: ActorPath, dependencies: Set[Task] = Set.empty[Task])
+              (implicit orchestrator: Orchestrator): Task = {
     import orchestrator.context //Needed for the LoggingReceive
 
-    new Command(name, dependencies) {
+    new Task(name, dependencies) {
       val destination: ActorPath = _destination
-      def createMessage(id: MessageId): Message = message(id)
+      def createMessage(deliveryId: Long): Any = SimpleMessage(deliveryId)
+      def extractDeliveryID(message: Any): Long = message match {
+        case SimpleMessage(deliveryId) => deliveryId
+      }
 
       def behavior: Receive = LoggingReceive {
-        case m: SimpleMessage if matchSenderAndId(m) =>
+        case m: SimpleMessage if matchDeliveryId(m) =>
           finish(m)
       }
     }
   }
 
-  def NChainedCommandsOrchestrator(n: Int): (Array[TestProbe], ActorRef) = {
-    require(n >= 2, "Must have at least 2 commands")
-    val destinations = Array.fill(n)(TestProbe())
+  def NChainedTasksOrchestrator(numberOfTasks: Int): (Array[TestProbe], ActorRef) = {
+    require(numberOfTasks >= 2, "Must have at least 2 tasks")
+    val destinations = Array.fill(numberOfTasks)(TestProbe())
 
     val letters = 'A' to 'Z'
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      var last = echoCommand(letters(0).toString, destinations(0).ref.path, SimpleMessage)
+      var last = echoTask(letters(0).toString, destinations(0).ref.path)
 
-      for (i <- 1 until n) {
-        val current = echoCommand(letters(i).toString, destinations(i).ref.path, SimpleMessage, Set(last))
+      for (i <- 1 until numberOfTasks) {
+        val current = echoTask(letters(i).toString, destinations(i).ref.path, Set(last))
         last = current
       }
     }))
 
     (destinations, orchestrator)
   }
-  def testNChainedEchoCommands(n: Int): Unit = {
-    require(n >= 2, "Must have at least 2 commands")
-    val (destinations, orchestrator) = NChainedCommandsOrchestrator(n)
+  def testNChainedEchoTasks(numberOfTasks: Int): Unit = {
+    require(numberOfTasks >= 2, "Must have at least 2 tasks")
+    val (destinations, orchestrator) = NChainedTasksOrchestrator(numberOfTasks)
 
     val probe = TestProbe()
     probe.watch(orchestrator)
 
-    for (i <- 0 until n) {
+    for (i <- 0 until numberOfTasks) {
       val message = destinations(i).expectMsgClass(100.millis, classOf[SimpleMessage])
-      for (j <- (i + 1) until n) {
+      for (j <- (i + 1) until numberOfTasks) {
         destinations(j).expectNoMsg(50.millis)
       }
       destinations(i).reply(SimpleMessage(message.id))
     }
 
-    probe.expectMsgPF((n * 200).millis){ case Terminated(o) if o == orchestrator => true }
+    probe.expectMsgPF((numberOfTasks * 200).millis){ case Terminated(o) if o == orchestrator => true }
   }
 
   def withOrchestratorTermination(orchestrator: ActorRef, maxDuration: Duration = 1.second)(f: TestProbe => Unit): Unit = {
@@ -96,7 +98,7 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
   }
 
   def testStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: Duration = 200.millis)
-                   (obtainedTasksMatch: Seq[Task] => Boolean): Unit = {
+                   (obtainedTasksMatch: Seq[TaskStatus] => Boolean): Unit = {
     val statusId = nextSeq()
     orchestrator.tell(Status(statusId), probe.ref)
     probe.expectMsgPF(maxDuration) {
