@@ -38,13 +38,10 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     new Task(name, dependencies) {
       val destination: ActorPath = _destination
       def createMessage(deliveryId: Long): Any = SimpleMessage(deliveryId)
-      def extractDeliveryID(message: Any): Long = message match {
-        case SimpleMessage(deliveryId) => deliveryId
-      }
 
       def behavior: Receive = LoggingReceive {
-        case m: SimpleMessage if matchDeliveryId(m) =>
-          finish(m)
+        case m @ SimpleMessage(id) if matchDeliveryId(id) =>
+          finish(m, id)
       }
     }
   }
@@ -73,14 +70,14 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     probe.watch(orchestrator)
 
     for (i <- 0 until numberOfTasks) {
-      val message = destinations(i).expectMsgClass(100.millis, classOf[SimpleMessage])
+      val message = destinations(i).expectMsgClass(200.millis, classOf[SimpleMessage])
       for (j <- (i + 1) until numberOfTasks) {
-        destinations(j).expectNoMsg(50.millis)
+        destinations(j).expectNoMsg(100.millis)
       }
       destinations(i).reply(SimpleMessage(message.id))
     }
 
-    probe.expectMsgPF((numberOfTasks * 200).millis){ case Terminated(o) if o == orchestrator => true }
+    probe.expectMsgPF((numberOfTasks * 300).millis){ case Terminated(o) if o == orchestrator => true }
   }
 
   def withOrchestratorTermination(orchestrator: ActorRef, maxDuration: Duration = 1.second)(f: TestProbe => Unit): Unit = {
@@ -97,7 +94,7 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     ret
   }
 
-  def testStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: Duration = 200.millis)
+  def testStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: Duration = 300.millis)
                    (obtainedTasksMatch: Seq[TaskStatus] => Boolean): Unit = {
     val statusId = nextSeq()
     orchestrator.tell(Status(statusId), probe.ref)

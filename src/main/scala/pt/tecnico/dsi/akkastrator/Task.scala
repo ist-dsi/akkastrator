@@ -60,8 +60,6 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   val destination: ActorPath //This must be a val because the destination cannot change
   /** The constructor of the message to be sent. */
   def createMessage(deliveryId: Long): Any
-  /** The extractor of the delivery Id from a received message. Works as the inverse of `createMessage`. */
-  def extractDeliveryID(message: Any): Long
 
   /**
    * Starts the execution of this task.
@@ -100,18 +98,15 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   }
 
   /**
-   * @param receivedMessage the received message.
+   * @param deliverId the deliveryId obtained from the received message.
    * @return true if the deliveryId of `receivedMessage` is the same as the one this task is expecting. False otherwise.
    */
-  final def matchDeliveryId(receivedMessage: Any): Boolean = {
-    val deliveryId = extractDeliveryID(receivedMessage)
-    val matches = status == Waiting && expectedDeliveryId.contains(deliveryId)
+  final def matchDeliveryId(deliverId: Long): Boolean = {
+    val matches = status == Waiting && expectedDeliveryId.contains(deliverId)
     orchestrator.log.debug(withLoggingPrefix(
       s"""MatchSenderAndId:
          |Status: $status
-         |Received message name: ${receivedMessage.getClass.getName}
-         |Received message id: $deliveryId
-         |Expected message id: $expectedDeliveryId
+         |Expected Delivery id: $expectedDeliveryId
          |MATCHES = $matches""".stripMargin))
     matches
   }
@@ -132,12 +127,12 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     *
     * @param receivedMessage the received message that signaled this task has finished.
     */
-  final def finish(receivedMessage: Any): Unit = status match {
-    case Waiting if matchDeliveryId(receivedMessage) =>
+  final def finish(receivedMessage: Any, deliveryId: Long): Unit = status match {
+    case Waiting if matchDeliveryId(deliveryId) =>
       orchestrator.log.info(withLoggingPrefix(s"Finishing (received response)."))
 
       def finishMessage(): Unit = {
-        orchestrator.confirmDelivery(extractDeliveryID(receivedMessage))
+        orchestrator.confirmDelivery(deliveryId)
         status = Finished
         //This starts tasks that have a dependency on this task
         //And also removes this task behavior from the orchestrator behavior
@@ -155,7 +150,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
           finishMessage()
         }
       }
-    case Finished if matchDeliveryId(receivedMessage) =>
+    case Finished if matchDeliveryId(deliveryId) =>
       //We already received a response for this task and handled it.
       //Which must mean the receivedMessage is a response to a resend.
       //We can safely ignore it.
