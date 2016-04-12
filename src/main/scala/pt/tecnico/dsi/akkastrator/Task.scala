@@ -37,21 +37,20 @@ object Task {
 abstract class Task(val description: String, val dependencies: Set[Task] = Set.empty[Task])
                    (implicit val orchestrator: Orchestrator) {
   val index = orchestrator.addTask(this)
-  private[this] var expectedDeliveryId: Option[Long] = None
+  private var expectedDeliveryId: Option[Long] = None
 
-  def withLoggingPrefix(message: String): String = {
-    val color = index % 8 match {
-      case 0 => Console.MAGENTA
-      case 1 => Console.CYAN
-      case 2 => Console.GREEN
-      case 3 => Console.BLUE
-      case 4 => Console.YELLOW
-      case 5 => Console.BLACK
-      case 6 => Console.RED
-      case 7 => Console.WHITE
-    }
-    f"$color[$index%02d - $description] $message${Console.RESET}"
+  private val color = index % 8 match {
+    case 0 => Console.MAGENTA
+    case 1 => Console.CYAN
+    case 2 => Console.GREEN
+    case 3 => Console.BLUE
+    case 4 => Console.YELLOW
+    case 5 => Console.BLACK
+    case 6 => Console.RED
+    case 7 => Console.WHITE
   }
+
+  def withLoggingPrefix(message: String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
 
   //The task always starts in the Unstarted status
   status = Unstarted
@@ -173,10 +172,10 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   /** The TaskStatus representation of this task. */
   final def toTaskStatus: TaskStatus = new TaskStatus(index, description, status, dependencies.map(_.index))
 
-  private[this] var _status: Task.Status = _
+  private var _status: Task.Status = _
   /** @return the current status of this Task. */
   final def status: Task.Status = _status
-  private[this] def status_=(status: Task.Status): Unit = {
+  private def status_=(status: Task.Status): Unit = {
     _status = status
     orchestrator.log.info(withLoggingPrefix(s"Status: $status."))
   }

@@ -127,30 +127,30 @@ class StatusSpec extends IntegrationSpec {
 
     withOrchestratorTermination(orchestrator) { probe =>
       testStatus(orchestrator, probe) {
-        case Seq(TaskStatus(_, _, Unstarted | Waiting, _),
-                 TaskStatus(_, _, Unstarted | Waiting, _)) => true
+        case Seq(TaskStatus(0, _, Unstarted | Waiting, _),
+                 TaskStatus(1, _, Unstarted | Waiting, _)) => true
       }
 
       val a0m = destinations(0).expectMsgClass(100.millis, classOf[SimpleMessage])
       val a1m = destinations(1).expectMsgClass(100.millis, classOf[SimpleMessage])
 
       testStatus(orchestrator, probe) {
-        case Seq(TaskStatus(_, _, Waiting, _),
-                 TaskStatus(_, _, Waiting, _)) => true
+        case Seq(TaskStatus(0, _, Waiting, _),
+                 TaskStatus(1, _, Waiting, _)) => true
       }
 
       destinations(1).reply(SimpleMessage(a1m.id))
 
       testStatus(orchestrator, probe) {
-        case Seq(TaskStatus(_, _, Waiting, _),
-                 TaskStatus(_, _, Finished, _)) => true
+        case Seq(TaskStatus(0, _, Waiting, _),
+                 TaskStatus(1, _, Finished, _)) => true
       }
 
       destinations(0).reply(SimpleMessage(a0m.id))
 
       testStatus(orchestrator, probe) {
-        case Seq(TaskStatus(_, _, Finished, _),
-                 TaskStatus(_, _, Finished, _)) => true
+        case Seq(TaskStatus(0, _, Finished, _),
+                 TaskStatus(1, _, Finished, _)) => true
       }
     }
   }

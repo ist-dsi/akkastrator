@@ -88,7 +88,7 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
   }
 
   var _seqCounter = 0L
-  def nextSeq() = {
+  def nextSeq(): Long = {
     val ret = _seqCounter
     _seqCounter += 1
     ret

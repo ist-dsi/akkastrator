@@ -35,22 +35,22 @@ class DependenciesSpec extends IntegrationSpec {
   }
 
   test("Case 3: Handle dependencies: A -> B") {
-    testNChainedEchoTasks(2)
+    testNChainedEchoTasks(numberOfTasks = 2)
   }
   test("Case 4: Handle dependencies: A -> B -> C") {
-    testNChainedEchoTasks(3)
+    testNChainedEchoTasks(numberOfTasks = 3)
   }
   test("Case 5: Handle dependencies: A -> ... -> J") {
     //We want 10 commands to ensure the command colors will repeat
-    testNChainedEchoTasks(10)
+    testNChainedEchoTasks(numberOfTasks = 10)
   }
   test("Case 6: Handle dependencies: (A, B) -> C") {
     val destinations = Array.fill(3)(TestProbe())
 
     val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
-      val A = echoTask("A", destinations(0).ref.path)
-      val B = echoTask("B", destinations(1).ref.path)
-      echoTask("C", destinations(2).ref.path, Set(A, B))
+      val a = echoTask("A", destinations(0).ref.path)
+      val b = echoTask("B", destinations(1).ref.path)
+      echoTask("C", destinations(2).ref.path, Set(a, b))
     }))
 
     withOrchestratorTermination(orchestrator) { _ =>
