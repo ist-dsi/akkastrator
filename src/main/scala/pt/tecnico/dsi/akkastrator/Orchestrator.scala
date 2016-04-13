@@ -11,9 +11,9 @@ object Orchestrator {
 
   private case object SaveSnapshot
 
-  private[akkastrator] sealed trait Event
-  private[akkastrator] case class MessageSent(taskIndex: Int) extends Event
-  private[akkastrator] case class ResponseReceived(response: Any, taskIndex: Int) extends Event
+  sealed trait Event
+  case class MessageSent(taskIndex: Int) extends Event
+  case class ResponseReceived(response: Any, taskIndex: Int) extends Event
 
   trait State
   case object EmptyState extends State
