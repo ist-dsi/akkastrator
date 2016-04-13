@@ -52,12 +52,13 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
    */
   val persistenceId: String = this.getClass.getSimpleName
 
-  private var tasks: IndexedSeq[Task] = Vector.empty
+  private var _tasks: IndexedSeq[Task] = Vector.empty
   private[akkastrator] def addTask(task: Task): Int = {
-    val index = tasks.length
-    tasks :+= task
+    val index = _tasks.length
+    _tasks :+= task
     index
   }
+  def tasks: IndexedSeq[Task] = _tasks
 
   /** The state that this orchestrator maintains. */
   private[this] var _state: State = EmptyState
@@ -82,12 +83,22 @@ trait Orchestrator extends PersistentActor with ActorLogging with AtLeastOnceDel
       tasks.filter(_.canStart).foreach(_.start())
       if (tasks.forall(_.hasFinished)) {
         log.info(s"Orchestrator Finished!")
-        context stop self
+        onFinish()
       }
     case Status(id) =>
       sender() ! StatusResponse(tasks.map(_.toTaskStatus), id)
     case SaveSnapshot =>
       saveSnapshot(_state)
+  }
+
+  /**
+    * This method is invoked once every task finishes.
+    * The default implementation just stops the orchestrator.
+    *
+    * You can use this to implement your termination strategy.
+    */
+  def onFinish(): Unit = {
+    context stop self
   }
 
   final def receiveCommand: Receive = orchestratorReceive

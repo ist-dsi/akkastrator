@@ -35,9 +35,8 @@ object Task {
  *  - By invoking `start` which changes the task status to Waiting.
  */
 abstract class Task(val description: String, val dependencies: Set[Task] = Set.empty[Task])
-                   (implicit val orchestrator: Orchestrator) {
+                   (private implicit val orchestrator: Orchestrator) {
   val index = orchestrator.addTask(this)
-  private var expectedDeliveryId: Option[Long] = None
 
   private val color = index % 8 match {
     case 0 => Console.MAGENTA
@@ -52,8 +51,9 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
 
   def withLoggingPrefix(message: String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
 
-  //The task always starts in the Unstarted status
+  //The task always starts in the Unstarted status and without an expectedDeliveryId
   status = Unstarted
+  expectedDeliveryId = None
 
   /** The ActorPath to whom this task will send the message(s). */
   val destination: ActorPath //This must be a val because the destination cannot change
@@ -178,6 +178,13 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   private def status_=(status: Task.Status): Unit = {
     _status = status
     orchestrator.log.info(withLoggingPrefix(s"Status: $status."))
+  }
+
+  private var _expectedDeliveryId: Option[Long] = _
+  /** @return the current expected deliveryId of this Task. */
+  final def expectedDeliveryId: Option[Long] = _expectedDeliveryId
+  private def expectedDeliveryId_=(expectedDeliveryId: Option[Long]): Unit = {
+    _expectedDeliveryId = expectedDeliveryId
   }
 
   override def toString: String =

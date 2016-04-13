@@ -1,6 +1,6 @@
 organization := "pt.tecnico.dsi"
 name := "akkastrator"
-version := "0.1.1"
+version := "0.2.1"
 
 scalaVersion := "2.11.8"
 initialize := {
@@ -23,9 +23,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.7" % Test,
   //Testing
   "org.scalatest" %% "scalatest" % "2.2.4" % Test,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
-  //Configuration
-  "com.typesafe" % "config" % "1.3.0"
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
 )
 
 //This is needed for LevelDB to work in tests
