@@ -1,6 +1,5 @@
 organization := "pt.tecnico.dsi"
 name := "akkastrator"
-//version := "0.2.1"
 
 initialize := {
   val required = "1.8"
