@@ -1,14 +1,27 @@
 organization := "pt.tecnico.dsi"
 name := "akkastrator"
-version := "0.2.1"
+//version := "0.2.1"
 
-scalaVersion := "2.11.8"
 initialize := {
   val required = "1.8"
   val current  = sys.props("java.specification.version")
   assert(current == required, s"Unsupported JDK: java.specification.version $current != $required")
 }
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+
+scalaVersion := "2.11.8"
+scalacOptions ++= Seq(
+  "-deprecation", //Emit warning and location for usages of deprecated APIs.
+  "-encoding", "UTF-8",
+  "-feature", //Emit warning and location for usages of features that should be imported explicitly.
+  "-language:implicitConversions", //Explicitly enables the implicit conversions feature
+  "-unchecked", //Enable detailed unchecked (erasure) warnings
+  "-Xfatal-warnings", //Fail the compilation if there are any warnings.
+  "-Xlint", //Enable recommended additional warnings.
+  "-Yinline-warnings", //Emit inlining warnings.
+  "-Yno-adapted-args", //Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
+  "-Ywarn-dead-code" //Warn when dead code is identified.
+)
 
 val akkaVersion = "2.4.3"
 libraryDependencies ++= Seq(
@@ -28,19 +41,6 @@ libraryDependencies ++= Seq(
 
 //This is needed for LevelDB to work in tests
 fork in Test := true
-
-scalacOptions ++= Seq(
-  "-deprecation", //Emit warning and location for usages of deprecated APIs.
-  "-encoding", "UTF-8",
-  "-feature", //Emit warning and location for usages of features that should be imported explicitly.
-  "-language:implicitConversions", //Explicitly enables the implicit conversions feature
-  "-unchecked", //Enable detailed unchecked (erasure) warnings
-  "-Xfatal-warnings", //Fail the compilation if there are any warnings.
-  "-Xlint", //Enable recommended additional warnings.
-  "-Yinline-warnings", //Emit inlining warnings.
-  "-Yno-adapted-args", //Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
-  "-Ywarn-dead-code" //Warn when dead code is identified.
-)
 
 site.settings
 site.includeScaladoc()
@@ -64,3 +64,20 @@ pomExtra :=
       <url>https://github.com/Lasering</url>
     </developer>
   </developers>
+
+import ReleaseTransformations._
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  ReleaseStep(action = Command.process("publishSigned", _)),
+  ReleaseStep(action = Command.process("ghpagesPushSite", _)),
+  setNextVersion,
+  commitNextVersion,
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+  pushChanges
+)
