@@ -1,6 +1,6 @@
 # Akkastrator
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/pt.tecnico.dsi/akkastrator_2.11/badge.svg?maxAge=604800)](https://maven-badges.herokuapp.com/maven-central/pt.tecnico.dsi/akkastrator_2.11)
-[![Dependency Status](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.11/badge.svg?style=plastic&maxAge=604800)](https://www.versioneye.com/user/projects/5718ed91fcd19a00454417b5)
+[![Dependency Status](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.11/badge.svg?style=plastic&maxAge=604800)](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.11/)
 [![Reference Status](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.11/reference_badge.svg?style=plastic&maxAge=604800)](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.11/references)
 [![Build Status](https://travis-ci.org/ist-dsi/akkastrator.svg?branch=master&style=plastic&maxAge=604800)](https://travis-ci.org/ist-dsi/akkastrator)
 [![Codacy Badge](https://api.codacy.com/project/badge/coverage/75210854e9b945df97a8408e4975a067)](https://www.codacy.com/app/IST-DSI/akkastrator)
