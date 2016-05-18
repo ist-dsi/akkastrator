@@ -1,5 +1,3 @@
 package pt.tecnico.dsi.akkastrator
 
-class ReSendsPersistenceAndSnapshots extends IntegrationSpec {
-
-}
+class ReSendsPersistenceAndSnapshots extends IntegrationSpec

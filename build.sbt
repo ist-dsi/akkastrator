@@ -1,12 +1,12 @@
 organization := "pt.tecnico.dsi"
 name := "akkastrator"
 
+val javaVersion = "1.8"
 initialize := {
-  val required = "1.8"
   val current  = sys.props("java.specification.version")
-  assert(current == required, s"Unsupported JDK: java.specification.version $current != $required")
+  assert(current == javaVersion, s"Unsupported JDK: expected JDK $javaVersion installed, but instead got JDK $current.")
 }
-javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+javacOptions ++= Seq("-source", javaVersion, "-target", javaVersion, "-Xlint")
 
 scalaVersion := "2.11.8"
 scalacOptions ++= Seq(
@@ -22,7 +22,7 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code" //Warn when dead code is identified.
 )
 
-val akkaVersion = "2.4.3"
+val akkaVersion = "2.4.5"
 libraryDependencies ++= Seq(
   //Akka
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
   "ch.qos.logback" % "logback-classic" % "1.1.7" % Test,
   //Testing
-  "org.scalatest" %% "scalatest" % "2.2.4" % Test,
+  "org.scalatest" %% "scalatest" % "2.2.6" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
 )
 

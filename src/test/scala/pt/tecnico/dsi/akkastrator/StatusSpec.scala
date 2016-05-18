@@ -22,7 +22,7 @@ class StatusSpec extends IntegrationSpec {
       val a0m = destinationActor0.expectMsgClass(1.seconds, classOf[SimpleMessage])
 
       testStatus(orchestrator, probe) {
-        case Seq(TaskStatus(0, _, Waiting | Waiting, _)) => true
+        case Seq(TaskStatus(0, _, Waiting, _)) => true
       }
 
       destinationActor0.reply(SimpleMessage(a0m.id))

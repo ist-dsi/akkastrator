@@ -38,16 +38,18 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
                    (private implicit val orchestrator: Orchestrator) {
   val index = orchestrator.addTask(this)
 
-  private val color = index % 8 match {
-    case 0 => Console.MAGENTA
-    case 1 => Console.CYAN
-    case 2 => Console.GREEN
-    case 3 => Console.BLUE
-    case 4 => Console.YELLOW
-    case 5 => Console.BLACK
-    case 6 => Console.RED
-    case 7 => Console.WHITE
-  }
+  private val colors = Vector(
+    Console.MAGENTA,
+    Console.CYAN,
+    Console.GREEN,
+    Console.BLUE,
+    Console.YELLOW,
+    Console.BLACK,
+    Console.RED,
+    Console.WHITE
+  )
+
+  private val color = colors(index % colors.size)
 
   def withLoggingPrefix(message: String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
 
