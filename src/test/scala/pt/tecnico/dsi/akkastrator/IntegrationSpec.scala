@@ -4,11 +4,11 @@ import akka.actor.Actor._
 import akka.actor.{ActorPath, ActorRef, ActorSystem, Props, Terminated}
 import akka.event.LoggingReceive
 import akka.persistence.SnapshotSelectionCriteria
-import akka.testkit.{TestKit, TestProbe}
+import akka.testkit.{TestDuration, TestKit, TestProbe}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
 
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
+import scala.concurrent.duration.{Duration, DurationInt}
 
 abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", ConfigFactory.load()))
   with FunSuiteLike
@@ -22,7 +22,7 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
   abstract class StatelessOrchestrator extends Orchestrator {
     //No state, snapshots and recovery
     var state = Orchestrator.EmptyState
-    val saveSnapshotInterval: FiniteDuration = Duration.Zero
+    override def saveSnapshotEveryXMessages: Int = 0
 
     override def postStop(): Unit = {
       super.postStop()
@@ -70,14 +70,14 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     probe.watch(orchestrator)
 
     for (i <- 0 until numberOfTasks) {
-      val message = destinations(i).expectMsgClass(200.millis, classOf[SimpleMessage])
+      val message = destinations(i).expectMsgClass(200.millis.dilated, classOf[SimpleMessage])
       for (j <- (i + 1) until numberOfTasks) {
-        destinations(j).expectNoMsg(100.millis)
+        destinations(j).expectNoMsg(100.millis.dilated)
       }
       destinations(i).reply(SimpleMessage(message.id))
     }
 
-    probe.expectMsgPF((numberOfTasks * 300).millis){ case Terminated(o) if o == orchestrator => true }
+    probe.expectMsgPF((numberOfTasks * 300).millis.dilated){ case Terminated(o) if o == orchestrator => true }
   }
 
   def withOrchestratorTermination(orchestrator: ActorRef, maxDuration: Duration = 1.second)(f: TestProbe => Unit): Unit = {
@@ -87,10 +87,10 @@ abstract class IntegrationSpec extends TestKit(ActorSystem("Orchestrator", Confi
     probe.expectMsgPF(maxDuration){ case Terminated(o) if o == orchestrator => true }
   }
 
-  var _seqCounter = 0L
+  private var seqCounter = 0L
   def nextSeq(): Long = {
-    val ret = _seqCounter
-    _seqCounter += 1
+    val ret = seqCounter
+    seqCounter += 1
     ret
   }
 

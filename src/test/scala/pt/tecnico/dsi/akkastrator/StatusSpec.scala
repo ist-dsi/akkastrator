@@ -1,7 +1,7 @@
 package pt.tecnico.dsi.akkastrator
 
 import akka.actor.Props
-import akka.testkit.TestProbe
+import akka.testkit.{TestDuration, TestProbe}
 import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting}
 
 import scala.concurrent.duration.DurationInt
@@ -42,7 +42,7 @@ class StatusSpec extends IntegrationSpec {
                  TaskStatus(1, _, Unstarted, _)) => true
       }
 
-      val a0m = destinations(0).expectMsgClass(100.millis, classOf[SimpleMessage])
+      val a0m = destinations(0).expectMsgClass(100.millis.dilated, classOf[SimpleMessage])
       destinations(1).expectNoMsg(50.millis)
 
       testStatus(orchestrator, probe) {
@@ -60,7 +60,7 @@ class StatusSpec extends IntegrationSpec {
                  TaskStatus(1, _, Unstarted | Waiting, _)) => true
       }
 
-      val a1m = destinations(1).expectMsgClass(100.millis, classOf[SimpleMessage])
+      val a1m = destinations(1).expectMsgClass(100.millis.dilated, classOf[SimpleMessage])
       destinations(0).expectNoMsg(50.millis)
 
       testStatus(orchestrator, probe) {
@@ -94,8 +94,8 @@ class StatusSpec extends IntegrationSpec {
                  TaskStatus(1, _, Unstarted | Waiting, _)) => true
       }
 
-      val a0m = destinations(0).expectMsgClass(100.millis, classOf[SimpleMessage])
-      val a1m = destinations(1).expectMsgClass(100.millis, classOf[SimpleMessage])
+      val a0m = destinations(0).expectMsgClass(100.millis.dilated, classOf[SimpleMessage])
+      val a1m = destinations(1).expectMsgClass(100.millis.dilated, classOf[SimpleMessage])
 
       testStatus(orchestrator, probe) {
         case Seq(TaskStatus(0, _, Waiting, _),
@@ -131,8 +131,8 @@ class StatusSpec extends IntegrationSpec {
                  TaskStatus(1, _, Unstarted | Waiting, _)) => true
       }
 
-      val a0m = destinations(0).expectMsgClass(100.millis, classOf[SimpleMessage])
-      val a1m = destinations(1).expectMsgClass(100.millis, classOf[SimpleMessage])
+      val a0m = destinations(0).expectMsgClass(100.millis.dilated, classOf[SimpleMessage])
+      val a1m = destinations(1).expectMsgClass(100.millis.dilated, classOf[SimpleMessage])
 
       testStatus(orchestrator, probe) {
         case Seq(TaskStatus(0, _, Waiting, _),

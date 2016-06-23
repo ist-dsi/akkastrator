@@ -2,8 +2,8 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor.Actor.Receive
 import akka.actor.ActorPath
-import pt.tecnico.dsi.akkastrator.Orchestrator.{MessageSent, ResponseReceived, StartReadyTasks}
-import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting, Finished}
+import pt.tecnico.dsi.akkastrator.Orchestrator.{MessageSent, ResponseReceived, SaveSnapshot, StartReadyTasks}
+import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting}
 
 object Task {
   sealed trait Status
@@ -21,7 +21,7 @@ object Task {
  * the received message is in fact the one that we were waiting to receive.
  * The internal state of the orchestrator might be mutated inside `behavior`.
  *
- * This class is super tightly coupled with Orchestrator and the reverse is also true.
+ * This class is very tightly coupled with Orchestrator and the reverse is also true.
  *
  * This class changes the internal state of the orchestrator:
  *
@@ -135,6 +135,14 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
       def finishMessage(): Unit = {
         orchestrator.confirmDelivery(deliveryId)
         status = Finished
+
+        if (orchestrator.saveSnapshotEveryXMessages > 0) {
+          orchestrator.counter += 1
+          if (orchestrator.counter >= orchestrator.saveSnapshotEveryXMessages) {
+            orchestrator.self ! SaveSnapshot
+          }
+        }
+
         //This starts tasks that have a dependency on this task
         //And also removes this task behavior from the orchestrator behavior
         orchestrator.self ! StartReadyTasks

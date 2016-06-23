@@ -1,8 +1,7 @@
 package pt.tecnico.dsi.akkastrator
 
 import akka.actor._
-import akka.testkit.TestProbe
-
+import akka.testkit.{TestDuration, TestProbe}
 import scala.concurrent.duration.DurationInt
 
 class DependenciesSpec extends IntegrationSpec {
@@ -14,7 +13,7 @@ class DependenciesSpec extends IntegrationSpec {
     }))
 
     withOrchestratorTermination(orchestrator) { _ =>
-      val a0m = destinationActor0.expectMsgClass(500.millis, classOf[SimpleMessage])
+      val a0m = destinationActor0.expectMsgClass(500.millis.dilated, classOf[SimpleMessage])
       destinationActor0.reply(SimpleMessage(a0m.id))
     }
   }
@@ -27,8 +26,8 @@ class DependenciesSpec extends IntegrationSpec {
     }))
 
     withOrchestratorTermination(orchestrator) { _ =>
-      val a0m = destinations(0).expectMsgClass(500.millis, classOf[SimpleMessage])
-      val a1m = destinations(1).expectMsgClass(500.millis, classOf[SimpleMessage])
+      val a0m = destinations(0).expectMsgClass(500.millis.dilated, classOf[SimpleMessage])
+      val a1m = destinations(1).expectMsgClass(500.millis.dilated, classOf[SimpleMessage])
       destinations(0).reply(SimpleMessage(a0m.id))
       destinations(1).reply(SimpleMessage(a1m.id))
     }
@@ -54,15 +53,15 @@ class DependenciesSpec extends IntegrationSpec {
     }))
 
     withOrchestratorTermination(orchestrator) { _ =>
-      val a0m = destinations(0).expectMsgClass(500.millis, classOf[SimpleMessage])
-      destinations(2).expectNoMsg(100.millis)
+      val a0m = destinations(0).expectMsgClass(500.millis.dilated, classOf[SimpleMessage])
+      destinations(2).expectNoMsg(100.millis.dilated)
       destinations(0).reply(SimpleMessage(a0m.id))
 
-      val a1m = destinations(1).expectMsgClass(500.millis, classOf[SimpleMessage])
-      destinations(2).expectNoMsg(100.millis)
+      val a1m = destinations(1).expectMsgClass(500.millis.dilated, classOf[SimpleMessage])
+      destinations(2).expectNoMsg(100.millis.dilated)
       destinations(1).reply(SimpleMessage(a1m.id))
 
-      val a2m = destinations(2).expectMsgClass(500.millis, classOf[SimpleMessage])
+      val a2m = destinations(2).expectMsgClass(500.millis.dilated, classOf[SimpleMessage])
       destinations(2).reply(SimpleMessage(a2m.id))
     }
   }
