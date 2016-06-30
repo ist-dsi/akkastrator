@@ -1,3 +1,5 @@
 package pt.tecnico.dsi.akkastrator
 
-case class SimpleMessage(id: Long)
+import pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId
+
+case class SimpleMessage(id: CorrelationId)

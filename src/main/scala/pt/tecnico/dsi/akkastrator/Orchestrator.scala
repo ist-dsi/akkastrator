@@ -1,20 +1,40 @@
 package pt.tecnico.dsi.akkastrator
 
-import akka.actor.ActorLogging
+import akka.actor.{ActorLogging, ActorPath}
 import akka.event.LoggingReceive
 import akka.persistence._
 
-object Orchestrator {
-  private[akkastrator] case object StartReadyTasks
+import scala.collection.immutable.SortedMap
 
+object Orchestrator {
+  type DeliveryId = Long
+  type CorrelationId = Long
+
+  case object StartReadyTasks
   case object SaveSnapshot
 
   sealed trait Event
   case class MessageSent(taskIndex: Int) extends Event
-  case class ResponseReceived(response: Any, taskIndex: Int) extends Event
+  case class MessageReceived(taskIndex: Int, response: Any, correlationId: CorrelationId, deliveryId: DeliveryId) extends Event
 
-  trait State
-  case object EmptyState extends State
+  trait State {
+    //By using a SortedMap as opposed to a Map we can also extract the latest correlationId per sender
+    val idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]
+
+    def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State
+
+    def getIdsFor(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
+      idsPerDestination.getOrElse(destination, SortedMap.empty)
+    }
+    def updatedIdsPerDestination(destination: ActorPath, newIdRelation: (CorrelationId, DeliveryId)): State = {
+      withIdsPerDestination(idsPerDestination.updated(destination, getIdsFor(destination) + newIdRelation))
+    }
+  }
+  case class EmptyState(idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State {
+    def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State = {
+      copy(idsPerDestination = newIdsPerDestination)
+    }
+  }
 }
 
 /**
@@ -51,18 +71,14 @@ object Orchestrator {
   *   }
   * }}}
   */
-abstract class Orchestrator(val settings: Settings = new Settings()) extends PersistentActor with ActorLogging with AtLeastOnceDelivery {
+abstract class Orchestrator(val settings: Settings = new Settings()) extends PersistentActor with AtLeastOnceDelivery with ActorLogging {
   import Orchestrator._
   //This exists to make the creation of Tasks more simple.
-  implicit val orchestrator = this
+  implicit final val orchestrator = this
 
-  log.info(s"Started Orchestrator ${this.getClass.getSimpleName}")
+  log.info(s"Started ${this.getClass.getSimpleName} with PersistenceId: $persistenceId")
 
-  /**
-   * The persistenceId used by the akka-persistence module.
-   * The default value is this class simple name.
-   */
-  val persistenceId: String = this.getClass.getSimpleName
+  private[akkastrator] var earlyTerminated = false
 
   private var _tasks: IndexedSeq[Task] = Vector.empty
   private[akkastrator] def addTask(task: Task): Int = {
@@ -72,86 +88,105 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   }
   def tasks: IndexedSeq[Task] = _tasks
 
-  private[akkastrator] var counter = 0
-
   /** The state that this orchestrator maintains. */
-  private[this] var _state: State = EmptyState
+  private[this] var _state: State = EmptyState()
   def state[S <: State]: S = _state.asInstanceOf[S]
   def state_=[S <: State](state: S): Unit = _state = state
 
   /**
     * Every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
     * By default this method returns the value defined in the configuration.
-    * You can trigger a save snapshot manually by sending a SaveSnapshot message to this orchestrator.
+    *
+    * This value is not a strict one because the orchestrator will not save it in snapshots.
+    * This means that when this actor crashes more messages than the ones defined here might have to
+    * be processed in other to trigger a save snapshot.
+    *
+    * You can trigger a save snapshot manually by sending a `SaveSnapshot` message to this orchestrator.
     */
   def saveSnapshotEveryXMessages: Int = settings.saveSnapshotEveryXMessages
+  /** How many messages have been processed. */
+  private var counter = 0
+  private[akkastrator] def incrementCounter(): Unit = {
+    if (saveSnapshotEveryXMessages > 0) {
+      counter += 1
+      if (counter >= saveSnapshotEveryXMessages) {
+        self ! SaveSnapshot
+      }
+    }
+  }
 
   /**
-   * @return the behaviors of the tasks which are waiting plus `orchestratorReceive`.
-   */
-  protected[akkastrator] def updateCurrentBehavior(): Unit = {
+    * @return the behaviors of the tasks which are waiting plus `orchestratorReceive`.
+    */
+  private[akkastrator] final def updateCurrentBehavior(): Unit = {
     val taskBehaviors = tasks.filter(_.isWaiting).map(_.behavior)
     //Since orchestratorReceive always exists the reduce wont fail
-    val newBehavior = (taskBehaviors :+ orchestratorReceive).reduce(_ orElse _)
+    val newBehavior = (taskBehaviors :+ orchestratorReceiveCommand).reduce(_ orElse _)
     context.become(newBehavior)
   }
 
-  private def orchestratorReceive: Receive = LoggingReceive {
-    case StartReadyTasks =>
-      tasks.filter(_.canStart).foreach(_.start())
+  def orchestratorReceiveCommand: Receive = LoggingReceive {
+    case StartReadyTasks ⇒
+      if (!earlyTerminated) {
+        tasks.filter(_.canStart).foreach(_.start())
+      }
       if (tasks.forall(_.hasFinished)) {
-        log.info(s"Orchestrator Finished!")
         onFinish()
       }
-    case Status(id) =>
-      sender() ! StatusResponse(tasks.map(_.toTaskStatus), id)
-    case SaveSnapshot =>
+    case Status ⇒
+      sender() ! StatusResponse(tasks.map(_.toTaskStatus))
+    case SaveSnapshot ⇒
       saveSnapshot(_state)
+  }
+  def orchestratorReceiveRecover: Receive = LoggingReceive {
+    case SnapshotOffer(metadata, offeredSnapshot) ⇒
+      state = offeredSnapshot.asInstanceOf[State]
+    case MessageSent(taskIndex) ⇒
+      val task = tasks(taskIndex)
+      log.info(task.withLoggingPrefix("Recovering MessageSent"))
+      task.start()
+    case MessageReceived(taskIndex, message, correlationId, deliveryId) ⇒
+      val task = tasks(taskIndex)
+
+      state = state.updatedIdsPerDestination(task.destination, correlationId -> deliveryId)
+
+      log.info(task.withLoggingPrefix("Recovering ResponseReceived"))
+      task.behavior.apply(message)
+    case RecoveryCompleted ⇒
+      onRecoveryComplete()
+  }
+
+  /**
+    * Override this method to perform additional initialization after recovery has completed but before the
+    * orchestrator starts.
+    *
+    * When you finish performing the additional initialization DO NOT forget to send the message `StartReadyTasks`
+    * to the orchestrator which is what prompts the tasks execution. The default implementation of
+    * this method does just this.
+    * */
+  def onRecoveryComplete(): Unit = {
+    //This gets us started
+    self ! StartReadyTasks
   }
 
   /**
     * This method is invoked once every task finishes.
-    * The default implementation just stops the orchestrator.
+    * The default implementation just stops the orchestrator and logs that the Orchestrator has finished.
     *
     * You can use this to implement your termination strategy.
     */
   def onFinish(): Unit = {
+    log.info(s"Orchestrator Finished!")
     context stop self
   }
 
   /**
-    * This method is invoked once recovery completes.
-    *
-    * You can use this to perform additional initialization after the recovery has completed but before any
-    * other message sent to the orchestrator is processed.
+    * @param instigator the task that initiated the early termination.
+    * @param causeMessage the message that caused the early termination.
+    * @param tasks Map with the tasks status at the moment of early termination.
     */
-  def onRecoveryCompleted(): Unit = ()
+  def onEarlyTermination(instigator: Task, causeMessage: Any, tasks: Map[Task.Status, Seq[Task]]): Unit = ()
 
-  final def receiveCommand: Receive = orchestratorReceive
-
-  final def receiveRecover: Receive = {
-    case SnapshotOffer(metadata, offeredSnapshot) =>
-      state = offeredSnapshot.asInstanceOf[State]
-    case MessageSent(taskIndex) =>
-      val task = tasks(taskIndex)
-      log.info(task.withLoggingPrefix("Recovering MessageSent"))
-      task.start()
-    case ResponseReceived(message, taskIndex) =>
-      val task = tasks(taskIndex)
-      log.info(task.withLoggingPrefix("Recovering ResponseReceived"))
-      task.behavior.apply(message)
-    case RecoveryCompleted =>
-      //This gets us started
-      self ! StartReadyTasks
-      onRecoveryCompleted()
-  }
-
-  /*override def unhandled(message: Any): Unit = {
-    log.error(s"""
-         |Received unhandled message:
-         |\tMessage: $message
-         |\tSender: ${sender().path}
-         |\tBehavior.isDefinedAt: ${receive.isDefinedAt(message)}
-       """.stripMargin)
-  }*/
+  def receiveCommand: Receive = orchestratorReceiveCommand
+  def receiveRecover: Receive = orchestratorReceiveRecover
 }

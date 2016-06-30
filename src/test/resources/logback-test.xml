@@ -9,11 +9,14 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- With Colors -->
-            <pattern>[%date][%logger{1}]%n %highlight([%-5level]){}%message%n%xException</pattern>
+            <pattern>[%date][%logger{1}]%n %highlight([%-5level]) %message%n%xException</pattern>
             <!-- Without Colors -->
             <!--<pattern>[%date][%logger{1}]%n [%-5level]%message%n%xException</pattern>-->
         </encoder>
     </appender>
+
+    <logger name="akka.persistence"                 level="DEBUG"/>
+    <logger name="akka.persistence.journal.leveldb" level="DEBUG" />
 
     <root level="DEBUG">
         <!--<appender-ref ref="FILE"/>-->

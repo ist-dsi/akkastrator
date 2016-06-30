@@ -1,9 +1,10 @@
 package pt.tecnico.dsi.akkastrator
 
-import akka.actor.Actor.Receive
-import akka.actor.ActorPath
-import pt.tecnico.dsi.akkastrator.Orchestrator.{MessageSent, ResponseReceived, SaveSnapshot, StartReadyTasks}
+import akka.actor.{Actor, ActorPath}
+import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting}
+
+import scala.collection.immutable.SortedMap
 
 object Task {
   sealed trait Status
@@ -13,32 +14,23 @@ object Task {
 }
 
 /**
- * A task corresponds to sending a message to an actor, handling its response and possibly
- * mutate the internal state of the Orchestrator.
- * The answer(s) to the sent message must be handled in `behavior`.
- * `behavior` must invoke `finish` when no further processing is necessary.
- * The pattern matching inside `behavior` should invoke `matchSenderAndID` to ensure
- * the received message is in fact the one that we were waiting to receive.
- * The internal state of the orchestrator might be mutated inside `behavior`.
- *
- * This class is very tightly coupled with Orchestrator and the reverse is also true.
- *
- * This class changes the internal state of the orchestrator:
- *
- *  - The task constructor adds the constructed task to the `tasks` variable.
- *  - Inside `behavior` the internal state of the orchestrator may be changed.
- *  - If all tasks are finished the orchestrator will be stopped.
- *  - Otherwise, the next behavior of the orchestrator will be computed.
- *
- * In exchange the orchestrator changes the internal state of the task:
- *
- *  - By invoking `start` which changes the task status to Waiting.
- */
+  * A task corresponds to sending a message to an actor, handling its response and possibly
+  * mutate the internal state of the Orchestrator.
+  * The answer(s) to the sent message must be handled in `behavior`.
+  * `behavior` must invoke `finish` when no further processing is necessary.
+  * The pattern matching inside `behavior` should invoke `matchSenderAndID` to ensure
+  * the received message is in fact the one that we were waiting to receive.
+  * The internal state of the orchestrator might be mutated inside `behavior`.
+  *
+  * This class is very tightly coupled with Orchestrator and the reverse is also true.
+  * Because of this you can only create instances of Task inside an orchestrator.
+  */
 abstract class Task(val description: String, val dependencies: Set[Task] = Set.empty[Task])
                    (private implicit val orchestrator: Orchestrator) {
-  val index = orchestrator.addTask(this)
+  import orchestrator._
+  final val index = addTask(this)
 
-  private val colors = Vector(
+  private final val colors = Vector(
     Console.MAGENTA,
     Console.CYAN,
     Console.GREEN,
@@ -48,10 +40,9 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     Console.RED,
     Console.WHITE
   )
+  private final val color = colors(index % colors.size)
 
-  private val color = colors(index % colors.size)
-
-  def withLoggingPrefix(message: String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
+  def withLoggingPrefix(message: ⇒ String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
 
   //The task always starts in the Unstarted status and without an expectedDeliveryId
   status = Unstarted
@@ -60,7 +51,35 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   /** The ActorPath to whom this task will send the message(s). */
   val destination: ActorPath //This must be a val because the destination cannot change
   /** The constructor of the message to be sent. */
-  def createMessage(deliveryId: Long): Any
+  def createMessage(correlationId: CorrelationId): Any
+
+  private def recoveryAwarePersist(event: Event)(handler: ⇒ Unit): Unit = {
+    if (recoveryRunning) {
+      //When we are recovering we do not want to persist the event again.
+      //We just want to execute the handler.
+      handler
+    } else {
+      log.debug(withLoggingPrefix(s"Persisting ${event.getClass.getSimpleName}."))
+      persist(event) { _ ⇒
+        log.debug(withLoggingPrefix(s"Persist successful."))
+        handler
+      }
+    }
+  }
+
+  private def ensureInStatus(status: Task.Status, operationName: String)(handler: ⇒ Unit): Unit = status match {
+    case `status` ⇒ handler
+    case _ ⇒ log.error(withLoggingPrefix(s"$operationName was invoked erroneously (while in status $status)."))
+  }
+
+  private def getDeliveryId(correlationId: CorrelationId): DeliveryId = {
+    state.idsPerDestination.get(destination).flatMap(_.get(correlationId)) match {
+      case Some(deliveryId) ⇒ deliveryId
+      case None ⇒ throw new IllegalArgumentException(s"""Could not obtain the delivery id for:
+                                                         |\tDestination: $destination
+                                                         |\tCorrelationId: $correlationId""".stripMargin)
+    }
+  }
 
   /**
    * Starts the execution of this task.
@@ -70,45 +89,65 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
    * If the Orchestrator is recovering then we just send the message because there is
    * no need to persist that the message was sent.
    */
-  final protected[akkastrator] def start(): Unit = status match {
-    case Unstarted =>
-      orchestrator.log.info(withLoggingPrefix(s"Sending message."))
+  final protected[akkastrator] def start(): Unit = ensureInStatus(Unstarted, "Start") {
+    log.info(withLoggingPrefix(s"Starting."))
 
-      def deliverMessage(): Unit = {
-        orchestrator.log.debug(withLoggingPrefix(s"Deliver message."))
-        orchestrator.deliver(destination) { deliveryId =>
-          expectedDeliveryId = Some(deliveryId)
-          createMessage(deliveryId)
-        }
-        status = Waiting
-        orchestrator.updateCurrentBehavior()
-      }
+    recoveryAwarePersist(MessageSent(index)) {
+      //First we make sure the orchestrator is ready to deal with the answers from destination
+      status = Waiting
+      updateCurrentBehavior()
 
-      if (orchestrator.recoveryRunning) {
-        //When we are recovering we do not want to persist again that the message was sent.
-        //We just want to deliver the message again.
-        deliverMessage()
-      } else {
-        orchestrator.log.debug(withLoggingPrefix(s"Persisting MessageSent."))
-        orchestrator.persist(MessageSent(index)) { _ =>
-          orchestrator.log.debug(withLoggingPrefix(s"Successful persist."))
-          deliverMessage()
+      //Then we send the message to the destination
+      deliver(destination) { deliveryId ⇒
+        if (!recoveryRunning) {
+          log.debug(withLoggingPrefix(s"Delivering message."))
         }
+        expectedDeliveryId = Some(deliveryId)
+
+        //Compute the correlationId and store it in the state
+        val correlationId = state.getIdsFor(destination).keySet.lastOption.map(_ + 1).getOrElse(0L)
+        state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
+
+        createMessage(correlationId)
       }
-    case _ => orchestrator.log.error(withLoggingPrefix(s"Start was invoked erroneously (while in status $status)."))
+    }
   }
 
   /**
-   * @param deliverId the deliveryId obtained from the received message.
-   * @return true if the deliveryId of `receivedMessage` is the same as the one this task is expecting. False otherwise.
-   */
-  final def matchDeliveryId(deliverId: Long): Boolean = {
-    val matches = status == Waiting && expectedDeliveryId.contains(deliverId)
-    orchestrator.log.debug(withLoggingPrefix(
-      s"""MatchSenderAndId:
-         |Status: $status
-         |Expected Delivery id: $expectedDeliveryId
-         |MATCHES = $matches""".stripMargin))
+   * @param correlationId the correlationId obtained from the received message.
+   * @return true if
+    *         · This task status is Waiting
+    *         · The actor path of the sender is the same as `destination`.
+    *         · The delivery id resolved from the correlation id is the expected delivery id for this task.
+    *        false otherwise.
+    * */
+  final def matchSenderAndId(correlationId: CorrelationId): Boolean = {
+    lazy val senderPath = sender().path
+    lazy val deliveryId = getDeliveryId(correlationId)
+
+    val matches = status == Waiting &&
+      (if (recoveryRunning) true else senderPath == destination) &&
+      expectedDeliveryId.contains(deliveryId)
+
+    log.debug(withLoggingPrefix {
+      val length = senderPath.toString.length max destination.toString.length
+      String.format(
+        s"""MatchSenderAndId:
+           |CorrelationId: $correlationId resolved to DeliveryId: $deliveryId
+           |       FIELD │ %${length}s │ EXPECTED VALUE
+           |─────────────┼─%${length}s─┼────────────────
+           |      Status │ %${length}s │ Waiting
+           |  SenderPath │ %${length}s │ %-${length}s
+           | Delivery id │ %${length}s │ %-${length}s
+           | Matches: $matches %s""".stripMargin,
+        "VALUE",
+        "─" * length,
+        status,
+        senderPath, destination,
+        deliveryId.toString, expectedDeliveryId,
+        if (recoveryRunning) "because recovery is running." else ""
+      )
+    })
     matches
   }
   /**
@@ -116,64 +155,59 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
    * all catching pattern match will cause the orchestrator to fail. For example:
    * {{{
    *   def behavior = Receive {
-   *     case m if matchDeliveryId(m) => //Some code
+   *     case m => //Some code
    *   }
    * }}}
    * Will cause the orchestrator to fail.
    */
-  def behavior: Receive
+  def behavior: Actor.Receive
+
+  private def finishTask(receivedMessage: Any, correlationId: CorrelationId)(extraActions: ⇒ Unit): Unit = {
+    val deliveryId = getDeliveryId(correlationId)
+    recoveryAwarePersist(MessageReceived(index, receivedMessage, correlationId, deliveryId)) {
+      confirmDelivery(deliveryId)
+      status = Finished
+      incrementCounter()
+      extraActions
+    }
+  }
 
   /**
     * Signals that this task has finished.
     *
     * @param receivedMessage the received message that signaled this task has finished.
     */
-  final def finish(receivedMessage: Any, deliveryId: Long): Unit = status match {
-    case Waiting if matchDeliveryId(deliveryId) =>
-      orchestrator.log.info(withLoggingPrefix(s"Finishing (received response)."))
+  final def finish(receivedMessage: Any, correlationId: CorrelationId): Unit = ensureInStatus(Waiting, "Finish") {
+    log.info(withLoggingPrefix(s"Finishing."))
+    finishTask(receivedMessage, correlationId) {
+      //This starts tasks that have a dependency on this task
+      //And also removes this task behavior from the orchestrator behavior
+      self ! StartReadyTasks
+    }
+  }
 
-      def finishMessage(): Unit = {
-        orchestrator.confirmDelivery(deliveryId)
-        status = Finished
-
-        if (orchestrator.saveSnapshotEveryXMessages > 0) {
-          orchestrator.counter += 1
-          if (orchestrator.counter >= orchestrator.saveSnapshotEveryXMessages) {
-            orchestrator.self ! SaveSnapshot
-          }
-        }
-
-        //This starts tasks that have a dependency on this task
-        //And also removes this task behavior from the orchestrator behavior
-        orchestrator.self ! StartReadyTasks
-      }
-
-      if (orchestrator.recoveryRunning) {
-        //When we are recovering we do not want to persist again that the message was received.
-        //We just want to confirm the delivery of the message again.
-        finishMessage()
-      } else {
-        orchestrator.log.debug(withLoggingPrefix(s"Persisting MessageReceived."))
-        orchestrator.persist(ResponseReceived(receivedMessage, index)) { _ =>
-          orchestrator.log.debug(withLoggingPrefix(s"Successful persist."))
-          finishMessage()
-        }
-      }
-    case Finished if matchDeliveryId(deliveryId) =>
-      //We already received a response for this task and handled it.
-      //Which must mean the receivedMessage is a response to a resend.
-      //We can safely ignore it.
-      orchestrator.log.debug(withLoggingPrefix(s"Finish was invoked when status is already Finished. Ignoring the resent message."))
-    case _ =>
-      orchestrator.log.error(withLoggingPrefix(s"""Finish was invoked erroneously:
-                   |\tMessage = $receivedMessage
-                   |\tSender = ${orchestrator.sender().path}
-                   |\tDestination = $destination
-                   |\tStatus = $status""".stripMargin))
+  /**
+    * This will cause this task orchestrator to terminate early.
+    * An early termination will have the following effects:
+    *   · This task will be finished.
+    *   · Every unstarted task will be prevented from starting even if its dependencies have finished.
+    *   · Tasks that are waiting will remain untouched and the orchestrator will
+    *     still be prepared to handle their responses.
+    *   · The method `onEarlyTermination` will be invoked in the orchestrator.
+    */
+  final def terminateEarly(receivedMessage: Any, correlationId: CorrelationId): Unit = ensureInStatus(Waiting, "TerminateEarly") {
+    log.info(withLoggingPrefix(s"Terminating Early."))
+    finishTask(receivedMessage, correlationId) {
+      //This will prevent unstarted tasks from starting
+      earlyTerminated = true
+      //This is invoked to remove this command behavior from the orchestrator
+      updateCurrentBehavior()
+      onEarlyTermination(this, receivedMessage, tasks.groupBy(_.status))
+    }
   }
 
   /** @return whether this task status is Unstarted and all its dependencies have finished. */
-  final def canStart: Boolean = dependencies.forall(_.hasFinished) && status == Unstarted
+  final def canStart: Boolean = status == Unstarted && dependencies.forall(_.hasFinished)
   /** @return whether this task status is `Waiting`. */
   final def isWaiting: Boolean = status == Waiting
   /** @return whether this task status is `Finished`. */
@@ -182,18 +216,18 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   /** The TaskStatus representation of this task. */
   final def toTaskStatus: TaskStatus = new TaskStatus(index, description, status, dependencies.map(_.index))
 
-  private var _status: Task.Status = _
+  private var _status: Task.Status = Unstarted
   /** @return the current status of this Task. */
   final def status: Task.Status = _status
   private def status_=(status: Task.Status): Unit = {
     _status = status
-    orchestrator.log.info(withLoggingPrefix(s"Status: $status."))
+    log.info(withLoggingPrefix(s"Status: $status."))
   }
 
-  private var _expectedDeliveryId: Option[Long] = _
+  private var _expectedDeliveryId: Option[DeliveryId] = None
   /** @return the current expected deliveryId of this Task. */
-  final def expectedDeliveryId: Option[Long] = _expectedDeliveryId
-  private def expectedDeliveryId_=(expectedDeliveryId: Option[Long]): Unit = {
+  final def expectedDeliveryId: Option[DeliveryId] = _expectedDeliveryId
+  private def expectedDeliveryId_=(expectedDeliveryId: Option[DeliveryId]): Unit = {
     _expectedDeliveryId = expectedDeliveryId
   }
 

@@ -1,14 +1,20 @@
 package pt.tecnico.dsi.akkastrator
 
 import akka.actor._
-import akka.testkit.{TestDuration, TestProbe}
+import akka.testkit.{TestDuration, TestKit, TestProbe}
+import org.scalatest.{BeforeAndAfterAll, FunSuiteLike}
+
 import scala.concurrent.duration.DurationInt
 
-class DependenciesSpec extends IntegrationSpec {
+class DependenciesSpec  extends ActorSysSpec with FunSuiteLike with BeforeAndAfterAll {
+  override def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
+  }
+
   test("Case 1: Send one message, handle the response and finish") {
     val destinationActor0 = TestProbe()
 
-    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
+    val orchestrator = system.actorOf(Props(new SnapshotlessOrchestrator {
       echoTask("A", destinationActor0.ref.path)
     }))
 
@@ -20,7 +26,7 @@ class DependenciesSpec extends IntegrationSpec {
   test("Case 2: Send two messages, handle the response with the same type and finish") {
     val destinations = Array.fill(2)(TestProbe())
 
-    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
+    val orchestrator = system.actorOf(Props(new SnapshotlessOrchestrator {
       echoTask("A", destinations(0).ref.path)
       echoTask("B", destinations(1).ref.path)
     }))
@@ -46,7 +52,7 @@ class DependenciesSpec extends IntegrationSpec {
   test("Case 6: Handle dependencies: (A, B) -> C") {
     val destinations = Array.fill(3)(TestProbe())
 
-    val orchestrator = system.actorOf(Props(new StatelessOrchestrator {
+    val orchestrator = system.actorOf(Props(new SnapshotlessOrchestrator {
       val a = echoTask("A", destinations(0).ref.path)
       val b = echoTask("B", destinations(1).ref.path)
       echoTask("C", destinations(2).ref.path, Set(a, b))

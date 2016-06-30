@@ -6,7 +6,13 @@ initialize := {
   val current  = sys.props("java.specification.version")
   assert(current == javaVersion, s"Unsupported JDK: expected JDK $javaVersion installed, but instead got JDK $current.")
 }
-javacOptions ++= Seq("-source", javaVersion, "-target", javaVersion, "-Xlint")
+javacOptions ++= Seq(
+  "-source", javaVersion,
+  "-target", javaVersion,
+  "-Xlint",
+  "-encoding", "UTF-8",
+  "-Dfile.encoding=utf-8"
+)
 
 scalaVersion := "2.11.8"
 scalacOptions ++= Seq(
@@ -22,7 +28,7 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code" //Warn when dead code is identified.
 )
 
-val akkaVersion = "2.4.5"
+val akkaVersion = "2.4.7"
 libraryDependencies ++= Seq(
   //Akka
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
@@ -31,6 +37,7 @@ libraryDependencies ++= Seq(
   "org.iq80.leveldb" % "leveldb" % "0.7" % Test,
   "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8" % Test,
   //Logging
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0" % Test,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
   "ch.qos.logback" % "logback-classic" % "1.1.7" % Test,
   //Testing
@@ -69,14 +76,13 @@ releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
   runClean,
+  ReleaseStep(action = Command.process("doc", _)),
   runTest,
   setReleaseVersion,
-  commitReleaseVersion,
   tagRelease,
-  ReleaseStep(action = Command.process("publishSigned", _)),
   ReleaseStep(action = Command.process("ghpagesPushSite", _)),
-  setNextVersion,
-  commitNextVersion,
-  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
-  pushChanges
+  ReleaseStep(action = Command.process("publishSigned", _)),
+  ReleaseStep(action = Command.process("sonatypeRelease", _)),
+  pushChanges,
+  setNextVersion
 )
