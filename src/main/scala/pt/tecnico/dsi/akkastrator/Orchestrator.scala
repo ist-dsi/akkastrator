@@ -30,9 +30,10 @@ object Orchestrator {
       withIdsPerDestination(idsPerDestination.updated(destination, getIdsFor(destination) + newIdRelation))
     }
   }
-  case class EmptyState(idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State {
+  class MinimalState(val idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State {
+
     def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State = {
-      copy(idsPerDestination = newIdsPerDestination)
+      new MinimalState(newIdsPerDestination)
     }
   }
 }
@@ -62,9 +63,9 @@ object Orchestrator {
   * leverage self type annotations like so:
   * {{{
   *   trait DatabaseTasks { self: Orchestrator =>
-  *     def createDoStuffTask(): Task = new Task("") {
+  *     def createQueryTask(): Task = new Task("") {
   *       val destination: ActorPath = ???
-  *       def createMessage(deliveryId: Long): Any = ???
+  *       def createMessage(correlationId: CorrelationId): Any = ???
   *
   *       def behavior: Receive = ???
   *     }
@@ -89,7 +90,7 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   def tasks: IndexedSeq[Task] = _tasks
 
   /** The state that this orchestrator maintains. */
-  private[this] var _state: State = EmptyState()
+  private[this] var _state: State = new MinimalState()
   def state[S <: State]: S = _state.asInstanceOf[S]
   def state_=[S <: State](state: S): Unit = _state = state
 
@@ -116,51 +117,10 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   }
 
   /**
-    * @return the behaviors of the tasks which are waiting plus `orchestratorReceive`.
-    */
-  private[akkastrator] final def updateCurrentBehavior(): Unit = {
-    val taskBehaviors = tasks.filter(_.isWaiting).map(_.behavior)
-    //Since orchestratorReceive always exists the reduce wont fail
-    val newBehavior = (taskBehaviors :+ orchestratorReceiveCommand).reduce(_ orElse _)
-    context.become(newBehavior)
-  }
-
-  def orchestratorReceiveCommand: Receive = LoggingReceive {
-    case StartReadyTasks ⇒
-      if (!earlyTerminated) {
-        tasks.filter(_.canStart).foreach(_.start())
-      }
-      if (tasks.forall(_.hasFinished)) {
-        onFinish()
-      }
-    case Status ⇒
-      sender() ! StatusResponse(tasks.map(_.toTaskStatus))
-    case SaveSnapshot ⇒
-      saveSnapshot(_state)
-  }
-  def orchestratorReceiveRecover: Receive = LoggingReceive {
-    case SnapshotOffer(metadata, offeredSnapshot) ⇒
-      state = offeredSnapshot.asInstanceOf[State]
-    case MessageSent(taskIndex) ⇒
-      val task = tasks(taskIndex)
-      log.info(task.withLoggingPrefix("Recovering MessageSent"))
-      task.start()
-    case MessageReceived(taskIndex, message, correlationId, deliveryId) ⇒
-      val task = tasks(taskIndex)
-
-      state = state.updatedIdsPerDestination(task.destination, correlationId -> deliveryId)
-
-      log.info(task.withLoggingPrefix("Recovering ResponseReceived"))
-      task.behavior.apply(message)
-    case RecoveryCompleted ⇒
-      onRecoveryComplete()
-  }
-
-  /**
     * Override this method to perform additional initialization after recovery has completed but before the
     * orchestrator starts.
     *
-    * When you finish performing the additional initialization DO NOT forget to send the message `StartReadyTasks`
+    * When you finish performing the additional initialization you MUST send the message `StartReadyTasks`
     * to the orchestrator which is what prompts the tasks execution. The default implementation of
     * this method does just this.
     * */
@@ -187,6 +147,41 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
     */
   def onEarlyTermination(instigator: Task, causeMessage: Any, tasks: Map[Task.Status, Seq[Task]]): Unit = ()
 
+  /** @return the behaviors of the tasks which are waiting plus `orchestratorReceiveCommand`. */
+  private[akkastrator] final def updateCurrentBehavior(): Unit = {
+    val taskBehaviors = tasks.filter(_.isWaiting).map(_.behavior)
+    //Since orchestratorReceiveCommand always exists the reduce wont fail
+    val newBehavior = (taskBehaviors :+ orchestratorReceiveCommand).reduce(_ orElse _)
+    context become newBehavior
+  }
+
+  def orchestratorReceiveCommand: Receive = LoggingReceive {
+    case StartReadyTasks ⇒
+      if (!earlyTerminated) {
+        tasks.filter(_.canStart).foreach(_.start())
+
+        if (tasks.forall(_.hasFinished)) {
+          onFinish()
+        }
+      }
+    case Status ⇒
+      sender() ! StatusResponse(tasks.map(_.toTaskStatus))
+    case SaveSnapshot ⇒
+      saveSnapshot(_state)
+  }
   def receiveCommand: Receive = orchestratorReceiveCommand
+
+  def orchestratorReceiveRecover: Receive = LoggingReceive {
+    case SnapshotOffer(metadata, offeredSnapshot: State) ⇒
+      state = offeredSnapshot.asInstanceOf[State]
+    case MessageSent(taskIndex) ⇒
+      tasks(taskIndex).start()
+    case MessageReceived(taskIndex, message, correlationId, deliveryId) ⇒
+      val task = tasks(taskIndex)
+      state = state.updatedIdsPerDestination(task.destination, correlationId -> deliveryId)
+      task.behavior.apply(message)
+    case RecoveryCompleted ⇒
+      onRecoveryComplete()
+  }
   def receiveRecover: Receive = orchestratorReceiveRecover
 }

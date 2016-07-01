@@ -57,6 +57,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     if (recoveryRunning) {
       //When we are recovering we do not want to persist the event again.
       //We just want to execute the handler.
+      log.info(withLoggingPrefix(s"Recovering ${event.getClass.getSimpleName}."))
       handler
     } else {
       log.debug(withLoggingPrefix(s"Persisting ${event.getClass.getSimpleName}."))
@@ -181,8 +182,10 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     log.info(withLoggingPrefix(s"Finishing."))
     finishTask(receivedMessage, correlationId) {
       //This starts tasks that have a dependency on this task
-      //And also removes this task behavior from the orchestrator behavior
       self ! StartReadyTasks
+      //This is invoked to remove this task behavior from the orchestrator
+      //This will be performed even if the orchestrator has terminated early
+      updateCurrentBehavior()
     }
   }
 
@@ -194,13 +197,17 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     *   · Tasks that are waiting will remain untouched and the orchestrator will
     *     still be prepared to handle their responses.
     *   · The method `onEarlyTermination` will be invoked in the orchestrator.
+    *   · The method `onFinish` will NEVER be called even if the only tasks needed to finish
+    *     the orchestrator are already waiting and the responses are received.
+    *     You can always call `onFinish` from inside `onEarlyTermination` to implement
+    *     the same termination strategy in both cases.
     */
   final def terminateEarly(receivedMessage: Any, correlationId: CorrelationId): Unit = ensureInStatus(Waiting, "TerminateEarly") {
     log.info(withLoggingPrefix(s"Terminating Early."))
     finishTask(receivedMessage, correlationId) {
-      //This will prevent unstarted tasks from starting
+      //This will prevent unstarted tasks from starting, and it will also prevent onFinished from being called.
       earlyTerminated = true
-      //This is invoked to remove this command behavior from the orchestrator
+      //This is invoked to remove this task behavior from the orchestrator
       updateCurrentBehavior()
       onEarlyTermination(this, receivedMessage, tasks.groupBy(_.status))
     }

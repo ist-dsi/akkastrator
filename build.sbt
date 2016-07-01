@@ -42,7 +42,9 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.7" % Test,
   //Testing
   "org.scalatest" %% "scalatest" % "2.2.6" % Test,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+
+  "commons-io" % "commons-io" % "2.4" % Test
 )
 
 //This is needed for LevelDB to work in tests

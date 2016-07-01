@@ -3,7 +3,6 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.Actor.Receive
 import akka.actor.{ActorPath, Props}
 import akka.event.LoggingReceive
-import akka.persistence.DeleteMessagesSuccess
 import akka.testkit.{TestDuration, TestProbe}
 import pt.tecnico.dsi.akkastrator.Orchestrator.{CorrelationId, StartReadyTasks}
 import pt.tecnico.dsi.akkastrator.Task._
@@ -41,13 +40,8 @@ object TestCases {
     override def onFinish(): Unit = {
       context.become(orchestratorReceiveCommand orElse LoggingReceive {
         case Finish ⇒
-          log.info("Got Finish going to delete messages!")
-          context.become {
-            case DeleteMessagesSuccess(toSequenceNr) ⇒
-              log.info("Orchestrator Finished!")
-              context stop self
-          }
-          deleteMessages(lastSequenceNr)
+          log.info("Finish!")
+          context stop self
       })
     }
 
@@ -61,32 +55,45 @@ object TestCases {
   }
 
   class TestCase1Orchestrator(dests: Array[TestProbe]) extends ControllableOrchestrator {
+    // A
     echoTask("A", dests(0).ref.path)
   }
 
   class TestCase2Orchestrator(dests: Array[TestProbe]) extends ControllableOrchestrator {
+    // A
+    // B
     echoTask("A", dests(0).ref.path)
     echoTask("B", dests(1).ref.path)
   }
 
   class TestCase3Orchestrator(dests: Array[TestProbe]) extends ControllableOrchestrator {
+    // A → B
     val a = echoTask("A", dests(0).ref.path)
     echoTask("B", dests(1).ref.path, dependencies = Set(a))
   }
 
   class TestCase4Orchestrator(dests: Array[TestProbe]) extends ControllableOrchestrator {
+    // A
+    //  ⟩→ C
+    // B
     val a = echoTask("A", dests(0).ref.path)
     val b = echoTask("B", dests(1).ref.path)
     echoTask("C", dests(2).ref.path, dependencies = Set(a, b))
   }
 
   class TestCase5Orchestrator(dests: Array[TestProbe]) extends ControllableOrchestrator {
+    //   B
+    //  ↗ ↘
+    // A → C
     val a = echoTask("A", dests(0).ref.path)
     val b = echoTask("B", dests(1).ref.path, dependencies = Set(a))
     echoTask("C", dests(2).ref.path, dependencies = Set(a, b))
   }
 
   class TestCase6Orchestrator(dests: Array[TestProbe]) extends ControllableOrchestrator {
+    // A → B
+    //   ↘  ⟩→ C
+    // C → D
     val a = echoTask("A", dests(0).ref.path)
     val b = echoTask("B", dests(1).ref.path, dependencies = Set(a))
     val c = echoTask("C", dests(2).ref.path)
@@ -97,12 +104,6 @@ object TestCases {
 
 trait TestCases { self: ActorSysSpec ⇒
 
-  object State {
-    def unstarted(numberOfTasks: Int): State = {
-      val statuses = Seq.tabulate(numberOfTasks)(i ⇒ (i, Set(Unstarted): Set[Task.Status]))
-      new State(SortedMap(statuses:_*))
-    }
-  }
   case class State(expectedStatus: SortedMap[Int, Set[Task.Status]]) {
     def updatedStatuses(newStatuses: (Int, Set[Task.Status])*): State = {
       val newExpectedStatus = newStatuses.foldLeft(expectedStatus) {
@@ -116,21 +117,28 @@ trait TestCases { self: ActorSysSpec ⇒
         (index, Set(status))
       }:_*)
     }
-
-    val expectedStatusSeq = expectedStatus.values.toIndexedSeq
   }
   abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int) {
     val destinations = Array.fill(numberOfDestinations)(TestProbe())
 
     lazy val orchestratorActor = system.actorOf(Props(implicitly[ClassTag[O]].runtimeClass, destinations))
 
-    val firstState: State = State.unstarted(numberOfDestinations)
+    val firstState: State = {
+      val statuses = Seq.tabulate(numberOfDestinations)(i ⇒ (i, Set(Unstarted): Set[Task.Status]))
+      new State(SortedMap(statuses:_*))
+    }
+
     val transformations: Seq[State ⇒ State]
+
+    private val lastTransformation: State ⇒ State = { s ⇒
+      orchestratorActor ! Finish
+      s
+    }
 
     def testForEachState(test: (TestProbe, State) ⇒ Unit): Unit = {
       val probe = TestProbe()
 
-      (transformations :+ { s: State ⇒ orchestratorActor ! Finish; s }).foldLeft(firstState) {
+      (transformations :+ lastTransformation).foldLeft(firstState) {
         case (lastState, transformationFunction) ⇒
           //Perform the tests for lastState
           test(probe, lastState)
@@ -146,6 +154,14 @@ trait TestCases { self: ActorSysSpec ⇒
     }
   }
 
+  /** Graph:
+    *  A
+    *
+    *  Test points:
+    *    · Before any task starts
+    *    · After task A starts
+    *    · After Task A finishes
+    */
   val testCase1 = new TestCase[TestCase1Orchestrator](1) {
     val transformations: Seq[State ⇒ State] = Seq(
       { firstState ⇒
@@ -164,6 +180,15 @@ trait TestCases { self: ActorSysSpec ⇒
     )
   }
 
+  /** Graph:
+    *  A
+    *  B
+    *
+    *  Test points:
+    *    · Before any task starts
+    *    · After both tasks start
+    *    · After both tasks finish
+    */
   val testCase2 = new TestCase[TestCase2Orchestrator](2) {
     val transformations: Seq[State ⇒ State] = Seq(
       { firstState ⇒
@@ -185,6 +210,15 @@ trait TestCases { self: ActorSysSpec ⇒
     )
   }
 
+  /** Graph:
+    *  A → B
+    *
+    *  Test points:
+    *   · Before any task starts
+    *   · After Task A starts
+    *   · After Task A finishes and Task B is about to start or has already started
+    *   · After Task B finishes
+    */
   val testCase3 = new TestCase[TestCase3Orchestrator](2) {
     val transformations: Seq[State ⇒ State] = Seq(
       { firstState ⇒
@@ -211,6 +245,17 @@ trait TestCases { self: ActorSysSpec ⇒
     )
   }
 
+  /** Graph:
+    *  A
+    *   ⟩→ C
+    *  B
+    *
+    *  Test points:
+    *   · Before any task starts
+    *   · After Task A and Task B start
+    *   · After Task B finishes
+    *   · After Task B finishes
+    */
   val testCase4 = new TestCase[TestCase4Orchestrator](3) {
     val transformations: Seq[State ⇒ State] = Seq(
       { firstState ⇒
@@ -244,6 +289,18 @@ trait TestCases { self: ActorSysSpec ⇒
     )
   }
 
+  /** Graph:
+    *    B
+    *   ↗ ↘
+    *  A → C
+    *
+    *  Test points:
+    *   · Before any task starts
+    *   · After Task A starts
+    *   · After Task A finishes and Task B is about to start or has already started
+    *   · After Task B finishes and Task C is about to start or has already started
+    *   · After Task C finishes
+    */
   val testCase5 = new TestCase[TestCase5Orchestrator](3) {
     val transformations: Seq[State ⇒ State] = Seq(
       { firstState ⇒
@@ -278,6 +335,20 @@ trait TestCases { self: ActorSysSpec ⇒
     )
   }
 
+  /** Graph:
+    *  A → B
+    *    ↘  ⟩→ E
+    *  C → D
+    *
+    *  Test points:
+    *   · Before any task starts
+    *   · After Task A and C start
+    *   · After Task A finishes and Task B is about to start or has already started
+    *   · After Task B finishes
+    *   · After Task C finishes and Task D is about to start or has already started
+    *   · After Task D finishes and Task E is about to start or has already started
+    *   · After Task E finishes
+    */
   val testCase6 = new TestCase[TestCase6Orchestrator](5) {
     val transformations: Seq[State ⇒ State] = Seq(
       { firstState ⇒

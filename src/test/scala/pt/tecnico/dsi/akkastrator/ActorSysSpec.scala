@@ -1,19 +1,43 @@
 package pt.tecnico.dsi.akkastrator
 
+import java.io.File
+
 import akka.actor.Actor._
 import akka.actor.{ActorPath, ActorRef, ActorSystem, Props, Terminated}
 import akka.event.LoggingReceive
 import akka.persistence.DeleteMessagesSuccess
 import akka.testkit.{TestDuration, TestKit, TestProbe}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.io.FileUtils
 import org.scalatest._
 import pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId
-import pt.tecnico.dsi.akkastrator.Task.{Status, Unstarted, Waiting}
-
-import scala.collection.generic.SeqFactory
+import pt.tecnico.dsi.akkastrator.Task.Status
+import scala.collection.immutable.SortedMap
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 
-abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator")) with Matchers with LazyLogging {
+abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
+  with WordSpecLike
+  with Matchers
+  with BeforeAndAfterAll
+  with LazyLogging {
+
+  val storageLocations = List(
+    "akka.persistence.journal.leveldb.dir",
+    "akka.persistence.journal.leveldb-shared.store.dir",
+    "akka.persistence.snapshot-store.local.dir"
+  ).map(s ⇒ new File(system.settings.config.getString(s)))
+
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
+    storageLocations.foreach(FileUtils.deleteDirectory)
+  }
+
+  override protected def afterAll(): Unit = {
+    super.afterAll()
+    storageLocations.foreach(FileUtils.deleteDirectory)
+  }
+
+
   abstract class SnapshotlessOrchestrator extends Orchestrator {
     //No snapshots
     override def saveSnapshotEveryXMessages: Int = 0
@@ -81,19 +105,13 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator")) with Ma
     probe.expectMsgPF(maxDuration){ case Terminated(o) if o == orchestrator => true }
   }
 
-  private var seqCounter = 0L
-  def nextSeq(): Long = {
-    val ret = seqCounter
-    seqCounter += 1
-    ret
-  }
-
   def testStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: FiniteDuration = 500.millis.dilated)
-                   (expectedStatus: Set[Task.Status]*): Unit = {
+                   (expectedStatus: SortedMap[Int, Set[Task.Status]]): Unit = {
     orchestrator.tell(Status, probe.ref)
-    val obtainedStatus: Seq[Status] = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.status)
-    obtainedStatus.zip(expectedStatus).foreach { case (obtained, expected) ⇒
-      expected should contain (obtained)
+    val obtainedStatus: IndexedSeq[Status] = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.status).toIndexedSeq
+
+    for((index, expected) <- expectedStatus) {
+      expected should contain (obtainedStatus(index))
     }
   }
   def testExactStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: FiniteDuration = 500.millis.dilated)
