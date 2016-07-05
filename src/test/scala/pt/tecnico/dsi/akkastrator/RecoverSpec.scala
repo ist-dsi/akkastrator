@@ -1,8 +1,6 @@
 package pt.tecnico.dsi.akkastrator
 
-import org.scalatest.WordSpecLike
-
-class RecoverSpec extends ActorSysSpec with WordSpecLike with TestCases {
+class RecoverSpec extends ActorSysSpec {
   //Ensure that when the orchestrator crashes
   // · the correct state of the tasks is recovered
   // · the correct idsPerSender is recovered (actually computed), this is not directly tested
@@ -10,10 +8,13 @@ class RecoverSpec extends ActorSysSpec with WordSpecLike with TestCases {
 
   def testOrchestrator(testCase: TestCase[_]): Unit = {
     import testCase._
-    testForEachState { case (probe, state) ⇒
-      testStatus(orchestratorActor, probe)(state.expectedStatus)
+    sameTestPerState { state ⇒
+      // First we test the orchestrator is in the expected state (aka the status is what we expect)
+      testStatus(orchestratorActor, statusProbe)(state.expectedStatus)
+      // Then we crash the orchestrator
       orchestratorActor ! "boom"
-      testStatus(orchestratorActor, probe)(state.expectedStatus)
+      // Finally we test that the orchestrator recovered to the expected state
+      testStatus(orchestratorActor, statusProbe)(state.expectedStatus)
     }
   }
 
@@ -28,17 +29,17 @@ class RecoverSpec extends ActorSysSpec with WordSpecLike with TestCases {
         |  B""".stripMargin in {
         testOrchestrator(testCase2)
       }
-      """there are two dependent tasks:
+      """there are two linear tasks:
         |  A → B""".stripMargin in {
         testOrchestrator(testCase3)
       }
-      """there are three dependent tasks:
+      """there are three dependent tasks in T:
         |  A
         |   ⟩→ C
         |  B""".stripMargin in {
         testOrchestrator(testCase4)
       }
-      """there are three dependent tasks:
+      """there are three dependent tasks in a triangle:
         |    B
         |   ↗ ↘
         |  A → C""".stripMargin in {

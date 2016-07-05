@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.6" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
 
-  "commons-io" % "commons-io" % "2.4" % Test
+  "commons-io" % "commons-io" % "2.5" % Test
 )
 
 //This is needed for LevelDB to work in tests

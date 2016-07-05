@@ -36,7 +36,6 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     Console.GREEN,
     Console.BLUE,
     Console.YELLOW,
-    Console.BLACK,
     Console.RED,
     Console.WHITE
   )
@@ -239,7 +238,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   }
 
   override def toString: String =
-    s"""Task [$index%02d - $description]:
+    f"""Task [$index%02d - $description]:
        |Destination: $destination
-       |Status: $status"""".stripMargin
+       |Status: $status""".stripMargin
 }

@@ -15,8 +15,8 @@
         </encoder>
     </appender>
 
-    <logger name="akka.persistence"                 level="DEBUG"/>
-    <logger name="akka.persistence.journal.leveldb" level="DEBUG" />
+    <logger name="akka.persistence"                 level="INFO"/>
+    <logger name="akka.serialization"               level="INFO"/>
 
     <root level="DEBUG">
         <!--<appender-ref ref="FILE"/>-->

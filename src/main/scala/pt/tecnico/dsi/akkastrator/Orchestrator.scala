@@ -77,7 +77,8 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   //This exists to make the creation of Tasks more simple.
   implicit final val orchestrator = this
 
-  log.info(s"Started ${this.getClass.getSimpleName} with PersistenceId: $persistenceId")
+  //This gets the Orchestrator started
+  startTasks()
 
   private[akkastrator] var earlyTerminated = false
 
@@ -117,45 +118,53 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   }
 
   /**
-    * Override this method to perform additional initialization after recovery has completed but before the
-    * orchestrator starts.
-    *
-    * When you finish performing the additional initialization you MUST send the message `StartReadyTasks`
-    * to the orchestrator which is what prompts the tasks execution. The default implementation of
-    * this method does just this.
-    * */
-  def onRecoveryComplete(): Unit = {
-    //This gets us started
+    * User overridable callback. Is called to start the Tasks.
+    * By default logs that the orchestrator started and sends it the `StartReadyTasks` message.
+    */
+  def startTasks(): Unit = {
+    log.info(s"Started ${this.getClass.getSimpleName} with PersistenceId: $persistenceId")
     self ! StartReadyTasks
   }
 
   /**
-    * This method is invoked once every task finishes.
-    * The default implementation just stops the orchestrator and logs that the Orchestrator has finished.
+    * User overridable callback. Is called once every task finishes.
+    * By default logs that the Orchestrator has finished then stops it.
     *
     * You can use this to implement your termination strategy.
+    *
+    * You can safely invoke become/unbecome inside this method.
     */
   def onFinish(): Unit = {
     log.info(s"Orchestrator Finished!")
     context stop self
   }
 
+  //TODO: can we guarantee that waiting tasks will still process their responses even if the user performs become/unbecome?
   /**
+    * User overridable callback. Is called when a task requests an early termination. Empty default implementation.
+    *
     * @param instigator the task that initiated the early termination.
-    * @param causeMessage the message that caused the early termination.
+    * @param message the message that caused the early termination.
     * @param tasks Map with the tasks status at the moment of early termination.
+    * @note if you invoke become/unbecome inside this method the contract stating:
+    *       <cite>Tasks that are waiting will remain untouched and the orchestrator will
+    *       still be prepared to handle their responses.</cite>
+    *       Will no longer be guaranteed.
     */
-  def onEarlyTermination(instigator: Task, causeMessage: Any, tasks: Map[Task.Status, Seq[Task]]): Unit = ()
+  def onEarlyTermination(instigator: Task, message: Any, tasks: Map[Task.Status, Seq[Task]]): Unit = ()
 
-  /** @return the behaviors of the tasks which are waiting plus `orchestratorReceiveCommand`. */
+  /** @return the behaviors of the tasks which are waiting plus `orchestratorCommand`. */
   private[akkastrator] final def updateCurrentBehavior(): Unit = {
-    val taskBehaviors = tasks.filter(_.isWaiting).map(_.behavior)
-    //Since orchestratorReceiveCommand always exists the reduce wont fail
-    val newBehavior = (taskBehaviors :+ orchestratorReceiveCommand).reduce(_ orElse _)
-    context become newBehavior
+    val waitingTaskBehaviors = tasks.filter(_.isWaiting).map(_.behavior)
+    // By folding left we ensure orchestratorCommand is always the first receive.
+    // This is important to guarantee that StartReadyTasks, Status or SaveSnapshot won't be taken first
+    // by one of the tasks behaviors.
+    val newBehavior = waitingTaskBehaviors.foldLeft(orchestratorCommand)(_ orElse _)
+    // Extra commands will always come last
+    context become (newBehavior orElse extraCommands)
   }
 
-  def orchestratorReceiveCommand: Receive = LoggingReceive {
+  final def orchestratorCommand: Receive = LoggingReceive {
     case StartReadyTasks ⇒
       if (!earlyTerminated) {
         tasks.filter(_.canStart).foreach(_.start())
@@ -169,9 +178,15 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
     case SaveSnapshot ⇒
       saveSnapshot(_state)
   }
-  def receiveCommand: Receive = orchestratorReceiveCommand
 
-  def orchestratorReceiveRecover: Receive = LoggingReceive {
+  /**
+    * Override this method to add extra commands that are always handled by this orchestrator (except when recovering).
+    */
+  def extraCommands: Receive = PartialFunction.empty[Any, Unit]
+
+  final def receiveCommand: Receive = orchestratorCommand orElse extraCommands
+
+  final def receiveRecover: Receive = LoggingReceive {
     case SnapshotOffer(metadata, offeredSnapshot: State) ⇒
       state = offeredSnapshot.asInstanceOf[State]
     case MessageSent(taskIndex) ⇒
@@ -179,9 +194,10 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
     case MessageReceived(taskIndex, message, correlationId, deliveryId) ⇒
       val task = tasks(taskIndex)
       state = state.updatedIdsPerDestination(task.destination, correlationId -> deliveryId)
-      task.behavior.apply(message)
+      task.behavior(message)
     case RecoveryCompleted ⇒
-      onRecoveryComplete()
+      log.info(
+        s"""Tasks after recovery completed:
+          |\t${tasks.map(t ⇒ t.withLoggingPrefix(t.status.toString)).mkString("\n\t")}""".stripMargin)
   }
-  def receiveRecover: Receive = orchestratorReceiveRecover
 }
