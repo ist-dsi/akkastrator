@@ -67,18 +67,18 @@
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="pt.tecnico.dsi.akkastrator.Orchestrator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="OrchestratorextendsPersistentActorwithActorLoggingwithAtLeastOnceDelivery"></a>
+      <a id="OrchestratorextendsPersistentActorwithAtLeastOnceDeliverywithActorLogging"></a>
       <a id="Orchestrator:Orchestrator"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Orchestrator.html"><span class="name">Orchestrator</span></a><span class="result"> extends <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a></span>
+        <a href="Orchestrator.html"><span class="name">Orchestrator</span></a><span class="result"> extends <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@OrchestratorextendsPersistentActorwithActorLoggingwithAtLeastOnceDelivery" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@OrchestratorextendsPersistentActorwithAtLeastOnceDeliverywithActorLogging" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -86,26 +86,37 @@
 A task corresponds to sending a message to an actor, handling its response and possibly
 mutate the internal state of the Orchestrator.</p><p>The Orchestrator together with the Task is able to:</p><ul><li>Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.</li><li>Delivering messages with at-least-once delivery guarantee.</li><li>Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
    status, the Orchestrator will respond with the status of each task.</li><li>Tasks that have no dependencies will be started right away and the Orchestrator will, from that point
-   onwards, be prepared to handle the responses to the sent messages.</li><li>If the Orchestrator crashes, the state it maintains will be correctly restored.</li></ul><p>NOTE: the responses that are received must be Serializable.</p><p>In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and/or modify
-each others state directly. This means they are very tightly coupled with each other.
-</p></div></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.Status" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="StatusextendsProductwithSerializable"></a>
-      <a id="Status:Status"></a>
+   onwards, be prepared to handle the responses to the sent messages.</li><li>If the Orchestrator crashes, the state it maintains will be correctly restored.</li></ul><p>NOTE: the responses that are received must be Serializable.</p><p>In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and modify
+each others state directly. This means they are very tightly coupled with each other. To make this relation more
+obvious and to enforce it, you will only be able to create tasks inside an orchestrator.</p><p>If you have the need to refactor the creation of tasks so that you can use them in multiple orchestrators you can
+leverage self type annotations like so:</p><pre><span class="kw">trait</span> DatabaseTasks { self: Orchestrator <span class="kw">=&gt;</span>
+  <span class="kw">def</span> createQueryTask(): Task = <span class="kw">new</span> Task(<span class="lit">""</span>) {
+    <span class="kw">val</span> destination: ActorPath = ???
+    <span class="kw">def</span> createMessage(correlationId: CorrelationId): <span class="std">Any</span> = ???
+
+    <span class="kw">def</span> behavior: Receive = ???
+  }
+}</pre></div></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Settings" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SettingsextendsAnyRef"></a>
+      <a id="Settings:Settings"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">case class</span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Status.html"><span class="name">Status</span></a><span class="params">(<span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Settings.html"><span class="name">Settings</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@StatusextendsProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@SettingsextendsAnyRef" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">This class holds all the settings that parameterize akkastrator.</p><div class="fullcomment"><div class="comment cmt"><p>This class holds all the settings that parameterize akkastrator.</p><p>By default these settings are read from the Config obtained with <code>ConfigFactory.load()</code>.</p><p>You can change the settings in multiple ways:</p><ul><li>Change them in the default configuration file (e.g. application.conf)</li><li>Pass a different config holding your configurations: </li></ul><pre><span class="kw">new</span> Settings(yourConfig)</pre><p>    However it will be more succinct to pass your config directly to your akkastrator: </p><pre>context.actorOf(Props(classOf[YourAkkastrator], yourConfig))</pre><ul><li>Extend this class overriding the settings you want to redefine </li></ul><pre><span class="kw">object</span> YourSettings <span class="kw">extends</span> Settings() {
+  <span class="kw">override</span> <span class="kw">val</span> saveSnapshotEveryXMessages = <span class="num">1000</span>
+}
+context.actorOf(Props(classOf[YourAkkastrator], YourSettings))</pre></div></div>
     </li><li name="pt.tecnico.dsi.akkastrator.StatusResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="StatusResponseextendsProductwithSerializable"></a>
       <a id="StatusResponse:StatusResponse"></a>
@@ -115,7 +126,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="StatusResponse.html"><span class="name">StatusResponse</span></a><span class="params">(<span name="tasks">tasks: <span class="extype" name="scala.Seq">Seq</span>[<a href="TaskStatus.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskStatus">TaskStatus</a>]</span>, <span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="StatusResponse.html"><span class="name">StatusResponse</span></a><span class="params">(<span name="tasks">tasks: <span class="extype" name="scala.Seq">Seq</span>[<a href="TaskStatus.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskStatus">TaskStatus</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@StatusResponseextendsProductwithSerializable" title="Permalink" target="_top">
@@ -146,8 +157,9 @@ The answer(s) to the sent message must be handled in <code>behavior</code>.
 <code>behavior</code> must invoke <code>finish</code> when no further processing is necessary.
 The pattern matching inside <code>behavior</code> should invoke <code>matchSenderAndID</code> to ensure
 the received message is in fact the one that we were waiting to receive.
-The internal state of the orchestrator might be mutated inside <code>behavior</code>.</p><p>This class is super tightly coupled with Orchestrator and the reverse is also true.</p><p>This class changes the internal state of the orchestrator:</p><ul><li>The task constructor adds the constructed task to the <code>tasks</code> variable.</li><li>Inside <code>behavior</code> the internal state of the orchestrator may be changed.</li><li>If all tasks are finished the orchestrator will be stopped.</li><li>Otherwise, the next behavior of the orchestrator will be computed.</li></ul><p>In exchange the orchestrator changes the internal state of the task:</p><ul><li>By invoking <code>start</code> which changes the task status to Waiting.
-</li></ul></div></div>
+The internal state of the orchestrator might be mutated inside <code>behavior</code>.</p><p>This class is very tightly coupled with Orchestrator and the reverse is also true.
+Because of this you can only create instances of Task inside an orchestrator.
+</p></div></div>
     </li><li name="pt.tecnico.dsi.akkastrator.TaskStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="TaskStatusextendsProductwithSerializable"></a>
       <a id="TaskStatus:TaskStatus"></a>
@@ -157,7 +169,7 @@ The internal state of the orchestrator might be mutated inside <code>behavior</c
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="TaskStatus.html"><span class="name">TaskStatus</span></a><span class="params">(<span name="index">index: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="status">status: <a href="Task$$Status.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task.Status">Task.Status</a></span>, <span name="dependencies">dependencies: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="TaskStatus.html"><span class="name">TaskStatus</span></a><span class="params">(<span name="index">index: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="status">status: <a href="Task$$Status.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task.Status">Status</a></span>, <span name="dependencies">dependencies: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TaskStatusextendsProductwithSerializable" title="Permalink" target="_top">
@@ -185,6 +197,23 @@ The internal state of the orchestrator might be mutated inside <code>behavior</c
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Orchestrator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Status" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Status"></a>
+      <a id="Status:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Status$.html"><span class="name">Status</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Status" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

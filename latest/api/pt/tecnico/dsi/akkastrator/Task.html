@@ -57,8 +57,9 @@ The answer(s) to the sent message must be handled in <code>behavior</code>.
 <code>behavior</code> must invoke <code>finish</code> when no further processing is necessary.
 The pattern matching inside <code>behavior</code> should invoke <code>matchSenderAndID</code> to ensure
 the received message is in fact the one that we were waiting to receive.
-The internal state of the orchestrator might be mutated inside <code>behavior</code>.</p><p>This class is super tightly coupled with Orchestrator and the reverse is also true.</p><p>This class changes the internal state of the orchestrator:</p><ul><li>The task constructor adds the constructed task to the <code>tasks</code> variable.</li><li>Inside <code>behavior</code> the internal state of the orchestrator may be changed.</li><li>If all tasks are finished the orchestrator will be stopped.</li><li>Otherwise, the next behavior of the orchestrator will be computed.</li></ul><p>In exchange the orchestrator changes the internal state of the task:</p><ul><li>By invoking <code>start</code> which changes the task status to Waiting.
-</li></ul></div><div class="toggleContainer block">
+The internal state of the orchestrator might be mutated inside <code>behavior</code>.</p><p>This class is very tightly coupled with Orchestrator and the reverse is also true.
+Because of this you can only create instances of Task inside an orchestrator.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -139,22 +140,22 @@ The internal state of the orchestrator might be mutated inside <code>behavior</c
     </span>
       <p class="shortcomment cmt">The behavior of this task.</p><div class="fullcomment"><div class="comment cmt"><p>The behavior of this task. This is akin to the receive method of an actor, except for the fact that an
 all catching pattern match will cause the orchestrator to fail. For example:</p><pre><span class="kw">def</span> behavior = Receive {
-  <span class="kw">case</span> m <span class="kw">if</span> matchDeliveryId(m) <span class="kw">=&gt;</span> <span class="cmt">//Some code</span>
+  <span class="kw">case</span> m <span class="kw">=&gt;</span> <span class="cmt">//Some code</span>
 }</pre><p>Will cause the orchestrator to fail.
 </p></div></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Task#createMessage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="createMessage(deliveryId:Long):Any"></a>
-      <a id="createMessage(Long):Any"></a>
+      <a id="createMessage(correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Any"></a>
+      <a id="createMessage(CorrelationId):Any"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">createMessage</span><span class="params">(<span name="deliveryId">deliveryId: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <span class="extype" name="scala.Any">Any</span></span>
+        <span class="name">createMessage</span><span class="params">(<span name="correlationId">correlationId: <a href="Orchestrator$.html#CorrelationId=Long" class="extmbr" name="pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId">CorrelationId</a></span>)</span><span class="result">: <span class="extype" name="scala.Any">Any</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@createMessage(deliveryId:Long):Any" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@createMessage(correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Any" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -168,7 +169,7 @@ all catching pattern match will cause the orchestrator to fail. For example:</p>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">destination</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>
+        <span class="name">destination</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@destination:akka.actor.ActorPath" title="Permalink" target="_top">
@@ -358,18 +359,18 @@ all catching pattern match will cause the orchestrator to fail. For example:</p>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Task#expectedDeliveryId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="expectedDeliveryId:Option[Long]"></a>
-      <a id="expectedDeliveryId:Option[Long]"></a>
+      <a id="expectedDeliveryId:Option[pt.tecnico.dsi.akkastrator.Orchestrator.DeliveryId]"></a>
+      <a id="expectedDeliveryId:Option[DeliveryId]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">expectedDeliveryId</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>]</span>
+        <span class="name">expectedDeliveryId</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Orchestrator$.html#DeliveryId=Long" class="extmbr" name="pt.tecnico.dsi.akkastrator.Orchestrator.DeliveryId">DeliveryId</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@expectedDeliveryId:Option[Long]" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@expectedDeliveryId:Option[pt.tecnico.dsi.akkastrator.Orchestrator.DeliveryId]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -398,18 +399,18 @@ all catching pattern match will cause the orchestrator to fail. For example:</p>
               
         </dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Task#finish" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="finish(receivedMessage:Any,deliveryId:Long):Unit"></a>
-      <a id="finish(Any,Long):Unit"></a>
+      <a id="finish(receivedMessage:Any,correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Unit"></a>
+      <a id="finish(Any,CorrelationId):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finish</span><span class="params">(<span name="receivedMessage">receivedMessage: <span class="extype" name="scala.Any">Any</span></span>, <span name="deliveryId">deliveryId: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finish</span><span class="params">(<span name="receivedMessage">receivedMessage: <span class="extype" name="scala.Any">Any</span></span>, <span name="correlationId">correlationId: <a href="Orchestrator$.html#CorrelationId=Long" class="extmbr" name="pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId">CorrelationId</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@finish(receivedMessage:Any,deliveryId:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@finish(receivedMessage:Any,correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -471,7 +472,7 @@ all catching pattern match will cause the orchestrator to fail. For example:</p>
       <a id="index:Int"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
@@ -517,23 +518,27 @@ all catching pattern match will cause the orchestrator to fail. For example:</p>
       </a>
     </span>
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>whether this task status is <code>Waiting</code>.</p></dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.Task#matchDeliveryId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="matchDeliveryId(deliverId:Long):Boolean"></a>
-      <a id="matchDeliveryId(Long):Boolean"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.Task#matchSenderAndId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="matchSenderAndId(correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Boolean"></a>
+      <a id="matchSenderAndId(CorrelationId):Boolean"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">matchDeliveryId</span><span class="params">(<span name="deliverId">deliverId: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">matchSenderAndId</span><span class="params">(<span name="correlationId">correlationId: <a href="Orchestrator$.html#CorrelationId=Long" class="extmbr" name="pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId">CorrelationId</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@matchDeliveryId(deliverId:Long):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@matchSenderAndId(correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">deliverId</dt><dd class="cmt"><p>the deliveryId obtained from the received message.</p></dd><dt>returns</dt><dd class="cmt"><p>true if the deliveryId of <code>receivedMessage</code> is the same as the one this task is expecting. False otherwise.</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">correlationId</dt><dd class="cmt"><p>the correlationId obtained from the received message.</p></dd><dt>returns</dt><dd class="cmt"><p>true if
+        · This task status is Waiting
+        · The actor path of the sender is the same as <code>destination</code>.
+        · The delivery id resolved from the correlation id is the expected delivery id for this task.
+       false otherwise.</p></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -608,14 +613,14 @@ no need to persist that the message was sent.
 </p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Task#status" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="status:pt.tecnico.dsi.akkastrator.Task.Status"></a>
-      <a id="status:Task.Status"></a>
+      <a id="status:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">status</span><span class="result">: <a href="Task$$Status.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task.Status">Task.Status</a></span>
+        <span class="name">status</span><span class="result">: <a href="Task$$Status.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@status:pt.tecnico.dsi.akkastrator.Task.Status" title="Permalink" target="_top">
@@ -640,6 +645,34 @@ no need to persist that the message was sent.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Task#terminateEarly" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="terminateEarly(receivedMessage:Any,correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Unit"></a>
+      <a id="terminateEarly(Any,CorrelationId):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">terminateEarly</span><span class="params">(<span name="receivedMessage">receivedMessage: <span class="extype" name="scala.Any">Any</span></span>, <span name="correlationId">correlationId: <a href="Orchestrator$.html#CorrelationId=Long" class="extmbr" name="pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId">CorrelationId</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@terminateEarly(receivedMessage:Any,correlationId:pt.tecnico.dsi.akkastrator.Orchestrator.CorrelationId):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This will cause this task orchestrator to terminate early.</p><div class="fullcomment"><div class="comment cmt"><p>This will cause this task orchestrator to terminate early.
+An early termination will have the following effects:
+  · This task will be finished.
+  · Every unstarted task will be prevented from starting even if its dependencies have finished.
+  · Tasks that are waiting will remain untouched and the orchestrator will
+    still be prepared to handle their responses.
+  · The method <code>onEarlyTermination</code> will be invoked in the orchestrator.
+  · The method <code>onFinish</code> will NEVER be called even if the only tasks needed to finish
+    the orchestrator are already waiting and the responses are received.
+    You can always call <code>onFinish</code> from inside <code>onEarlyTermination</code> to implement
+    the same termination strategy in both cases.
+</p></div></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Task#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
@@ -744,18 +777,18 @@ no need to persist that the message was sent.
               
         </dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Task#withLoggingPrefix" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withLoggingPrefix(message:String):String"></a>
-      <a id="withLoggingPrefix(String):String"></a>
+      <a id="withLoggingPrefix(message:=&gt;String):String"></a>
+      <a id="withLoggingPrefix(⇒String):String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withLoggingPrefix</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">withLoggingPrefix</span><span class="params">(<span name="message">message: ⇒ <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@withLoggingPrefix(message:String):String" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Task@withLoggingPrefix(message:=&gt;String):String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

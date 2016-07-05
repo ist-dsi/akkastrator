@@ -28,7 +28,7 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="Orchestrator$.html" title="See companion object"><img alt="Trait/Object" src="../../../../lib/trait_to_object_big.png" /></a>
+        <a href="Orchestrator$.html" title="See companion object"><img alt="Class/Object" src="../../../../lib/class_to_object_big.png" /></a>
         <p id="owner"><a href="../../../package.html" class="extype" name="pt">pt</a>.<a href="../../package.html" class="extype" name="pt.tecnico">tecnico</a>.<a href="../package.html" class="extype" name="pt.tecnico.dsi">dsi</a>.<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">akkastrator</a></p>
         <h1><a href="Orchestrator$.html" title="See companion object">Orchestrator</a></h1><h3><span class="morelinks"><div>
             Related Docs:
@@ -43,11 +43,11 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Orchestrator</span><span class="result"> extends <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a></span>
+        <span class="name">Orchestrator</span><span class="result"> extends <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a></span>
       </span>
       </h4>
       
@@ -55,11 +55,19 @@
 A task corresponds to sending a message to an actor, handling its response and possibly
 mutate the internal state of the Orchestrator.</p><p>The Orchestrator together with the Task is able to:</p><ul><li>Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.</li><li>Delivering messages with at-least-once delivery guarantee.</li><li>Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
    status, the Orchestrator will respond with the status of each task.</li><li>Tasks that have no dependencies will be started right away and the Orchestrator will, from that point
-   onwards, be prepared to handle the responses to the sent messages.</li><li>If the Orchestrator crashes, the state it maintains will be correctly restored.</li></ul><p>NOTE: the responses that are received must be Serializable.</p><p>In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and/or modify
-each others state directly. This means they are very tightly coupled with each other.
-</p></div><div class="toggleContainer block">
+   onwards, be prepared to handle the responses to the sent messages.</li><li>If the Orchestrator crashes, the state it maintains will be correctly restored.</li></ul><p>NOTE: the responses that are received must be Serializable.</p><p>In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and modify
+each others state directly. This means they are very tightly coupled with each other. To make this relation more
+obvious and to enforce it, you will only be able to create tasks inside an orchestrator.</p><p>If you have the need to refactor the creation of tasks so that you can use them in multiple orchestrators you can
+leverage self type annotations like so:</p><pre><span class="kw">trait</span> DatabaseTasks { self: Orchestrator <span class="kw">=&gt;</span>
+  <span class="kw">def</span> createQueryTask(): Task = <span class="kw">new</span> Task(<span class="lit">""</span>) {
+    <span class="kw">val</span> destination: ActorPath = ???
+    <span class="kw">def</span> createMessage(correlationId: CorrelationId): <span class="std">Any</span> = ???
+
+    <span class="kw">def</span> behavior: Receive = ???
+  }
+}</pre></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDeliveryLike" class="extype" target="_top">AtLeastOnceDeliveryLike</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.Eventsourced" class="extype" target="_top">Eventsourced</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistenceRecovery" class="extype" target="_top">PersistenceRecovery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistenceIdentity" class="extype" target="_top">PersistenceIdentity</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistenceStash" class="extype" target="_top">PersistenceStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.StashFactory" class="extype" target="_top">StashFactory</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.Stash" class="extype" target="_top">Stash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.dispatch.RequiresMessageQueue" class="extype" target="_top">RequiresMessageQueue</a>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.dispatch.DequeBasedMessageQueueSemantics" class="extype" target="_top">DequeBasedMessageQueueSemantics</a>], <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.UnrestrictedStash" class="extype" target="_top">UnrestrictedStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.StashSupport" class="extype" target="_top">StashSupport</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.Snapshotter" class="extype" target="_top">Snapshotter</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.Actor" class="extype" target="_top">Actor</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDeliveryLike" class="extype" target="_top">AtLeastOnceDeliveryLike</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.Eventsourced" class="extype" target="_top">Eventsourced</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistenceRecovery" class="extype" target="_top">PersistenceRecovery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistenceIdentity" class="extype" target="_top">PersistenceIdentity</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistenceStash" class="extype" target="_top">PersistenceStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.StashFactory" class="extype" target="_top">StashFactory</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.Stash" class="extype" target="_top">Stash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.dispatch.RequiresMessageQueue" class="extype" target="_top">RequiresMessageQueue</a>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.dispatch.DequeBasedMessageQueueSemantics" class="extype" target="_top">DequeBasedMessageQueueSemantics</a>], <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.UnrestrictedStash" class="extype" target="_top">UnrestrictedStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.StashSupport" class="extype" target="_top">StashSupport</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.Snapshotter" class="extype" target="_top">Snapshotter</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.Actor" class="extype" target="_top">Actor</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -77,7 +85,7 @@ each others state directly. This means they are very tightly coupled with each o
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="pt.tecnico.dsi.akkastrator.Orchestrator"><span>Orchestrator</span></li><li class="in" name="akka.persistence.AtLeastOnceDelivery"><span>AtLeastOnceDelivery</span></li><li class="in" name="akka.persistence.AtLeastOnceDeliveryLike"><span>AtLeastOnceDeliveryLike</span></li><li class="in" name="akka.actor.ActorLogging"><span>ActorLogging</span></li><li class="in" name="akka.persistence.PersistentActor"><span>PersistentActor</span></li><li class="in" name="akka.persistence.Eventsourced"><span>Eventsourced</span></li><li class="in" name="akka.persistence.PersistenceRecovery"><span>PersistenceRecovery</span></li><li class="in" name="akka.persistence.PersistenceIdentity"><span>PersistenceIdentity</span></li><li class="in" name="akka.persistence.PersistenceStash"><span>PersistenceStash</span></li><li class="in" name="akka.actor.StashFactory"><span>StashFactory</span></li><li class="in" name="akka.actor.Stash"><span>Stash</span></li><li class="in" name="akka.dispatch.RequiresMessageQueue"><span>RequiresMessageQueue</span></li><li class="in" name="akka.actor.UnrestrictedStash"><span>UnrestrictedStash</span></li><li class="in" name="akka.actor.StashSupport"><span>StashSupport</span></li><li class="in" name="akka.persistence.Snapshotter"><span>Snapshotter</span></li><li class="in" name="akka.actor.Actor"><span>Actor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="pt.tecnico.dsi.akkastrator.Orchestrator"><span>Orchestrator</span></li><li class="in" name="akka.actor.ActorLogging"><span>ActorLogging</span></li><li class="in" name="akka.persistence.AtLeastOnceDelivery"><span>AtLeastOnceDelivery</span></li><li class="in" name="akka.persistence.AtLeastOnceDeliveryLike"><span>AtLeastOnceDeliveryLike</span></li><li class="in" name="akka.persistence.PersistentActor"><span>PersistentActor</span></li><li class="in" name="akka.persistence.Eventsourced"><span>Eventsourced</span></li><li class="in" name="akka.persistence.PersistenceRecovery"><span>PersistenceRecovery</span></li><li class="in" name="akka.persistence.PersistenceIdentity"><span>PersistenceIdentity</span></li><li class="in" name="akka.persistence.PersistenceStash"><span>PersistenceStash</span></li><li class="in" name="akka.actor.StashFactory"><span>StashFactory</span></li><li class="in" name="akka.actor.Stash"><span>Stash</span></li><li class="in" name="akka.dispatch.RequiresMessageQueue"><span>RequiresMessageQueue</span></li><li class="in" name="akka.actor.UnrestrictedStash"><span>UnrestrictedStash</span></li><li class="in" name="akka.actor.StashSupport"><span>StashSupport</span></li><li class="in" name="akka.persistence.Snapshotter"><span>Snapshotter</span></li><li class="in" name="akka.actor.Actor"><span>Actor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -94,7 +102,27 @@ each others state directly. This means they are very tightly coupled with each o
 
       <div id="template">
         <div id="allMembers">
-        
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="pt.tecnico.dsi.akkastrator.Orchestrator#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(settings:pt.tecnico.dsi.akkastrator.Settings):pt.tecnico.dsi.akkastrator.Orchestrator"></a>
+      <a id="&lt;init&gt;:Orchestrator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Orchestrator</span><span class="params">(<span name="settings">settings: <a href="Settings.html" class="extype" name="pt.tecnico.dsi.akkastrator.Settings">Settings</a> = <span class="symbol"><span class="name"><a href="Settings.html">new Settings()</a></span></span></span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@&lt;init&gt;(settings:pt.tecnico.dsi.akkastrator.Settings):pt.tecnico.dsi.akkastrator.Orchestrator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
@@ -120,23 +148,23 @@ each others state directly. This means they are very tightly coupled with each o
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="pt.tecnico.dsi.akkastrator.Orchestrator#saveSnapshotInterval" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="saveSnapshotInterval:scala.concurrent.duration.FiniteDuration"></a>
-      <a id="saveSnapshotInterval:FiniteDuration"></a>
+              <ol><li name="akka.persistence.PersistenceIdentity#persistenceId" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="persistenceId:String"></a>
+      <a id="persistenceId:String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">saveSnapshotInterval</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
+        <span class="name">persistenceId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@saveSnapshotInterval:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@persistenceId:String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">The interval at which snapshots will be saved.</p><div class="fullcomment"><div class="comment cmt"><p>The interval at which snapshots will be saved. Use Duration.Zero to disable snapshots.</p></div></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PersistenceIdentity</dd></dl></div>
     </li></ol>
             </div>
 
@@ -344,7 +372,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">context</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorContext" class="extype" target="_top">ActorContext</a></span>
+        <span class="name">context</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorContext" class="extype" target="_top">ActorContext</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@context:akka.actor.ActorContext" title="Permalink" target="_top">
@@ -412,7 +440,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">deleteSnapshots</span><span class="params">(<span name="criteria">criteria: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.SnapshotSelectionCriteria" class="extype" target="_top">SnapshotSelectionCriteria</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">deleteSnapshots</span><span class="params">(<span name="criteria">criteria: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.SnapshotSelectionCriteria" class="extype" target="_top">SnapshotSelectionCriteria</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@deleteSnapshots(criteria:akka.persistence.SnapshotSelectionCriteria):Unit" title="Permalink" target="_top">
@@ -429,7 +457,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">deliver</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorSelection" class="extype" target="_top">ActorSelection</a></span>)</span><span class="params">(<span name="deliveryIdToMessage">deliveryIdToMessage: (<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>) ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">deliver</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorSelection" class="extype" target="_top">ActorSelection</a></span>)</span><span class="params">(<span name="deliveryIdToMessage">deliveryIdToMessage: (<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>) ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@deliver(destination:akka.actor.ActorSelection)(deliveryIdToMessage:Long=&gt;Any):Unit" title="Permalink" target="_top">
@@ -446,7 +474,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">deliver</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>)</span><span class="params">(<span name="deliveryIdToMessage">deliveryIdToMessage: (<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>) ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">deliver</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>)</span><span class="params">(<span name="deliveryIdToMessage">deliveryIdToMessage: (<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>) ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@deliver(destination:akka.actor.ActorPath)(deliveryIdToMessage:Long=&gt;Any):Unit" title="Permalink" target="_top">
@@ -488,6 +516,23 @@ each others state directly. This means they are very tightly coupled with each o
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#extraCommands" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="extraCommands:Orchestrator.this.Receive"></a>
+      <a id="extraCommands:Receive"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">extraCommands</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.Orchestrator.Receive">Receive</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@extraCommands:Orchestrator.this.Receive" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Override this method to add extra commands that are always handled by this orchestrator (except when recovering).</p>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -571,7 +616,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">internalStashOverflowStrategy</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.StashOverflowStrategy" class="extype" target="_top">StashOverflowStrategy</a></span>
+        <span class="name">internalStashOverflowStrategy</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.StashOverflowStrategy" class="extype" target="_top">StashOverflowStrategy</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@internalStashOverflowStrategy:akka.persistence.StashOverflowStrategy" title="Permalink" target="_top">
@@ -639,7 +684,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">loadSnapshot</span><span class="params">(<span name="persistenceId">persistenceId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="criteria">criteria: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.SnapshotSelectionCriteria" class="extype" target="_top">SnapshotSelectionCriteria</a></span>, <span name="toSequenceNr">toSequenceNr: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">loadSnapshot</span><span class="params">(<span name="persistenceId">persistenceId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="criteria">criteria: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.SnapshotSelectionCriteria" class="extype" target="_top">SnapshotSelectionCriteria</a></span>, <span name="toSequenceNr">toSequenceNr: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@loadSnapshot(persistenceId:String,criteria:akka.persistence.SnapshotSelectionCriteria,toSequenceNr:Long):Unit" title="Permalink" target="_top">
@@ -656,7 +701,7 @@ each others state directly. This means they are very tightly coupled with each o
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">log</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.event.LoggingAdapter" class="extype" target="_top">LoggingAdapter</a></span>
+        <span class="name">log</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.event.LoggingAdapter" class="extype" target="_top">LoggingAdapter</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@log:akka.event.LoggingAdapter" title="Permalink" target="_top">
@@ -749,6 +794,27 @@ each others state directly. This means they are very tightly coupled with each o
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AtLeastOnceDeliveryLike</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#onEarlyTermination" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onEarlyTermination(instigator:pt.tecnico.dsi.akkastrator.Task,message:Any,tasks:Map[pt.tecnico.dsi.akkastrator.Task.Status,Seq[pt.tecnico.dsi.akkastrator.Task]]):Unit"></a>
+      <a id="onEarlyTermination(Task,Any,Map[Status,Seq[Task]]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onEarlyTermination</span><span class="params">(<span name="instigator">instigator: <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></span>, <span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="tasks">tasks: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="Task$$Status.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task.Status">Status</a>, <span class="extype" name="scala.Seq">Seq</span>[<a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>]]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@onEarlyTermination(instigator:pt.tecnico.dsi.akkastrator.Task,message:Any,tasks:Map[pt.tecnico.dsi.akkastrator.Task.Status,Seq[pt.tecnico.dsi.akkastrator.Task]]):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">User overridable callback.</p><div class="fullcomment"><div class="comment cmt"><p>User overridable callback. Is called when a task requests an early termination. Empty default implementation.
+</p></div><dl class="paramcmts block"><dt class="param">instigator</dt><dd class="cmt"><p>the task that initiated the early termination.</p></dd><dt class="param">message</dt><dd class="cmt"><p>the message that caused the early termination.</p></dd><dt class="param">tasks</dt><dd class="cmt"><p>Map with the tasks status at the moment of early termination.</p></dd></dl><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>if you invoke become/unbecome inside this method the contract stating:
+      <cite>Tasks that are waiting will remain untouched and the orchestrator will
+      still be prepared to handle their responses.</cite>
+      Will no longer be guaranteed.</p></span></dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#onFinish" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="onFinish():Unit"></a>
       <a id="onFinish():Unit"></a>
@@ -765,8 +831,8 @@ each others state directly. This means they are very tightly coupled with each o
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">This method is invoked once every task finishes.</p><div class="fullcomment"><div class="comment cmt"><p>This method is invoked once every task finishes.
-The default implementation just stops the orchestrator.</p><p>You can use this to implement your termination strategy.
+      <p class="shortcomment cmt">User overridable callback.</p><div class="fullcomment"><div class="comment cmt"><p>User overridable callback. Is called once every task finishes.
+By default logs that the Orchestrator has finished then stops it.</p><p>You can use this to implement your termination strategy.</p><p>You can safely invoke become/unbecome inside this method.
 </p></div></div>
     </li><li name="akka.persistence.Eventsourced#onPersistFailure" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="onPersistFailure(cause:&lt;?&gt;,event:&lt;?&gt;,seqNr:&lt;?&gt;):Unit"></a>
@@ -824,7 +890,7 @@ The default implementation just stops the orchestrator.</p><p>You can use this t
       <a id="orchestrator:Orchestrator"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier">implicit final </span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
@@ -832,6 +898,23 @@ The default implementation just stops the orchestrator.</p><p>You can use this t
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@orchestrator:pt.tecnico.dsi.akkastrator.Orchestrator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#orchestratorCommand" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="orchestratorCommand:Orchestrator.this.Receive"></a>
+      <a id="orchestratorCommand:Receive"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">orchestratorCommand</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.Orchestrator.Receive">Receive</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@orchestratorCommand:Orchestrator.this.Receive" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -904,25 +987,6 @@ The default implementation just stops the orchestrator.</p><p>You can use this t
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#persistenceId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="persistenceId:String"></a>
-      <a id="persistenceId:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">persistenceId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@persistenceId:String" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The persistenceId used by the akka-persistence module.</p><div class="fullcomment"><div class="comment cmt"><p>The persistenceId used by the akka-persistence module.
-The default value is this class simple name.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a> → PersistenceIdentity</dd></dl></div>
     </li><li name="akka.actor.Actor#postRestart" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="postRestart(reason:&lt;?&gt;):Unit"></a>
       <a id="postRestart(Throwable):Unit"></a>
@@ -1063,7 +1127,7 @@ The default value is this class simple name.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">recovery</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.Recovery" class="extype" target="_top">Recovery</a></span>
+        <span class="name">recovery</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.Recovery" class="extype" target="_top">Recovery</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@recovery:akka.persistence.Recovery" title="Permalink" target="_top">
@@ -1156,6 +1220,27 @@ The default value is this class simple name.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Snapshotter</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#saveSnapshotEveryXMessages" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="saveSnapshotEveryXMessages:Int"></a>
+      <a id="saveSnapshotEveryXMessages:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">saveSnapshotEveryXMessages</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@saveSnapshotEveryXMessages:Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Every X messages a snapshot will be saved.</p><div class="fullcomment"><div class="comment cmt"><p>Every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
+By default this method returns the value defined in the configuration.</p><p>This value is not a strict one because the orchestrator will not save it in snapshots.
+This means that when this actor crashes more messages than the ones defined here might have to
+be processed in other to trigger a save snapshot.</p><p>You can trigger a save snapshot manually by sending a <code>SaveSnapshot</code> message to this orchestrator.
+</p></div></div>
     </li><li name="akka.actor.Actor#self" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="self:akka.actor.ActorRef"></a>
       <a id="self:ActorRef"></a>
@@ -1165,7 +1250,7 @@ The default value is this class simple name.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">self</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorRef" class="extype" target="_top">ActorRef</a></span>
+        <span class="name">self</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorRef" class="extype" target="_top">ActorRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@self:akka.actor.ActorRef" title="Permalink" target="_top">
@@ -1182,7 +1267,7 @@ The default value is this class simple name.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">sender</span><span class="params">()</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorRef" class="extype" target="_top">ActorRef</a></span>
+        <span class="name">sender</span><span class="params">()</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorRef" class="extype" target="_top">ActorRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@sender():akka.actor.ActorRef" title="Permalink" target="_top">
@@ -1207,6 +1292,23 @@ The default value is this class simple name.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AtLeastOnceDeliveryLike</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#settings" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="settings:pt.tecnico.dsi.akkastrator.Settings"></a>
+      <a id="settings:Settings"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">settings</span><span class="result">: <a href="Settings.html" class="extype" name="pt.tecnico.dsi.akkastrator.Settings">Settings</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@settings:pt.tecnico.dsi.akkastrator.Settings" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="akka.persistence.PersistenceIdentity#snapshotPluginId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="snapshotPluginId:String"></a>
       <a id="snapshotPluginId:String"></a>
@@ -1258,6 +1360,25 @@ The default value is this class simple name.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced → Snapshotter</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#startTasks" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="startTasks():Unit"></a>
+      <a id="startTasks():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">startTasks</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@startTasks():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">User overridable callback.</p><div class="fullcomment"><div class="comment cmt"><p>User overridable callback. Is called to start the Tasks.
+By default logs that the orchestrator started and sends it the <code>StartReadyTasks</code> message.
+</p></div></div>
     </li><li name="akka.actor.StashSupport#stash" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="stash():Unit"></a>
       <a id="stash():Unit"></a>
@@ -1318,7 +1439,7 @@ The default value is this class simple name.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">supervisorStrategy</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.SupervisorStrategy" class="extype" target="_top">SupervisorStrategy</a></span>
+        <span class="name">supervisorStrategy</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.SupervisorStrategy" class="extype" target="_top">SupervisorStrategy</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@supervisorStrategy:akka.actor.SupervisorStrategy" title="Permalink" target="_top">
@@ -1411,23 +1532,6 @@ The default value is this class simple name.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced → StashSupport</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#updateCurrentBehavior" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="updateCurrentBehavior():Unit"></a>
-      <a id="updateCurrentBehavior():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">updateCurrentBehavior</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.Orchestrator@updateCurrentBehavior():Unit" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the behaviors of the tasks which are waiting plus <code>orchestratorReceive</code>.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -1566,36 +1670,36 @@ The default value is this class simple name.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="akka.persistence.AtLeastOnceDelivery">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a></h3>
+        <div class="parent" name="akka.actor.ActorLogging">
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a></h3>
+            </div><div class="parent" name="akka.persistence.AtLeastOnceDelivery">
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a></h3>
             </div><div class="parent" name="akka.persistence.AtLeastOnceDeliveryLike">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDeliveryLike" class="extype" target="_top">AtLeastOnceDeliveryLike</a></h3>
-            </div><div class="parent" name="akka.actor.ActorLogging">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDeliveryLike" class="extype" target="_top">AtLeastOnceDeliveryLike</a></h3>
             </div><div class="parent" name="akka.persistence.PersistentActor">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a></h3>
             </div><div class="parent" name="akka.persistence.Eventsourced">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.Eventsourced" class="extype" target="_top">Eventsourced</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.Eventsourced" class="extype" target="_top">Eventsourced</a></h3>
             </div><div class="parent" name="akka.persistence.PersistenceRecovery">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistenceRecovery" class="extype" target="_top">PersistenceRecovery</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistenceRecovery" class="extype" target="_top">PersistenceRecovery</a></h3>
             </div><div class="parent" name="akka.persistence.PersistenceIdentity">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistenceIdentity" class="extype" target="_top">PersistenceIdentity</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistenceIdentity" class="extype" target="_top">PersistenceIdentity</a></h3>
             </div><div class="parent" name="akka.persistence.PersistenceStash">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.PersistenceStash" class="extype" target="_top">PersistenceStash</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistenceStash" class="extype" target="_top">PersistenceStash</a></h3>
             </div><div class="parent" name="akka.actor.StashFactory">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.StashFactory" class="extype" target="_top">StashFactory</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.StashFactory" class="extype" target="_top">StashFactory</a></h3>
             </div><div class="parent" name="akka.actor.Stash">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.Stash" class="extype" target="_top">Stash</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.Stash" class="extype" target="_top">Stash</a></h3>
             </div><div class="parent" name="akka.dispatch.RequiresMessageQueue">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.dispatch.RequiresMessageQueue" class="extype" target="_top">RequiresMessageQueue</a>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.dispatch.DequeBasedMessageQueueSemantics" class="extype" target="_top">DequeBasedMessageQueueSemantics</a>]</h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.dispatch.RequiresMessageQueue" class="extype" target="_top">RequiresMessageQueue</a>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.dispatch.DequeBasedMessageQueueSemantics" class="extype" target="_top">DequeBasedMessageQueueSemantics</a>]</h3>
             </div><div class="parent" name="akka.actor.UnrestrictedStash">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.UnrestrictedStash" class="extype" target="_top">UnrestrictedStash</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.UnrestrictedStash" class="extype" target="_top">UnrestrictedStash</a></h3>
             </div><div class="parent" name="akka.actor.StashSupport">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.StashSupport" class="extype" target="_top">StashSupport</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.StashSupport" class="extype" target="_top">StashSupport</a></h3>
             </div><div class="parent" name="akka.persistence.Snapshotter">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.5/akka-persistence_2.11-2.4.5-javadoc.jar/!/index.html#akka.persistence.Snapshotter" class="extype" target="_top">Snapshotter</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.Snapshotter" class="extype" target="_top">Snapshotter</a></h3>
             </div><div class="parent" name="akka.actor.Actor">
-              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.5/akka-actor_2.11-2.4.5-javadoc.jar/!/index.html#akka.actor.Actor" class="extype" target="_top">Actor</a></h3>
+              <h3>Inherited from <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.Actor" class="extype" target="_top">Actor</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
