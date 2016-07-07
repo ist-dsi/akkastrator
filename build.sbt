@@ -62,6 +62,7 @@ scmInfo := Some(ScmInfo(homepage.value.get, s"git@github.com:ist-dsi/${name.valu
 publishMavenStyle := true
 publishTo := Some(if (isSnapshot.value) Opts.resolver.sonatypeSnapshots else Opts.resolver.sonatypeStaging)
 publishArtifact in Test := false
+sonatypeProfileName := organization.value
 
 pomIncludeRepository := { _ => false }
 pomExtra :=

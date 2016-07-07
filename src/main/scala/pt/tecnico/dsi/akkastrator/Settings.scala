@@ -34,7 +34,7 @@ class Settings(config: Config = ConfigFactory.load()) {
   }
   import akkastratorConfig._
 
-  val saveSnapshotEveryXMessages = getInt("save-snapshot-every-X-messages")
+  val saveSnapshotRoughlyEveryXMessages = getInt("save-snapshot-roughly-every-X-messages")
 
   override def toString: String = akkastratorConfig.root.render
 }

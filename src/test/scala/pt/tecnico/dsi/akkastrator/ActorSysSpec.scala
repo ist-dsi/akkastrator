@@ -45,7 +45,7 @@ object TestCaseOrchestrators {
     override def persistenceId: String = this.getClass.getSimpleName
 
     //No automatic snapshots
-    override def saveSnapshotEveryXMessages: Int = 0
+    override def saveSnapshotRoughlyEveryXMessages: Int = 0
 
     override def startTasks(): Unit = {
       if (startImmediately) {

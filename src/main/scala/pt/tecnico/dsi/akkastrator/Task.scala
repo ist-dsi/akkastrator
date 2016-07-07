@@ -18,8 +18,8 @@ object Task {
   * mutate the internal state of the Orchestrator.
   * The answer(s) to the sent message must be handled in `behavior`.
   * `behavior` must invoke `finish` when no further processing is necessary.
-  * The pattern matching inside `behavior` should invoke `matchSenderAndID` to ensure
-  * the received message is in fact the one that we were waiting to receive.
+  * The pattern matching inside `behavior` must invoke `matchSenderAndID` to ensure
+  * the received message is in fact the one that its waiting to receive.
   * The internal state of the orchestrator might be mutated inside `behavior`.
   *
   * This class is very tightly coupled with Orchestrator and the reverse is also true.
@@ -40,7 +40,6 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     Console.WHITE
   )
   private final val color = colors(index % colors.size)
-
   def withLoggingPrefix(message: ⇒ String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
 
   //The task always starts in the Unstarted status and without an expectedDeliveryId
@@ -69,15 +68,20 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
 
   private def ensureInStatus(status: Task.Status, operationName: String)(handler: ⇒ Unit): Unit = status match {
     case `status` ⇒ handler
-    case _ ⇒ log.error(withLoggingPrefix(s"$operationName was invoked erroneously (while in status $status)."))
+    case _ ⇒
+      val message = s"$operationName can only be invoked when task is $status."
+      log.error(withLoggingPrefix(message))
+      throw new IllegalStateException(message)
   }
 
   private def getDeliveryId(correlationId: CorrelationId): DeliveryId = {
     state.idsPerDestination.get(destination).flatMap(_.get(correlationId)) match {
       case Some(deliveryId) ⇒ deliveryId
-      case None ⇒ throw new IllegalArgumentException(s"""Could not obtain the delivery id for:
-                                                         |\tDestination: $destination
-                                                         |\tCorrelationId: $correlationId""".stripMargin)
+      case None ⇒
+        throw new IllegalArgumentException(
+          s"""Could not obtain the delivery id for:
+             |\tDestination: $destination
+             |\tCorrelationId: $correlationId""".stripMargin)
     }
   }
 
@@ -162,12 +166,11 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
    */
   def behavior: Actor.Receive
 
-  private def finishTask(receivedMessage: Any, correlationId: CorrelationId)(extraActions: ⇒ Unit): Unit = {
+  private def innerFinish(receivedMessage: Any, correlationId: CorrelationId)(extraActions: ⇒ Unit): Unit = {
     val deliveryId = getDeliveryId(correlationId)
     recoveryAwarePersist(MessageReceived(index, receivedMessage, correlationId, deliveryId)) {
       confirmDelivery(deliveryId)
       status = Finished
-      incrementCounter()
       extraActions
     }
   }
@@ -175,11 +178,12 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   /**
     * Signals that this task has finished.
     *
-    * @param receivedMessage the received message that signaled this task has finished.
+    * @param receivedMessage the received message which caused this task to finish.
+    * @param correlationId the correlationId obtained from the message.
     */
   final def finish(receivedMessage: Any, correlationId: CorrelationId): Unit = ensureInStatus(Waiting, "Finish") {
     log.info(withLoggingPrefix(s"Finishing."))
-    finishTask(receivedMessage, correlationId) {
+    innerFinish(receivedMessage, correlationId) {
       //This starts tasks that have a dependency on this task
       self ! StartReadyTasks
       //This is invoked to remove this task behavior from the orchestrator
@@ -189,22 +193,22 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   }
 
   /**
-    * This will cause this task orchestrator to terminate early.
+    * This will cause this task <b>orchestrator</b> to terminate early.
+    *
     * An early termination will have the following effects:
-    *   · This task will be finished.
-    *   · Every unstarted task will be prevented from starting even if its dependencies have finished.
-    *   · Tasks that are waiting will remain untouched and the orchestrator will
-    *     still be prepared to handle their responses.
-    *   · The method `onEarlyTermination` will be invoked in the orchestrator.
-    *   · The method `onFinish` will NEVER be called even if the only tasks needed to finish
-    *     the orchestrator are already waiting and the responses are received.
-    *     You can always call `onFinish` from inside `onEarlyTermination` to implement
-    *     the same termination strategy in both cases.
+    *  - This task will be finished.
+    *  - Every unstarted task will be prevented from starting even if its dependencies have finished.
+    *  - Tasks that are waiting will remain untouched and the orchestrator will
+    *    still be prepared to handle their responses.
+    *  - The method `onFinish` will <b>never</b> be called even if the only tasks needed to finish
+    *    the orchestrator are already waiting and their responses are received.
+    *  - The method `onEarlyTermination` will be invoked in the orchestrator.
+    *
     */
   final def terminateEarly(receivedMessage: Any, correlationId: CorrelationId): Unit = ensureInStatus(Waiting, "TerminateEarly") {
     log.info(withLoggingPrefix(s"Terminating Early."))
-    finishTask(receivedMessage, correlationId) {
-      //This will prevent unstarted tasks from starting, and it will also prevent onFinished from being called.
+    innerFinish(receivedMessage, correlationId) {
+      //This will prevent unstarted tasks from starting and onFinished from being called.
       earlyTerminated = true
       //This is invoked to remove this task behavior from the orchestrator
       updateCurrentBehavior()

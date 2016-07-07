@@ -19,13 +19,24 @@ object Orchestrator {
 
   trait State {
     //By using a SortedMap as opposed to a Map we can also extract the latest correlationId per sender
+    //This must be a val to ensure the returned value is always the same.
     val idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]
 
+    /**
+      * @return a new copy of State with the new IdsPerDestination.
+      */
     def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State
 
+    /**
+      * Get the SorteMap relation between CorrelationId and DeliveryId for the given `destination`.
+      */
     def getIdsFor(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
-      idsPerDestination.getOrElse(destination, SortedMap.empty)
+      idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId](implicitly[Ordering[Long]]))
     }
+
+    /**
+      * @return a new copy of State with the IdsPerDestination updated for `destination` using the `newIdRelation`.
+      */
     def updatedIdsPerDestination(destination: ActorPath, newIdRelation: (CorrelationId, DeliveryId)): State = {
       withIdsPerDestination(idsPerDestination.updated(destination, getIdsFor(destination) + newIdRelation))
     }
@@ -46,7 +57,8 @@ object Orchestrator {
   * The Orchestrator together with the Task is able to:
   *
   *  - Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.
-  *  - Delivering messages with at-least-once delivery guarantee.
+  *  - Delivering messages with at-least-once delivery guarantee. The Orchestrator ensures each destination
+  *    will see an independent strictly monotonically increasing sequence number without gaps.
   *  - Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
   *    status, the Orchestrator will respond with the status of each task.
   *  - Tasks that have no dependencies will be started right away and the Orchestrator will, from that point
@@ -90,7 +102,6 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   }
   def tasks: IndexedSeq[Task] = _tasks
 
-  /** The state that this orchestrator maintains. */
   private[this] var _state: State = new MinimalState()
   def state[S <: State]: S = _state.asInstanceOf[S]
   def state_=[S <: State](state: S): Unit = _state = state
@@ -99,26 +110,17 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
     * Every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
     * By default this method returns the value defined in the configuration.
     *
-    * This value is not a strict one because the orchestrator will not save it in snapshots.
-    * This means that when this actor crashes more messages than the ones defined here might have to
-    * be processed in other to trigger a save snapshot.
+    * Roughly every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
+    * This is just a rough value because the orchestrator will not save it in the snapshots.
+    * In fact it will not save it at all. Instead the value of lastSequenceNr will be used to estimate
+    * how many messages have been processed.
     *
     * You can trigger a save snapshot manually by sending a `SaveSnapshot` message to this orchestrator.
     */
-  def saveSnapshotEveryXMessages: Int = settings.saveSnapshotEveryXMessages
-  /** How many messages have been processed. */
-  private var counter = 0
-  private[akkastrator] def incrementCounter(): Unit = {
-    if (saveSnapshotEveryXMessages > 0) {
-      counter += 1
-      if (counter >= saveSnapshotEveryXMessages) {
-        self ! SaveSnapshot
-      }
-    }
-  }
+  def saveSnapshotRoughlyEveryXMessages: Int = settings.saveSnapshotRoughlyEveryXMessages
 
   /**
-    * User overridable callback. Is called to start the Tasks.
+    * User overridable callback. Its called to start the Tasks.
     * By default logs that the orchestrator started and sends it the `StartReadyTasks` message.
     */
   def startTasks(): Unit = {
@@ -127,12 +129,10 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   }
 
   /**
-    * User overridable callback. Is called once every task finishes.
+    * User overridable callback. Its called once every task finishes.
     * By default logs that the Orchestrator has finished then stops it.
     *
     * You can use this to implement your termination strategy.
-    *
-    * You can safely invoke become/unbecome inside this method.
     */
   def onFinish(): Unit = {
     log.info(s"Orchestrator Finished!")
@@ -141,15 +141,14 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
 
   //TODO: can we guarantee that waiting tasks will still process their responses even if the user performs become/unbecome?
   /**
-    * User overridable callback. Is called when a task requests an early termination. Empty default implementation.
+    * User overridable callback. Its called when a task requests an early termination. Empty default implementation.
     *
     * @param instigator the task that initiated the early termination.
     * @param message the message that caused the early termination.
     * @param tasks Map with the tasks status at the moment of early termination.
-    * @note if you invoke become/unbecome inside this method the contract stating:
-    *       <cite>Tasks that are waiting will remain untouched and the orchestrator will
-    *       still be prepared to handle their responses.</cite>
-    *       Will no longer be guaranteed.
+    * @note if you invoke become/unbecome inside this method, the contract that states
+    *       <cite>"Tasks that are waiting will remain untouched and the orchestrator will
+    *       still be prepared to handle their responses"</cite> will no longer be guaranteed.
     */
   def onEarlyTermination(instigator: Task, message: Any, tasks: Map[Task.Status, Seq[Task]]): Unit = ()
 
@@ -162,6 +161,14 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
     val newBehavior = waitingTaskBehaviors.foldLeft(orchestratorCommand)(_ orElse _)
     // Extra commands will always come last
     context become (newBehavior orElse extraCommands)
+
+    // This method is invoked whenever a task finishes so it is a very appropriate place to compute
+    // whether we should perform an automatic snapshot.
+    // It is modulo (saveSnapshotEveryXMessages * 2) because we persist MessageSent and MessageReceived,
+    // however we are only interested in MessageReceived. This will roughly correspond to every X MessageReceived.
+    if (saveSnapshotRoughlyEveryXMessages > 0 && lastSequenceNr % (saveSnapshotRoughlyEveryXMessages * 2) == 0) {
+      self ! SaveSnapshot
+    }
   }
 
   final def orchestratorCommand: Receive = LoggingReceive {
