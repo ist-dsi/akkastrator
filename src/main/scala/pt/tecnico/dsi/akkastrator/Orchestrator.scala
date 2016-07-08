@@ -3,7 +3,6 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.{ActorLogging, ActorPath}
 import akka.event.LoggingReceive
 import akka.persistence._
-
 import scala.collection.immutable.SortedMap
 
 object Orchestrator {
@@ -31,7 +30,7 @@ object Orchestrator {
       * Get the SorteMap relation between CorrelationId and DeliveryId for the given `destination`.
       */
     def getIdsFor(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
-      idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId](implicitly[Ordering[Long]]))
+      idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId])
     }
 
     /**
@@ -42,7 +41,6 @@ object Orchestrator {
     }
   }
   class MinimalState(val idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State {
-
     def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State = {
       new MinimalState(newIdsPerDestination)
     }
@@ -122,6 +120,11 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
   /**
     * User overridable callback. Its called to start the Tasks.
     * By default logs that the orchestrator started and sends it the `StartReadyTasks` message.
+    *
+    * You can override this to prevent the Orchestrator from starting right away.
+    * However that strategy will only be effective the first time the orchestrator starts, that is,
+    * if this orchestrator restarts with one task already finished, then that task will send the
+    * `StartReadyTasks` so that tasks that depend on it can start.
     */
   def startTasks(): Unit = {
     log.info(s"Started ${this.getClass.getSimpleName} with PersistenceId: $persistenceId")
@@ -162,8 +165,8 @@ abstract class Orchestrator(val settings: Settings = new Settings()) extends Per
     // Extra commands will always come last
     context become (newBehavior orElse extraCommands)
 
-    // This method is invoked whenever a task finishes so it is a very appropriate place to compute
-    // whether we should perform an automatic snapshot.
+    // This method is invoked whenever a task finishes, so it is a very appropriate location to place
+    // the computation of whether we should perform an automatic snapshot.
     // It is modulo (saveSnapshotEveryXMessages * 2) because we persist MessageSent and MessageReceived,
     // however we are only interested in MessageReceived. This will roughly correspond to every X MessageReceived.
     if (saveSnapshotRoughlyEveryXMessages > 0 && lastSequenceNr % (saveSnapshotRoughlyEveryXMessages * 2) == 0) {

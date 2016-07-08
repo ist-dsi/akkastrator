@@ -4,8 +4,6 @@ import akka.actor.{Actor, ActorPath}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting}
 
-import scala.collection.immutable.SortedMap
-
 object Task {
   sealed trait Status
   case object Unstarted extends Status
@@ -109,8 +107,8 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
         expectedDeliveryId = Some(deliveryId)
 
         //Compute the correlationId and store it in the state
-        val correlationId = state.getIdsFor(destination).keySet.lastOption.map(_ + 1).getOrElse(0L)
-        state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
+        val correlationId = state.getIdsFor(destination).keySet.lastOption.map(_ + 1L).getOrElse(0L)
+        state = state.updatedIdsPerDestination(destination, (correlationId, deliveryId))
 
         createMessage(correlationId)
       }
