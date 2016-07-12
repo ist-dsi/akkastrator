@@ -2,14 +2,13 @@ package pt.tecnico.dsi.akkastrator
 
 import java.io.File
 
-import akka.actor.Actor._
 import akka.actor.{ActorPath, ActorRef, ActorSystem, Props}
 import akka.event.LoggingReceive
 import akka.testkit.{TestDuration, TestKit, TestProbe}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.scalatest._
-import pt.tecnico.dsi.akkastrator.Orchestrator.{CorrelationId, StartReadyTasks}
+import pt.tecnico.dsi.akkastrator.IdImplicits._
 import pt.tecnico.dsi.akkastrator.Task._
 import pt.tecnico.dsi.akkastrator.TestCaseOrchestrators._
 
@@ -21,27 +20,28 @@ import scala.util.control.NoStackTrace
 class TestException(msg: String) extends Exception(msg) with NoStackTrace
 
 object TestCaseOrchestrators {
-  def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task] = Set.empty[Task], earlyTermination: Boolean = false)
-              (implicit orchestrator: Orchestrator): Task = {
-    new Task(description, dependencies) {
-      val destination: ActorPath = _destination
-      def createMessage(deliveryId: CorrelationId): Any = SimpleMessage(deliveryId)
-
-      def behavior: Receive = {
-        case m @ SimpleMessage(id) if matchSenderAndId(id) =>
-          if (earlyTermination) {
-            terminateEarly(m, id)
-          } else {
-            finish(m, id)
-          }
-      }
-    }
-  }
-
   case object Finish
   case object TerminatedEarly
 
-  abstract class ControllableOrchestrator(probe: ActorRef, startImmediately: Boolean = true, terminateImmediately: Boolean = false) extends Orchestrator {
+  abstract class ControllableOrchestrator(probe: ActorRef, startImmediately: Boolean = true,
+                                          terminateImmediately: Boolean = false) extends Orchestrator {
+    def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task] = Set.empty[Task],
+                 earlyTermination: Boolean = false): Task = {
+      new Task(description, dependencies) {
+        val destination: ActorPath = _destination
+        def createMessage(id: DeliveryId): Any = SimpleMessage(id.self)
+
+        def behavior: Receive = {
+          case m @ SimpleMessage(id) if matchId(id) =>
+            if (earlyTermination) {
+              terminateEarly(m, id)
+            } else {
+              finish(m, id)
+            }
+        }
+      }
+    }
+
     override def persistenceId: String = this.getClass.getSimpleName
 
     //No automatic snapshots
@@ -65,7 +65,7 @@ object TestCaseOrchestrators {
       }
     }
 
-    override def onEarlyTermination(instigator: Task, message: Any, tasks: Map[Task.Status, Seq[Task]]): Unit = {
+    override def onEarlyTermination(instigator: Task, message: Any, tasks: Map[pt.tecnico.dsi.akkastrator.Task.Status, Seq[Task]]): Unit = {
       log.info("Terminated Early")
       probe ! TerminatedEarly
     }
