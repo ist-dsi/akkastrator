@@ -210,10 +210,7 @@ abstract class Orchestrator(settings: Settings = new Settings()) extends Abstrac
 
     /** @return whether `id` is the same as the expectedDeliveryId. */
     final def matchDeliveryId(id: DeliveryId): Boolean = expectedDeliveryId.contains(id)
-    /**
-      * This method simply calls `matchDeliveryId`.
-      * @see See [[pt.tecnico.dsi.akkastrator.Orchestrator.Task#matchDeliveryId(long)]] for more details.
-      */
+    /** This method simply calls `matchDeliveryId`. */
     final def matchId(id: Long): Boolean = matchDeliveryId(id)
   }
 
@@ -297,9 +294,7 @@ abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) exte
       })
       matches
     }
-    /** This method simply calls `matchSenderAndId`.
- *
-      * @see See [[pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.Task#matchSenderAndId(long)]] for more details. */
+    /** This method simply calls `matchSenderAndId`. */
     final def matchId(id: Long): Boolean = matchSenderAndId(id)
   }
 
