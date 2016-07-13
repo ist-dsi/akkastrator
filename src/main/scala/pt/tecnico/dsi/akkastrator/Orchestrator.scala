@@ -54,30 +54,34 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   //This gets the Orchestrator started
   startTasks()
 
-  private[akkastrator] var earlyTerminated = false
-
-  private var _tasks: IndexedSeq[T] = Vector.empty
-  private[akkastrator] def addTask(task: T): Int = {
+  private[akkastrator] final var earlyTerminated = false
+  
+  private[this] final var _tasks: IndexedSeq[T] = Vector.empty
+  final def tasks: IndexedSeq[T] = _tasks
+  private[akkastrator] final def addTask(task: T): Int = {
     val index = _tasks.length
     _tasks :+= task
     index
   }
-  def tasks: IndexedSeq[T] = _tasks
-
-  private[this] var _state: State = new MinimalState()
-  def state: S = _state.asInstanceOf[S]
-  def state_=(state: S): Unit = _state = state
+  
+  private[this] final var _state: S = _
+  final def state: S = _state
+  final def state_=(state: S): Unit = _state = state
 
   abstract class TaskProxy(val description: String, val dependencies: Set[TaskProxy] = Set.empty)
     extends AbstractTask[TaskProxy](this, description, dependencies) {
-    type ID = T#ID
-    //The task is being added to the orchestrator in this line
+    final type ID = T#ID
+    // The task is being added to the orchestrator in this line.
+    // Because constructing a Task of type T also adds it to the orchestrator.
     val tTask: T = toT(this)
     def matchId(id: Long): Boolean = tTask.matchId(id) //This is where the magic happens
 
-    //These methods will never be used, but we have to define them
+    // These methods will never be used, but we have to define them
     final val index: Int = tTask.index
-    protected def deliveryId2ID(deliveryId: DeliveryId): ID = ??? //This cannot be implemented safely, so its left unimplemented
+    // This method cannot be implemented in a way that returns a value of type ID so its left unimplemented
+    protected[akkastrator] final def deliveryId2ID(deliveryId: DeliveryId): ID = ???
+    // This is a dummy implementation.
+    protected[akkastrator] final def ID2Ids(id: ID): (CorrelationId, DeliveryId) = (0L, 0L)
   }
   def toT(proxy: TaskProxy): T
 
@@ -151,7 +155,7 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
     }
   }
 
-  final def orchestratorCommand: Receive = LoggingReceive {
+  final def orchestratorCommand: Actor.Receive = LoggingReceive {
     case StartReadyTasks ⇒
       if (!earlyTerminated) {
         tasks.filter(_.canStart).foreach(_.start())
@@ -169,84 +173,84 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   /**
     * Override this method to add extra commands that are always handled by this orchestrator (except when recovering).
     */
-  def extraCommands: Receive = PartialFunction.empty[Any, Unit]
+  def extraCommands: Actor.Receive = PartialFunction.empty[Any, Unit]
 
-  final def receiveCommand: Receive = orchestratorCommand orElse extraCommands
+  final def receiveCommand: Actor.Receive = orchestratorCommand orElse extraCommands
 
-  final def receiveRecover: Receive = LoggingReceive {
+  final def receiveRecover: Actor.Receive = LoggingReceive {
     case SnapshotOffer(metadata, offeredSnapshot: State) ⇒
       state = offeredSnapshot.asInstanceOf[S]
     case MessageSent(taskIndex) ⇒
       tasks(taskIndex).start()
     case MessageReceived(taskIndex, message, correlationId, deliveryId) ⇒
       val task = tasks(taskIndex)
-
-      this match {
-        case distinct: DistinctIdsOrchestrator ⇒
-          state = distinct.state.updatedIdsPerDestination(task.destination, correlationId -> deliveryId).asInstanceOf[S]
-        case simple: Orchestrator ⇒
-          //If this is a simple orchestrator we do not need to update the state.
-      }
-
+      recoverStateOnMessageReceived(task, correlationId, deliveryId)
       task.behavior(message)
     case RecoveryCompleted ⇒
       log.info(
         s"""Tasks after recovery completed:
           |\t${tasks.map(t ⇒ t.withLoggingPrefix(t.status.toString)).mkString("\n\t")}""".stripMargin)
   }
+  
+  protected[akkastrator] def recoverStateOnMessageReceived(task: T, correlationId: CorrelationId, deliveryId: DeliveryId): Unit
 }
 
 abstract class Orchestrator(settings: Settings = new Settings()) extends AbstractOrchestrator(settings) {
-  final type T = Task
   final type S = State //This orchestrator accepts any kind of State
-  //It starts with the EmptyState
-  state = EmptyState.asInstanceOf[S]
+  final type T = Task
+  state = EmptyState
 
   /** @inheritdoc */
   abstract class Task(description: String, dependencies: Set[Task] = Set.empty) extends AbstractTask[Task](this, description, dependencies) {
     final type ID = DeliveryId
     final val index = addTask(this)
-
-    protected def deliveryId2ID(deliveryId: DeliveryId): DeliveryId = deliveryId
+  
+    protected[akkastrator] final def deliveryId2ID(deliveryId: DeliveryId): DeliveryId = deliveryId
     //In a SimpleOrchestrator we always use 0L for the correlationId since it is not used.
-    protected def ID2Ids(id: DeliveryId): (CorrelationId, DeliveryId) = (0L, id)
+    protected[akkastrator] final def ID2Ids(id: DeliveryId): (CorrelationId, DeliveryId) = (0L, id)
 
     /** @return whether `id` is the same as the expectedDeliveryId. */
     final def matchDeliveryId(id: DeliveryId): Boolean = expectedDeliveryId.contains(id)
-    /** This method simply calls `matchDeliveryId`.
- *
-      * @see See [[pt.tecnico.dsi.akkastrator.Orchestrator.Task#matchDeliveryId(DeliveryId)]] for more details. */
+    /**
+      * This method simply calls `matchDeliveryId`.
+      * @see See [[pt.tecnico.dsi.akkastrator.Orchestrator.Task#matchDeliveryId(DeliveryId)]] for more details.
+      */
     final def matchId(id: Long): Boolean = matchDeliveryId(id)
   }
 
-  def toT(proxy: TaskProxy): T = new Task(proxy.description, proxy.dependencies.map(_.tTask)) {
+  final def toT(proxy: TaskProxy): T = new Task(proxy.description, proxy.dependencies.map(_.tTask)) {
     val destination: ActorPath = proxy.destination
     def createMessage(id: DeliveryId): Any = proxy.createMessage(id)
     def behavior: Actor.Receive = proxy.behavior
   }
+  
+  protected[akkastrator] final def recoverStateOnMessageReceived(task: Task, correlationId: CorrelationId,
+                                                           deliveryId: DeliveryId): Unit = {
+    //This orchestrator does not need to update the state
+  }
 }
 
 abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) extends AbstractOrchestrator(settings) {
+  final type S = State with DistinctIds //This orchestrator requires that the state includes DistinctIds
   final type T = Task
-  override type S <: State with DistinctIds //This orchestrator requires that the state includes DistinctIds
-  //It starts with the MinimalState
-  state = new MinimalState().asInstanceOf[S]
+  state = new MinimalState()
 
   /** @inheritdoc */
   abstract class Task(description: String, dependencies: Set[Task] = Set.empty) extends AbstractTask[Task](this, description, dependencies) {
     final type ID = CorrelationId
     final val index = addTask(this)
-
-    protected def deliveryId2ID(deliveryId: DeliveryId): CorrelationId = {
+  
+    protected[akkastrator] final def deliveryId2ID(deliveryId: DeliveryId): CorrelationId = {
       val correlationId: CorrelationId = state
         .getIdsFor(destination)
         .keySet.lastOption
         .map[CorrelationId](_.self + 1L)
         .getOrElse(0L)
-      state = state.updatedIdsPerDestination(destination, correlationId → deliveryId).asInstanceOf[S]
+  
+      state = state.updatedIdsPerDestination(destination, correlationId → deliveryId)
       correlationId
     }
-    protected def ID2Ids(id: CorrelationId): (CorrelationId, DeliveryId) = (id, getDeliveryId(id))
+    protected[akkastrator] final def ID2Ids(id: CorrelationId): (CorrelationId, DeliveryId) = (id, getDeliveryId(id))
 
     private def getDeliveryId(correlationId: CorrelationId): DeliveryId = {
       state.idsPerDestination.get(destination).flatMap(_.get(correlationId)) match {
@@ -301,9 +305,14 @@ abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) exte
     final def matchId(id: Long): Boolean = matchSenderAndId(id)
   }
 
-  def toT(proxy: TaskProxy): T = new Task(proxy.description, proxy.dependencies.map(_.tTask)) {
+  final def toT(proxy: TaskProxy): T = new Task(proxy.description, proxy.dependencies.map(_.tTask)) {
     val destination: ActorPath = proxy.destination
     def createMessage(id: CorrelationId): Any = proxy.createMessage(id)
     def behavior: Actor.Receive = proxy.behavior
+  }
+  
+  protected[akkastrator] final def recoverStateOnMessageReceived(task: Task, correlationId: CorrelationId,
+                                                           deliveryId: DeliveryId): Unit = {
+    state = state.updatedIdsPerDestination(task.destination, correlationId -> deliveryId)
   }
 }

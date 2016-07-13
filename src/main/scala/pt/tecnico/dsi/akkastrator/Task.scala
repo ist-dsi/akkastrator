@@ -3,6 +3,8 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.{Actor, ActorPath}
 import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting}
 
+//TODO: find a better name for Task.Status to avoid name collisions with Status and TaskStatus
+
 object Task {
   sealed trait Status
   case object Unstarted extends Status
@@ -22,11 +24,12 @@ object Task {
   * This class is very tightly coupled with Orchestrator and the reverse is also true.
   * Because of this you can only create instances of Task inside an orchestrator.
   */
-private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchestrator: AbstractOrchestrator /*{ type T = TT}*/,
+private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchestrator: AbstractOrchestrator,
                                                                          description: String, dependencies: Set[TT]) {
-  type ID <: Id
+  type ID <: Id //The type of Id this task handles
   import orchestrator._
 
+  //The index of this task in the orchestrator task list. //TODO: maybe this can be private/protected
   val index: Int
 
   private final val colors = Vector(
@@ -50,6 +53,7 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
   /** The constructor of the message to be sent. */
   def createMessage(id: ID): Any
 
+  /** If recovery is running just executes `handler`, otherwise persists the `event` and uses `handler` as its handler.*/
   private def recoveryAwarePersist(event: Event)(handler: ⇒ Unit): Unit = {
     if (recoveryRunning) {
       //When we are recovering we do not want to persist the event again.
@@ -75,7 +79,7 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
   }
 
   /** Converts the deliveryId obtained from the deliver method of akka-persistence to the ID this task handles. */
-  protected def deliveryId2ID(deliveryId: DeliveryId): ID
+  protected[akkastrator] def deliveryId2ID(deliveryId: DeliveryId): ID
   /**
     * Starts the execution of this task.
     * If this task is already Waiting or Finished an exception will be thrown.
@@ -102,26 +106,27 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
     }
   }
 
-  /** Low-level match. It will behave differently according to the orchestrator in which this task is being created. */
+  /**
+    * Low-level match. It will behave differently according to the orchestrator in which this task is being created.
+    * The parameter `id` is a `Long` and not a `ID` so this method can be invoked in the TaskProxy. */
   def matchId(id: Long): Boolean
   /**
-   * The behavior of this task. This is akin to the receive method of an actor, except for the fact that an
-   * all catching pattern match will cause the orchestrator to fail. For example:
-   * {{{
-   *   def behavior = Receive {
-   *     case m => //Some code
-   *   }
-   * }}}
-   * Will cause the orchestrator to fail.
-   */
+    * The behavior of this task. This is akin to the receive method of an actor, except for the fact that an
+    * all catching pattern match will cause the orchestrator to fail. For example:
+    * {{{
+    *   def behavior = Receive {
+    *     case m => //Some code
+    *   }
+    * }}}
+    * This will cause the orchestrator to fail because the messages won't be handled by the correct tasks.
+    */
   def behavior: Actor.Receive
 
   //Converts the ID this task handles to the corresponding (CorrelationID, DeliveryID)
-  protected def ID2Ids(id: ID): (CorrelationId, DeliveryId)
+  protected[akkastrator] def ID2Ids(id: ID): (CorrelationId, DeliveryId)
 
   private def innerFinish(receivedMessage: Any, id: ID)(extraActions: ⇒ Unit): Unit = {
     val (correlationId, deliveryId) = ID2Ids(id)
-
     recoveryAwarePersist(MessageReceived(index, receivedMessage, correlationId, deliveryId)) {
       confirmDelivery(deliveryId.self)
       status = Finished
@@ -130,9 +135,12 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
   }
 
   /**
-    * Signals that this task has finished.
+    * Finishes this task, which implies:
     *
-    * @param receivedMessage the received message which caused this task to finish.
+    *  1. Tasks that depend on this one will be started.
+    *  2. Messages that would be handled by this task will no longer be handled.
+    *
+    * @param receivedMessage the message which prompted the finish.
     * @param id the id obtained from the message.
     */
   final def finish(receivedMessage: Any, id: ID): Unit = ensureInStatus(Waiting, "Finish") {
@@ -178,7 +186,7 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
   final def hasFinished: Boolean = status == Finished
 
   /** The TaskStatus representation of this task. */
-  final def toTaskStatus: TaskStatus = new TaskStatus(index, description, status, dependencies.map(_.index))
+  final def toTaskStatus: TaskStatus = TaskStatus(index, description, status, dependencies.map(_.index))
 
   private var _status: Task.Status = Unstarted
   /** @return the current status of this Task. */
