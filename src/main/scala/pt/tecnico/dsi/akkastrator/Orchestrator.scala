@@ -200,7 +200,6 @@ abstract class Orchestrator(settings: Settings = new Settings()) extends Abstrac
   final type T = Task
   state = EmptyState
 
-  /** @inheritdoc */
   abstract class Task(description: String, dependencies: Set[Task] = Set.empty) extends AbstractTask[Task](this, description, dependencies) {
     final type ID = DeliveryId
     final val index = addTask(this)
@@ -213,7 +212,7 @@ abstract class Orchestrator(settings: Settings = new Settings()) extends Abstrac
     final def matchDeliveryId(id: DeliveryId): Boolean = expectedDeliveryId.contains(id)
     /**
       * This method simply calls `matchDeliveryId`.
-      * @see See [[pt.tecnico.dsi.akkastrator.Orchestrator.Task#matchDeliveryId(DeliveryId)]] for more details.
+      * @see See [[pt.tecnico.dsi.akkastrator.Orchestrator.Task#matchDeliveryId(long)]] for more details.
       */
     final def matchId(id: Long): Boolean = matchDeliveryId(id)
   }
@@ -235,7 +234,6 @@ abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) exte
   final type T = Task
   state = new MinimalState()
 
-  /** @inheritdoc */
   abstract class Task(description: String, dependencies: Set[Task] = Set.empty) extends AbstractTask[Task](this, description, dependencies) {
     final type ID = CorrelationId
     final val index = addTask(this)
@@ -301,7 +299,7 @@ abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) exte
     }
     /** This method simply calls `matchSenderAndId`.
  *
-      * @see See [[pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.Task#matchSenderAndId(CorrelationId)]] for more details. */
+      * @see See [[pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.Task#matchSenderAndId(long)]] for more details. */
     final def matchId(id: Long): Boolean = matchSenderAndId(id)
   }
 
