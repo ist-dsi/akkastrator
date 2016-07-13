@@ -14,7 +14,7 @@
 ## Install
 Add the following dependency to your `build.sbt`:
 ```sbt
-libraryDependencies += "pt.tecnico.dsi" %% "akkastrator" % "0.4.0"
+libraryDependencies += "pt.tecnico.dsi" %% "akkastrator" % "0.6.0"
 ```
 We use [semantic versioning](http://semver.org).
 
