@@ -8,7 +8,7 @@ trait State
 case object EmptyState extends State
 
 trait DistinctIds { self: State ⇒
-  implicit lazy val correlationIdOrdering: Ordering[CorrelationId] = Ordering.ordered[CorrelationId]
+  //implicit lazy val correlationIdOrdering: Ordering[CorrelationId] = Ordering.ordered[CorrelationId]
 
   //By using a SortedMap as opposed to a Map we can also extract the latest correlationId per sender
   //This must be a val to ensure the returned value is always the same.

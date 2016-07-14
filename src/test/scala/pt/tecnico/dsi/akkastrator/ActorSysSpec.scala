@@ -24,15 +24,15 @@ object TestCaseOrchestrators {
   case object TerminatedEarly
 
   abstract class ControllableOrchestrator(probe: ActorRef, startImmediately: Boolean = true,
-                                          terminateImmediately: Boolean = false) extends Orchestrator {
+                                          terminateImmediately: Boolean = false) extends DistinctIdsOrchestrator {
     def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task] = Set.empty[Task],
                  earlyTermination: Boolean = false): Task = {
       new Task(description, dependencies) {
         val destination: ActorPath = _destination
-        def createMessage(id: DeliveryId): Any = SimpleMessage(id.self)
+        def createMessage(id: CorrelationId): Any = SimpleMessage(id.self)
 
         def behavior: Receive = {
-          case m @ SimpleMessage(id) if matchId(id) =>
+          case m @ SimpleMessage(id) if matchSenderAndId(id) =>
             if (earlyTermination) {
               terminateEarly(m, id)
             } else {

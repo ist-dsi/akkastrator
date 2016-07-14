@@ -1,15 +1,15 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.runtime.OrderedProxy
-
 sealed trait Id extends Any {
   def self: Long
 }
-final class DeliveryId(val self: Long) extends AnyVal with OrderedProxy[Long] with Id {
-  protected def ord = scala.math.Ordering.Long
+final class DeliveryId(val self: Long) extends AnyVal with Id with Ordered[DeliveryId] {
+  def compare(that: DeliveryId): Int = self.compare(that.self)
+  override def toString = self.toString
 }
-final class CorrelationId(val self: Long) extends AnyVal with OrderedProxy[Long] with Id {
-  protected def ord = scala.math.Ordering.Long
+final class CorrelationId(val self: Long) extends AnyVal with Id with Ordered[CorrelationId] {
+  def compare(that: CorrelationId): Int = self.compare(that.self)
+  override def toString = self.toString
 }
 
 trait IdImplicits {

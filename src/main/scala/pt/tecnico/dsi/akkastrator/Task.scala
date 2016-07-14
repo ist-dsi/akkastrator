@@ -41,7 +41,7 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
     Console.RED,
     Console.WHITE
   )
-  final val color = colors(index % colors.size)
+  final def color = colors(index % colors.size)
   def withLoggingPrefix(message: ⇒ String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
 
   //We always start in the Unstarted status and without an expectedDeliveryId
