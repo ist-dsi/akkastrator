@@ -9,7 +9,8 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- With Colors -->
-            <pattern>[%date][%logger{1}]%n %highlight([%-5level]) %message%n%xException</pattern>
+            <pattern>%highlight([%-5level]) %message%n</pattern>
+            <!--<pattern>[%date][%logger{1}]%n %highlight([%-5level]) %message%n%xException</pattern>-->
             <!-- Without Colors -->
             <!--<pattern>[%date][%logger{1}]%n [%-5level]%message%n%xException</pattern>-->
         </encoder>

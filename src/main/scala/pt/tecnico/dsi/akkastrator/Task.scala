@@ -3,13 +3,11 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.{Actor, ActorPath}
 import pt.tecnico.dsi.akkastrator.Task.{Finished, Unstarted, Waiting}
 
-//TODO: find a better name for Task.Status to avoid name collisions with Status and TaskStatus
-
 object Task {
-  sealed trait Status
-  case object Unstarted extends Status
-  case object Waiting extends Status
-  case object Finished extends Status
+  sealed trait State
+  case object Unstarted extends State
+  case object Waiting extends State
+  case object Finished extends State
 }
 
 /**
@@ -25,14 +23,15 @@ object Task {
   * Because of this you can only create instances of Task inside an orchestrator.
   */
 private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchestrator: AbstractOrchestrator,
-                                                                         description: String, dependencies: Set[TT]) {
+                                                                         val description: String, val dependencies: Set[TT]) {
   type ID <: Id //The type of Id this task handles
   import orchestrator._
 
   //The index of this task in the orchestrator task list. //TODO: maybe this can be private/protected
-  val index: Int
+  final val index: Int = orchestrator.tasks.length
 
-  private final val colors = Vector(
+  //These methods aren't final to allow turning of the colors
+  val colors = Vector(
     Console.MAGENTA,
     Console.CYAN,
     Console.GREEN,
@@ -41,12 +40,11 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
     Console.RED,
     Console.WHITE
   )
-  final def color = colors(index % colors.size)
+  val color: String = colors(index % colors.size)
   def withLoggingPrefix(message: ⇒ String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
 
-  //We always start in the Unstarted status and without an expectedDeliveryId
-  status = Unstarted
-  expectedDeliveryId = None
+  //A tasks always start in the Unstarted state and without an expectedDeliveryId (None) because
+  //the fields _state and _expectedDeliveryID are initialized to those values respectively.
 
   /** The ActorPath to whom this task will send the message(s). */
   val destination: ActorPath //This must be a val because the destination cannot change
@@ -56,52 +54,56 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
   /** If recovery is running just executes `handler`, otherwise persists the `event` and uses `handler` as its handler.*/
   private def recoveryAwarePersist(event: Event)(handler: ⇒ Unit): Unit = {
     if (recoveryRunning) {
-      //When we are recovering we do not want to persist the event again.
-      //We just want to execute the handler.
-      log.info(withLoggingPrefix(s"Recovering ${event.getClass.getSimpleName}."))
+      // When recovering we just want to execute the handler.
+      // The event is already persisted no need to persist it again.
       handler
     } else {
-      log.debug(withLoggingPrefix(s"Persisting ${event.getClass.getSimpleName}."))
       persist(event) { _ ⇒
-        log.debug(withLoggingPrefix(s"Persist successful."))
+        log.debug(withLoggingPrefix(s"Persisted ${event.getClass.getSimpleName}."))
         handler
       }
     }
   }
 
-  /** If this task is in `status` then `handler` is executed, otherwise a exception will be thrown.*/
-  private def ensureInStatus(status: Task.Status, operationName: String)(handler: ⇒ Unit): Unit = status match {
-    case `status` ⇒ handler
+  /** If this task is in `state` then `handler` is executed, otherwise a exception will be thrown.*/
+  private def ensureInState(state: Task.State, operationName: String)(handler: ⇒ Unit): Unit = state match {
+    case `state` ⇒ handler
     case _ ⇒
-      val message = s"$operationName can only be invoked when task is $status."
+      val message = s"$operationName can only be invoked when task is $state."
       log.error(withLoggingPrefix(message))
       throw new IllegalStateException(message)
   }
 
-  /** Converts the deliveryId obtained from the deliver method of akka-persistence to the ID this task handles. */
+  /**
+    * Converts the deliveryId obtained from the deliver method of akka-persistence to the ID this task handles.
+    * Also updates the orchestrator state if necessary.
+    */
   protected[akkastrator] def deliveryId2ID(deliveryId: DeliveryId): ID
   /**
     * Starts the execution of this task.
     * If this task is already Waiting or Finished an exception will be thrown.
     * We first persist that the message was sent (unless the orchestrator is recovering), then we send it.
     */
-  final protected[akkastrator] def start(): Unit = ensureInStatus(Unstarted, "Start") {
+  final protected[akkastrator] def start(): Unit = ensureInState(Unstarted, "Start") {
     log.info(withLoggingPrefix(s"Starting."))
     recoveryAwarePersist(MessageSent(index)) {
       //First we make sure the orchestrator is ready to deal with the answers from destination
-      status = Waiting
+      state = Waiting
       updateCurrentBehavior()
 
       //Then we send the message to the destination
       deliver(destination) { i ⇒
+        val deliveryId: DeliveryId = i
+        expectedDeliveryId = Some(deliveryId)
+        val id: ID = deliveryId2ID(deliveryId)
+  
         if (!recoveryRunning) {
           //When we are recovering this method (the deliver handler) will be run
           //but the message won't be delivered every time so we hide the println to cause less confusion
-          log.debug(withLoggingPrefix(s"Delivering message."))
+          log.debug(withLoggingPrefix(s"Delivering message with ${id.getClass.getSimpleName} = $id."))
         }
-        val deliveryId: DeliveryId = i
-        expectedDeliveryId = Some(deliveryId)
-        createMessage(deliveryId2ID(deliveryId))
+        
+        createMessage(id)
       }
     }
   }
@@ -121,15 +123,14 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
     * This will cause the orchestrator to fail because the messages won't be handled by the correct tasks.
     */
   def behavior: Actor.Receive
-
-  //Converts the ID this task handles to the corresponding (CorrelationID, DeliveryID)
-  protected[akkastrator] def ID2Ids(id: ID): (CorrelationId, DeliveryId)
+  
+  /** Converts the ID this task handles to the deliveryId needed for the confirmDelivery method of akka-persistence. */
+  protected[akkastrator] def ID2DeliveryId(id: ID): DeliveryId
 
   private def innerFinish(receivedMessage: Any, id: ID)(extraActions: ⇒ Unit): Unit = {
-    val (correlationId, deliveryId) = ID2Ids(id)
-    recoveryAwarePersist(MessageReceived(index, receivedMessage, correlationId, deliveryId)) {
-      confirmDelivery(deliveryId.self)
-      status = Finished
+    recoveryAwarePersist(MessageReceived(index, receivedMessage)) {
+      confirmDelivery(ID2DeliveryId(id).self)
+      state = Finished
       extraActions
     }
   }
@@ -143,7 +144,7 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
     * @param receivedMessage the message which prompted the finish.
     * @param id the id obtained from the message.
     */
-  final def finish(receivedMessage: Any, id: ID): Unit = ensureInStatus(Waiting, "Finish") {
+  final def finish(receivedMessage: Any, id: ID): Unit = ensureInState(Waiting, "Finish") {
     log.info(withLoggingPrefix(s"Finishing."))
     innerFinish(receivedMessage, id) {
       //This starts tasks that have a dependency on this task
@@ -167,33 +168,33 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
     *  - The method `onEarlyTermination` will be invoked in the orchestrator.
     *
     */
-  final def terminateEarly(receivedMessage: Any, id: ID): Unit = ensureInStatus(Waiting, "TerminateEarly") {
+  final def terminateEarly(receivedMessage: Any, id: ID): Unit = ensureInState(Waiting, "TerminateEarly") {
     log.info(withLoggingPrefix(s"Terminating Early."))
     innerFinish(receivedMessage, id) {
       //This will prevent unstarted tasks from starting and onFinished from being called.
       earlyTerminated = true
       //This is invoked to remove this task behavior from the orchestrator
       updateCurrentBehavior()
-      onEarlyTermination(this.asInstanceOf[T], receivedMessage, tasks.groupBy(_.status))
+      onEarlyTermination(this.asInstanceOf[T], receivedMessage, tasks.groupBy(_.state))
     }
   }
 
-  /** @return whether this task status is Unstarted and all its dependencies have finished. */
-  final def canStart: Boolean = status == Unstarted && dependencies.forall(_.hasFinished)
-  /** @return whether this task status is `Waiting`. */
-  final def isWaiting: Boolean = status == Waiting
-  /** @return whether this task status is `Finished`. */
-  final def hasFinished: Boolean = status == Finished
+  /** @return whether this task state is Unstarted and all its dependencies have finished. */
+  final def canStart: Boolean = state == Unstarted && dependencies.forall(_.hasFinished)
+  /** @return whether this task state is `Waiting`. */
+  final def isWaiting: Boolean = state == Waiting
+  /** @return whether this task state is `Finished`. */
+  final def hasFinished: Boolean = state == Finished
 
   /** The TaskStatus representation of this task. */
-  final def toTaskStatus: TaskStatus = TaskStatus(index, description, status, dependencies.map(_.index))
+  final def toTaskStatus: TaskStatus = TaskStatus(index, description, state, dependencies.map(_.index))
 
-  private var _status: Task.Status = Unstarted
-  /** @return the current status of this Task. */
-  final def status: Task.Status = _status
-  private def status_=(status: Task.Status): Unit = {
-    _status = status
-    log.info(withLoggingPrefix(s"Status: $status."))
+  private var _state: Task.State = Unstarted
+  /** @return the current state of this Task. */
+  final def state: Task.State = _state
+  private def state_=(state: Task.State): Unit = {
+    _state = state
+    log.info(withLoggingPrefix(s"State: $state."))
   }
 
   private var _expectedDeliveryId: Option[DeliveryId] = None
@@ -206,5 +207,5 @@ private[akkastrator] abstract class AbstractTask[TT <: AbstractTask[TT]](orchest
   override def toString: String =
     f"""Task [$index%02d - $description]:
        |Destination: $destination
-       |Status: $status""".stripMargin
+       |State: $state""".stripMargin
 }

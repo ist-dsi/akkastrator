@@ -16,13 +16,13 @@ class EarlyTerminationSpec extends ActorSysSpec {
   "An orchestrator that terminates early" should {
     "behave according to the documentation" when {
       "there is only a single task: A" in {
-        val testCase = new TestCase[EarlyStopSingleTaskOrchestrator](1, Set(0)) {
+        val testCase = new TestCase[EarlyStopSingleTaskOrchestrator](1, Set('A)) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              destinationExpectMsgAndReply(0)
+              pingPongDestinationNumber(0)
 
               secondState.updatedExactStatuses(
-                0 -> Finished
+                'A -> Finished
               )
             }
           )
@@ -42,20 +42,20 @@ class EarlyTerminationSpec extends ActorSysSpec {
         )
       }
       "there are two independent tasks: A B" in {
-        val testCase = new TestCase[EarlyStopTwoIndependentTasksOrchestrator](2, Set(0, 1)) {
+        val testCase = new TestCase[EarlyStopTwoIndependentTasksOrchestrator](2, Set('A, 'B)) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              destinationExpectMsgAndReply(0)
+              pingPongDestinationNumber(0)
 
               secondState.updatedExactStatuses(
-                0 -> Finished,
-                1 -> Waiting
+                'A -> Finished,
+                'B -> Waiting
               )
             }, { thirdState ⇒
-              destinationExpectMsgAndReply(1)
+              pingPongDestinationNumber(1)
 
               thirdState.updatedExactStatuses(
-                1 -> Finished
+                'B -> Finished
               )
             }
           )
@@ -84,13 +84,13 @@ class EarlyTerminationSpec extends ActorSysSpec {
       }
       "there are two dependent tasks: A → B" in {
 
-        val testCase = new TestCase[EarlyStopTwoLinearTasksOrchestrator](2, Set(0)) {
+        val testCase = new TestCase[EarlyStopTwoLinearTasksOrchestrator](2, Set('A)) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              destinationExpectMsgAndReply(0)
+              pingPongDestinationNumber(0)
 
               secondState.updatedExactStatuses(
-                0 -> Finished
+                'A -> Finished
               )
             }
           )

@@ -1,15 +1,13 @@
 package pt.tecnico.dsi.akkastrator
 
-sealed trait Id extends Any {
-  def self: Long
-}
-final class DeliveryId(val self: Long) extends AnyVal with Id with Ordered[DeliveryId] {
+import scala.Proxy.Typed
+
+sealed trait Id extends Any with Typed[Long]
+final class DeliveryId(val self: Long) extends AnyVal with Ordered[DeliveryId] with Id {
   def compare(that: DeliveryId): Int = self.compare(that.self)
-  override def toString = self.toString
 }
-final class CorrelationId(val self: Long) extends AnyVal with Id with Ordered[CorrelationId] {
+final class CorrelationId(val self: Long) extends AnyVal with Ordered[CorrelationId] with Id {
   def compare(that: CorrelationId): Int = self.compare(that.self)
-  override def toString = self.toString
 }
 
 trait IdImplicits {

@@ -23,18 +23,18 @@ object TestCaseOrchestrators {
   case object Finish
   case object TerminatedEarly
 
-  abstract class ControllableOrchestrator(probe: ActorRef, startImmediately: Boolean = true,
-                                          terminateImmediately: Boolean = false) extends DistinctIdsOrchestrator {
+  abstract class ControllableOrchestrator(terminationProbe: ActorRef,
+                                          startAndTerminateImmediately: Boolean = false) extends DistinctIdsOrchestrator {
     def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task] = Set.empty[Task],
                  earlyTermination: Boolean = false): Task = {
       new Task(description, dependencies) {
         val destination: ActorPath = _destination
-        def createMessage(id: CorrelationId): Any = SimpleMessage(id.self)
+        def createMessage(id: CorrelationId): Any = SimpleMessage(description, id.self)
 
-        def behavior: Receive = {
-          case m @ SimpleMessage(id) if matchSenderAndId(id) =>
+        def behavior: Receive = /*LoggingReceive.withLabel(f"Task [$index%02d - $description]")*/ {
+          case m @ SimpleMessage(_, id) if matchSenderAndId(id) =>
             if (earlyTermination) {
-              terminateEarly(m, id)
+              terminateEarly(m, new CorrelationId(id))
             } else {
               finish(m, id)
             }
@@ -48,13 +48,13 @@ object TestCaseOrchestrators {
     override def saveSnapshotRoughlyEveryXMessages: Int = 0
 
     override def startTasks(): Unit = {
-      if (startImmediately) {
+      if (startAndTerminateImmediately) {
         super.startTasks()
       }
     }
 
     override def onFinish(): Unit = {
-      if (terminateImmediately) {
+      if (startAndTerminateImmediately) {
         super.onFinish()
       } else {
         //Prevent the orchestrator from stopping as soon as all the tasks finish
@@ -65,9 +65,9 @@ object TestCaseOrchestrators {
       }
     }
 
-    override def onEarlyTermination(instigator: Task, message: Any, tasks: Map[pt.tecnico.dsi.akkastrator.Task.Status, Seq[Task]]): Unit = {
+    override def onEarlyTermination(instigator: Task, message: Any, tasks: Map[pt.tecnico.dsi.akkastrator.Task.State, Seq[Task]]): Unit = {
       log.info("Terminated Early")
-      probe ! TerminatedEarly
+      terminationProbe ! TerminatedEarly
     }
 
     //Add a case to always be able to crash the orchestrator
@@ -76,64 +76,62 @@ object TestCaseOrchestrators {
     }
   }
 
-  class SingleTaskOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class SingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
-    echoTask("A", dests(0).ref.path)
+    echoTask("A", destinations(0).ref.path)
   }
-  class TwoIndependentTasksOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TwoIndependentTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
     // B
-    echoTask("A", dests(0).ref.path)
-    echoTask("B", dests(1).ref.path)
+    echoTask("A", destinations(0).ref.path)
+    echoTask("B", destinations(0).ref.path)
   }
-  class TwoLinearTasksOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TwoLinearTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A → B
-    val a = echoTask("A", dests(0).ref.path)
-    echoTask("B", dests(1).ref.path, dependencies = Set(a))
+    val a = echoTask("A", destinations(0).ref.path)
+    echoTask("B", destinations(0).ref.path, dependencies = Set(a))
   }
-  class TasksInTOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TasksInTOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
     //  ⟩→ C
     // B
-    val a = echoTask("A", dests(0).ref.path)
-    val b = echoTask("B", dests(1).ref.path)
-    echoTask("C", dests(2).ref.path, dependencies = Set(a, b))
+    val a = echoTask("A", destinations(0).ref.path)
+    val b = echoTask("B", destinations(1).ref.path)
+    echoTask("C", destinations(2).ref.path, dependencies = Set(a, b))
   }
-  class TasksInTriangleOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TasksInTriangleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     //   B
     //  ↗ ↘
     // A → C
-    val a = echoTask("A", dests(0).ref.path)
-    val b = echoTask("B", dests(1).ref.path, dependencies = Set(a))
-    echoTask("C", dests(2).ref.path, dependencies = Set(a, b))
+    val a = echoTask("A", destinations(0).ref.path)
+    val b = echoTask("B", destinations(0).ref.path, dependencies = Set(a))
+    echoTask("C", destinations(1).ref.path, dependencies = Set(a, b))
   }
-  class FiveTasksOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class FiveTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A → B
     //   ↘  ⟩→ C
     // C → D
-    val a = echoTask("A", dests(0).ref.path)
-    val b = echoTask("B", dests(1).ref.path, dependencies = Set(a))
-    val c = echoTask("C", dests(2).ref.path)
-    val d = echoTask("D", dests(3).ref.path, dependencies = Set(a, c))
-    echoTask("E", dests(4).ref.path, dependencies = Set(b, d))
+    val a = echoTask("A", destinations(0).ref.path)
+    val b = echoTask("B", destinations(1).ref.path, dependencies = Set(a))
+    val c = echoTask("C", destinations(2).ref.path)
+    val d = echoTask("D", destinations(3).ref.path, dependencies = Set(a, c))
+    echoTask("E", destinations(4).ref.path, dependencies = Set(b, d))
   }
 
-  abstract class EarlyStopOrchestrator(probe: ActorRef) extends ControllableOrchestrator(probe, startImmediately = false)
-
-  class EarlyStopSingleTaskOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends EarlyStopOrchestrator(probe) {
+  class EarlyStopSingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
-    echoTask("A", dests(0).ref.path, earlyTermination = true)
+    echoTask("A", destinations(0).ref.path, earlyTermination = true)
   }
-  class EarlyStopTwoIndependentTasksOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends EarlyStopOrchestrator(probe) {
+  class EarlyStopTwoIndependentTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
     // B
-    echoTask("A", dests(0).ref.path, earlyTermination = true)
-    echoTask("B", dests(1).ref.path)
+    echoTask("A", destinations(0).ref.path, earlyTermination = true)
+    echoTask("B", destinations(1).ref.path)
   }
-  class EarlyStopTwoLinearTasksOrchestrator(dests: Array[TestProbe], probe: ActorRef) extends EarlyStopOrchestrator(probe) {
+  class EarlyStopTwoLinearTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A → B
-    val a = echoTask("A", dests(0).ref.path, earlyTermination = true)
-    echoTask("B", dests(1).ref.path, dependencies = Set(a))
+    val a = echoTask("A", destinations(0).ref.path, earlyTermination = true)
+    echoTask("B", destinations(1).ref.path, dependencies = Set(a))
   }
 }
 
@@ -160,57 +158,17 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     shutdown(verifySystemShutdown = true)
   }
 
-  def NChainedTasksOrchestrator(numberOfTasks: Int): (Array[TestProbe], ActorRef) = {
-    require(numberOfTasks >= 2, "Must have at least 2 tasks")
-    val destinations = Array.fill(numberOfTasks)(TestProbe())
-
-    val letters = 'A' to 'Z'
-    val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, terminateImmediately = true) {
-      override def persistenceId: String = s"$numberOfTasks-chained-orchestrator"
-
-      var last = echoTask(letters(0).toString, destinations(0).ref.path)
-
-      for (i <- 1 until numberOfTasks) {
-        val current = echoTask(letters(i).toString, destinations(i).ref.path, Set(last))
-        last = current
-      }
-    }))
-
-    (destinations, orchestrator)
-  }
-  def testNChainedEchoTasks(numberOfTasks: Int): Unit = {
-    require(numberOfTasks >= 2, "Must have at least 2 tasks")
-    val (destinations, orchestrator) = NChainedTasksOrchestrator(numberOfTasks)
-
-    withOrchestratorTermination(orchestrator) {
-      for (i <- 0 until numberOfTasks) {
-        val message = destinations(i).expectMsgClass(classOf[SimpleMessage])
-        for (j <- (i + 1) until numberOfTasks) {
-          destinations(j).expectNoMsg(100.millis.dilated)
-        }
-        destinations(i).reply(SimpleMessage(message.id))
-      }
-    }
-  }
-
-  def withOrchestratorTermination(orchestrator: ActorRef)(test: => Unit): Unit = {
-    val probe = TestProbe()
-    probe.watch(orchestrator)
-    test
-    probe.expectTerminated(orchestrator)
-  }
-
   def testStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: FiniteDuration = 500.millis.dilated)
-                   (expectedStatus: SortedMap[Int, Set[Task.Status]]): Unit = {
+                   (expectedStatus: SortedMap[Int, Set[Task.State]]): Unit = {
     orchestrator.tell(Status, probe.ref)
-    val obtainedStatus: IndexedSeq[Task.Status] = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.status).toIndexedSeq
+    val obtainedStatus: IndexedSeq[Task.State] = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.status).toIndexedSeq
 
     for((index, expected) <- expectedStatus) {
       expected should contain (obtainedStatus(index))
     }
   }
   def testExactStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: FiniteDuration = 500.millis.dilated)
-                        (expectedStatus: Task.Status*): Unit = {
+                        (expectedStatus: Task.State*): Unit = {
     orchestrator.tell(Status, probe.ref)
 
     val obtainedStatus = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.status)
@@ -219,24 +177,24 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     }
   }
 
-  case class State(expectedStatus: SortedMap[Int, Set[Task.Status]]) {
-    def updatedStatuses(newStatuses: (Int, Set[Task.Status])*): State = {
+  case class State(expectedStatus: SortedMap[Int, Set[Task.State]]) {
+    def updatedStatuses(newStatuses: (Symbol, Set[Task.State])*): State = {
       val newExpectedStatus = newStatuses.foldLeft(expectedStatus) {
-        case (statuses, (index, possibleStatus)) ⇒
-          statuses.updated(index, possibleStatus)
+        case (statuses, (taskSymbol, possibleStatus)) ⇒
+          statuses.updated(taskSymbol.name.head - 'A', possibleStatus)
       }
       this.copy(newExpectedStatus)
     }
-    def updatedExactStatuses(newStatuses: (Int, Task.Status)*): State = {
-      updatedStatuses(newStatuses.map { case (index, status) ⇒
-        (index, Set(status))
+    def updatedExactStatuses(newStatuses: (Symbol, Task.State)*): State = {
+      updatedStatuses(newStatuses.map { case (taskSymbol, status) ⇒
+        (taskSymbol, Set(status))
       }:_*)
     }
   }
-  abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int, startingTasks: Set[Int]) {
+  abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int, startingTasks: Set[Symbol]) {
     val terminationProbe = TestProbe("termination-probe")
     val statusProbe = TestProbe("status-probe")
-    val destinations = Array.tabulate(numberOfDestinations)(i ⇒ TestProbe(s"destination-$i"))
+    val destinations = Array.tabulate(numberOfDestinations)(i ⇒ TestProbe(s"Dest-$i"))
 
     private val orchestratorClass = implicitly[ClassTag[O]].runtimeClass
     lazy val orchestratorActor = system.actorOf(
@@ -247,17 +205,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     terminationProbe.watch(orchestratorActor)
 
     val firstState: State = {
-      val statuses = Seq.tabulate(numberOfDestinations) { i ⇒
-        if (startingTasks.contains(i)) {
-          //The tasks that start right await will have the state Unstarted, however
-          //After the first crash their state will already be Waiting because they have already started
-          (i, Set(Unstarted, Waiting): Set[Task.Status])
-        } else {
-          (i, Set(Unstarted): Set[Task.Status])
-        }
-
-      }
-      new State(SortedMap(statuses:_*))
+      State(SortedMap.empty).updatedExactStatuses(startingTasks.toSeq.map(i ⇒ (i, Unstarted)):_*)
     }
 
     val firstTransformation: State ⇒ State = { s ⇒
@@ -275,12 +223,16 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
 
     //Performs the same test in each state
     def sameTestPerState(test: State ⇒ Unit): Unit = {
+      var i = 1
       allTransformations.foldLeft(firstState) {
         case (lastState, transformationFunction) ⇒
-          //Perform the test for lastState
+          logger.info(s"STATE #$i expecting\n$lastState\n")
           test(lastState)
-
-          transformationFunction(lastState)
+          i += 1
+          logger.info(s"Computing state #$i")
+          val newState = transformationFunction(lastState)
+          logger.info(s"Computed state #$i\n\n\n")
+          newState
       }
     }
 
@@ -296,9 +248,11 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
       }
     }
 
-    def destinationExpectMsgAndReply(destinationNumber: Int, maxDuration: FiniteDuration = 1.second.dilated): Unit = {
-      val m = destinations(destinationNumber).expectMsgClass(maxDuration, classOf[SimpleMessage])
-      destinations(destinationNumber).reply(SimpleMessage(m.id))
+    def pingPongDestinationNumber(number: Int): Unit = {
+      val destination = destinations(number)
+      val m = destination.expectMsgClass(classOf[SimpleMessage])
+      logger.info(s"${destination.ref.path.name} received message $m")
+      destination.reply(m)
     }
   }
 
@@ -310,13 +264,13 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *    · After task A starts
     *    · After Task A finishes
     */
-  lazy val testCase1 = new TestCase[SingleTaskOrchestrator](1, Set(0)) {
+  lazy val testCase1 = new TestCase[SingleTaskOrchestrator](1, Set('A)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
-        destinationExpectMsgAndReply(0)
+        pingPongDestinationNumber(0)
 
         secondState.updatedExactStatuses(
-          0 -> Finished
+          'A -> Finished
         )
       }
     )
@@ -332,19 +286,19 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *    · After task A finishes
     *    · After task B finishes
     */
-  lazy val testCase2 = new TestCase[TwoIndependentTasksOrchestrator](2, Set(0, 1)) {
+  lazy val testCase2 = new TestCase[TwoIndependentTasksOrchestrator](1, Set('A, 'B)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
-        destinationExpectMsgAndReply(0)
+        pingPongDestinationNumber(0)
 
         secondState.updatedExactStatuses(
-          0 -> Finished
+          'A -> Finished
         )
       }, { thirdState ⇒
-        destinationExpectMsgAndReply(1)
+        pingPongDestinationNumber(0)
 
         thirdState.updatedExactStatuses(
-          1 -> Finished
+          'B -> Finished
         )
       }
     )
@@ -359,21 +313,23 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *   · After Task A finishes and Task B is about to start or has already started
     *   · After Task B finishes
     */
-  lazy val testCase3 = new TestCase[TwoLinearTasksOrchestrator](2, Set(0)) {
+  lazy val testCase3 = new TestCase[TwoLinearTasksOrchestrator](1, Set('A)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
-        destinationExpectMsgAndReply(0)
+        pingPongDestinationNumber(0)
 
         secondState.updatedExactStatuses(
-          0 -> Finished
+          'A -> Finished
         ).updatedStatuses(
-          1 -> Set(Unstarted, Waiting)
+          'B -> Set(Unstarted, Waiting)
         )
       }, { thirdState ⇒
-        destinationExpectMsgAndReply(1)
+        //TODO: WTF task A is resending the message
+        //pingPongDestinationNumber(0)
+        pingPongDestinationNumber(0)
 
         thirdState.updatedExactStatuses(
-          1 -> Finished
+          'B -> Finished
         )
       }
     )
@@ -390,27 +346,27 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *   · After Task B finishes
     *   · After Task B finishes
     */
-  lazy val testCase4 = new TestCase[TasksInTOrchestrator](3, Set(0, 1)) {
+  lazy val testCase4 = new TestCase[TasksInTOrchestrator](3, Set('A, 'B)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
-        destinationExpectMsgAndReply(1)
+        pingPongDestinationNumber(1)
 
         secondState.updatedExactStatuses(
-          1 -> Finished
+          'B -> Finished
         )
       }, { thirdState ⇒
-        destinationExpectMsgAndReply(0)
+        pingPongDestinationNumber(0)
 
         thirdState.updatedExactStatuses(
-          0 -> Finished
+          'A -> Finished
         ).updatedStatuses(
-          2 -> Set(Unstarted, Waiting)
+          'C -> Set(Unstarted, Waiting)
         )
       }, { fourthState ⇒
-        destinationExpectMsgAndReply(2)
+        pingPongDestinationNumber(2)
 
         fourthState.updatedExactStatuses(
-          2 -> Finished
+          'C -> Finished
         )
       }
     )
@@ -428,29 +384,31 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *   · After Task B finishes and Task C is about to start or has already started
     *   · After Task C finishes
     */
-  lazy val testCase5 = new TestCase[TasksInTriangleOrchestrator](3, Set(0)) {
+  lazy val testCase5 = new TestCase[TasksInTriangleOrchestrator](2, Set('A)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
-        destinationExpectMsgAndReply(0)
-
+        pingPongDestinationNumber(0)
+        
         secondState.updatedExactStatuses(
-          0 -> Finished
+          'A → Finished
         ).updatedStatuses(
-          1 -> Set(Unstarted, Waiting)
+          'B → Set(Unstarted, Waiting)
         )
       }, { thirdState ⇒
-        destinationExpectMsgAndReply(1)
+        //TODO: WTF task A is resending the message
+        pingPongDestinationNumber(0)
+        pingPongDestinationNumber(0)
 
         thirdState.updatedExactStatuses(
-          1 -> Finished
+          'B → Finished
         ).updatedStatuses(
-          2 -> Set(Unstarted, Waiting)
+          'C → Set(Unstarted, Waiting)
         )
       }, { fourthState ⇒
-        destinationExpectMsgAndReply(2)
+        pingPongDestinationNumber(1)
 
         fourthState.updatedExactStatuses(
-          2 -> Finished
+          'C → Finished
         )
       }
     )
@@ -470,43 +428,43 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *   · After Task D finishes and Task E is about to start or has already started
     *   · After Task E finishes
     */
-  lazy val testCase6 = new TestCase[FiveTasksOrchestrator](5, Set(0, 2)) {
+  lazy val testCase6 = new TestCase[FiveTasksOrchestrator](5, Set('A, 'C)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
-        destinationExpectMsgAndReply(0)
+        pingPongDestinationNumber(0)
 
         secondState.updatedExactStatuses(
-          0 -> Finished
+          'A -> Finished
         ).updatedStatuses(
-          1 -> Set(Unstarted, Waiting)
+          'B -> Set(Unstarted, Waiting)
         )
       }, { thirdState ⇒
-        destinationExpectMsgAndReply(1)
+        pingPongDestinationNumber(1)
 
         thirdState.updatedExactStatuses(
-          1 -> Finished
+          'B -> Finished
         )
       }, { fourthState ⇒
-        destinationExpectMsgAndReply(2)
+        pingPongDestinationNumber(2)
 
         fourthState.updatedExactStatuses(
-          2 -> Finished
+          'C -> Finished
         ).updatedStatuses(
-          3 -> Set(Unstarted, Waiting)
+          'D -> Set(Unstarted, Waiting)
         )
       }, { fifthState ⇒
-        destinationExpectMsgAndReply(3)
+        pingPongDestinationNumber(3)
 
         fifthState.updatedExactStatuses(
-          3 -> Finished
+          'D -> Finished
         ).updatedStatuses(
-          4 -> Set(Unstarted, Waiting)
+          'E -> Set(Unstarted, Waiting)
         )
       }, { sixthState ⇒
-        destinationExpectMsgAndReply(4)
+        pingPongDestinationNumber(4)
 
         sixthState.updatedExactStatuses(
-          4 -> Finished
+          'E -> Finished
         )
       }
     )

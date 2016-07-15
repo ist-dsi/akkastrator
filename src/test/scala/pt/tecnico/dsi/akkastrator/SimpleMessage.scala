@@ -1,3 +1,3 @@
 package pt.tecnico.dsi.akkastrator
 
-case class SimpleMessage(id: Long)
+case class SimpleMessage(from: String, id: Long)
