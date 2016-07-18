@@ -34,7 +34,7 @@ object TestCaseOrchestrators {
         def behavior: Receive = /*LoggingReceive.withLabel(f"Task [$index%02d - $description]")*/ {
           case m @ SimpleMessage(_, id) if matchSenderAndId(id) =>
             if (earlyTermination) {
-              terminateEarly(m, new CorrelationId(id))
+              terminateEarly(m, id)
             } else {
               finish(m, id)
             }
@@ -161,7 +161,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
   def testStatus[T](orchestrator: ActorRef, probe: TestProbe, maxDuration: FiniteDuration = 500.millis.dilated)
                    (expectedStatus: SortedMap[Int, Set[Task.State]]): Unit = {
     orchestrator.tell(Status, probe.ref)
-    val obtainedStatus: IndexedSeq[Task.State] = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.status).toIndexedSeq
+    val obtainedStatus: IndexedSeq[Task.State] = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.state).toIndexedSeq
 
     for((index, expected) <- expectedStatus) {
       expected should contain (obtainedStatus(index))
@@ -171,7 +171,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
                         (expectedStatus: Task.State*): Unit = {
     orchestrator.tell(Status, probe.ref)
 
-    val obtainedStatus = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.status)
+    val obtainedStatus = probe.expectMsgClass(maxDuration, classOf[StatusResponse]).tasks.map(_.state)
     obtainedStatus.zip(expectedStatus).foreach { case (obtained, expected) ⇒
       obtained shouldEqual expected
     }
@@ -259,14 +259,25 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
   /** Graph:
     *  A
     *
-    *  Test points:
-    *    · Before any task starts
-    *    · After task A starts
-    *    · After Task A finishes
+    * Destinations:
+    *  A -> destination(0)
+    *
+    * Test points:
+    *  · Before any task starts
+    *  · After task A starts
+    *  · After Task A finishes
     */
   lazy val testCase1 = new TestCase[SingleTaskOrchestrator](1, Set('A)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
+        pingPongDestinationNumber(0)
+        /**
+          * In the transition from the 1st state to the 2nd state we send a StartReadyTasks to the orchestrator.
+          * This will cause Task A to start and therefor to send a message to the destination(0).
+          * Before task A receives the response we crash the orchestrator, which will cause it to restart and recover.
+          * In the recover the task A will resend the message again since the delivery hasn't been confirmed yet.
+          * So destination(0) gets a resend. And thats why we have 2 pingPongs here.
+          */
         pingPongDestinationNumber(0)
 
         secondState.updatedExactStatuses(
@@ -280,21 +291,30 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *  A
     *  B
     *
-    *  Test points:
-    *    · Before any task starts
-    *    · After both tasks start
-    *    · After task A finishes
-    *    · After task B finishes
+    * Destinations:
+    *  A -> destination(0)
+    *  B -> destination(0)
+    *
+    * Test points:
+    *  · Before any task starts
+    *  · After both tasks start
+    *  · After task A finishes
+    *  · After task B finishes
     */
   lazy val testCase2 = new TestCase[TwoIndependentTasksOrchestrator](1, Set('A, 'B)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
         pingPongDestinationNumber(0)
+        //The message of B will arrive before of the resend of A, so we can't deal with it right away.
 
         secondState.updatedExactStatuses(
           'A -> Finished
         )
       }, { thirdState ⇒
+        pingPongDestinationNumber(0)
+        //Resend of A
+        pingPongDestinationNumber(0)
+        //Resend of B
         pingPongDestinationNumber(0)
 
         thirdState.updatedExactStatuses(
@@ -307,25 +327,31 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
   /** Graph:
     *  A → B
     *
-    *  Test points:
-    *   · Before any task starts
-    *   · After Task A starts
-    *   · After Task A finishes and Task B is about to start or has already started
-    *   · After Task B finishes
+    * Destinations:
+    *  A -> destination(0)
+    *  B -> destination(0)
+    *
+    * Test points:
+    *  · Before any task starts
+    *  · After Task A starts
+    *  · After Task A finishes and Task B is about to start or has already started
+    *  · After Task B finishes
     */
   lazy val testCase3 = new TestCase[TwoLinearTasksOrchestrator](1, Set('A)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
         pingPongDestinationNumber(0)
-
+        //Resend of A
+        pingPongDestinationNumber(0)
+        
         secondState.updatedExactStatuses(
           'A -> Finished
         ).updatedStatuses(
           'B -> Set(Unstarted, Waiting)
         )
       }, { thirdState ⇒
-        //TODO: WTF task A is resending the message
-        //pingPongDestinationNumber(0)
+        pingPongDestinationNumber(0)
+        //Resend of B
         pingPongDestinationNumber(0)
 
         thirdState.updatedExactStatuses(
@@ -340,11 +366,16 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *   ⟩→ C
     *  B
     *
-    *  Test points:
-    *   · Before any task starts
-    *   · After Task A and Task B start
-    *   · After Task B finishes
-    *   · After Task B finishes
+    * Destinations:
+    *  A -> destination(0)
+    *  B -> destination(1)
+    *  C -> destination(2)
+    *
+    * Test points:
+    *  · Before any task starts
+    *  · After Task A and Task B start
+    *  · After Task B finishes
+    *  · After Task B finishes
     */
   lazy val testCase4 = new TestCase[TasksInTOrchestrator](3, Set('A, 'B)) {
     val transformations: Seq[State ⇒ State] = Seq(
@@ -356,7 +387,9 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
         )
       }, { thirdState ⇒
         pingPongDestinationNumber(0)
-
+        //Resend of B. We do it here because it also must work here.
+        pingPongDestinationNumber(1)
+        
         thirdState.updatedExactStatuses(
           'A -> Finished
         ).updatedStatuses(
@@ -364,6 +397,10 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
         )
       }, { fourthState ⇒
         pingPongDestinationNumber(2)
+        //Resend of C
+        pingPongDestinationNumber(2)
+        //Resend of A. We do it here because it also must work here.
+        pingPongDestinationNumber(0)
 
         fourthState.updatedExactStatuses(
           'C -> Finished
@@ -377,16 +414,23 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *   ↗ ↘
     *  A → C
     *
-    *  Test points:
-    *   · Before any task starts
-    *   · After Task A starts
-    *   · After Task A finishes and Task B is about to start or has already started
-    *   · After Task B finishes and Task C is about to start or has already started
-    *   · After Task C finishes
+    * Destinations:
+    *  A -> destination(0)
+    *  B -> destination(0)
+    *  C -> destination(1)
+    *
+    * Test points:
+    *  · Before any task starts
+    *  · After Task A starts
+    *  · After Task A finishes and Task B is about to start or has already started
+    *  · After Task B finishes and Task C is about to start or has already started
+    *  · After Task C finishes
     */
   lazy val testCase5 = new TestCase[TasksInTriangleOrchestrator](2, Set('A)) {
     val transformations: Seq[State ⇒ State] = Seq(
       { secondState ⇒
+        pingPongDestinationNumber(0)
+        //Resend of A
         pingPongDestinationNumber(0)
         
         secondState.updatedExactStatuses(
@@ -395,8 +439,6 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
           'B → Set(Unstarted, Waiting)
         )
       }, { thirdState ⇒
-        //TODO: WTF task A is resending the message
-        pingPongDestinationNumber(0)
         pingPongDestinationNumber(0)
 
         thirdState.updatedExactStatuses(
@@ -405,6 +447,10 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
           'C → Set(Unstarted, Waiting)
         )
       }, { fourthState ⇒
+        pingPongDestinationNumber(1)
+        //Resend of B
+        pingPongDestinationNumber(0)
+        //Resend of C
         pingPongDestinationNumber(1)
 
         fourthState.updatedExactStatuses(
@@ -418,6 +464,13 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     *  A → B
     *    ↘  ⟩→ E
     *  C → D
+    *
+    * Destinations:
+    *  A -> destination(0)
+    *  B -> destination(1)
+    *  C -> destination(2)
+    *  D -> destination(3)
+    *  E -> destination(4)
     *
     *  Test points:
     *   · Before any task starts

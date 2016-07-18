@@ -21,24 +21,17 @@ class RecoverSpec extends ActorSysSpec {
 
   "A crashing orchestrator" should {
     "recover the correct state" when {
-      /*
-      """there is only a single task:
-        |  A""".stripMargin in {
+      "there is only a single task: A" in {
         testOrchestrator(testCase1)
       }
-      */
       """there are two independent tasks:
         |  A
         |  B""".stripMargin in {
         testOrchestrator(testCase2)
       }
-      /*
-      """there are two linear tasks:
-        |  A → B""".stripMargin in {
+      "there are two linear tasks: A → B" in {
         testOrchestrator(testCase3)
       }
-      */
-      /*
       """there are three dependent tasks in T:
         |  A
         |   ⟩→ C
@@ -57,7 +50,6 @@ class RecoverSpec extends ActorSysSpec {
         |  C → D""".stripMargin in {
         testOrchestrator(testCase6)
       }
-      */
     }
   }
 }
