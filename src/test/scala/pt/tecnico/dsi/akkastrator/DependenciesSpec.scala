@@ -2,7 +2,7 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor._
 import akka.testkit.{TestDuration, TestProbe}
-import pt.tecnico.dsi.akkastrator.TestCaseOrchestrators.ControllableOrchestrator
+import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
 import scala.concurrent.duration.DurationInt
 
 class DependenciesSpec  extends ActorSysSpec {

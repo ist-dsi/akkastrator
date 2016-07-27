@@ -8,91 +8,91 @@ import scala.reflect.ClassTag
 class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSender {
   trait SimpleTasks { self: Orchestrator ⇒
     val someTask: Task = new Task("SomeTask") {
-      //Dummy destination
+      type Result = Unit
       val destination: ActorPath = ActorPath.fromString("akka://user/a")
-      def createMessage(id: DeliveryId): Any = SimpleMessage("SomeTask", id.self)
+      def createMessage(id: Long): Any = SimpleMessage("SomeTask", id)
   
       def behavior: Receive = {
-        case m @ SimpleMessage(s, id) if matchDeliveryId(id) ⇒
-          finish(m, id)
+        case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          finish(m, id, ())
       }
     }
   
     def deleteUser(user: String, dependencies: Task*): Task = new Task(s"Delete user $user", Set(dependencies:_*)) {
-      //Dummy destination
+      type Result = Unit
       val destination: ActorPath = ActorPath.fromString("akka://user/b")
-      def createMessage(id: DeliveryId): Any = SimpleMessage(s"DELETE $user", id.self)
+      def createMessage(id: Long): Any = SimpleMessage(s"DELETE $user", id)
     
       def behavior: Receive = {
-        case m @ SimpleMessage(s, id) if matchDeliveryId(id) ⇒
-          finish(m, id)
+        case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          finish(m, id, ())
       }
     }
   }
   
   trait DistinctIdsTasks { self: DistinctIdsOrchestrator ⇒
     val anotherTask: Task = new Task("AnotherTask") {
+      type Result = Unit
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/c")
-      def createMessage(id: CorrelationId): Any = SimpleMessage("AnotherTask", id.self)
+      def createMessage(id: Long): Any = SimpleMessage("AnotherTask", id)
     
       def behavior: Receive = {
-        case m @ SimpleMessage(s, id) if matchSenderAndId(id) ⇒
-          finish(m, id)
+        case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          finish(m, id, ())
       }
     }
   
     def post(what: String, where: String, dependencies: Set[Task] = Set.empty): Task = new Task(s"Post $what in $where", dependencies) {
+      type Result = Unit
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/d")
-      def createMessage(id: CorrelationId): Any = SimpleMessage(s"post $what in $where", id.self)
+      def createMessage(id: Long): Any = SimpleMessage(s"post $what in $where", id)
     
       def behavior: Receive = {
-        case m @ SimpleMessage(s, id) if matchSenderAndId(id) ⇒
-          terminateEarly(m, id)
+        case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          finish(m, id, ())
       }
     }
   }
   
   trait AbstractTasks { self: AbstractOrchestrator ⇒
-    val theOneTask: TaskProxy = new TaskProxy("theOneTask") {
+    val theOneTask: Task = new Task("theOneTask") {
+      type Result = Unit
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/e")
-      def createMessage(id: ID): Any = SimpleMessage("TheOneTask", id.self)
-    
+      def createMessage(id: Long): Any = SimpleMessage("TheOneTask", id)
+      
       def behavior: Receive = {
         case m @ SimpleMessage(s, id) if matchId(id) ⇒
-          finish(m, id)
+          finish(m, id, ())
       }
     }
   
-    def ping(ip: String, dependencies: TaskProxy*): TaskProxy = new TaskProxy(s"Ping $ip", Set(dependencies:_*)) {
+    def ping(ip: String, dependencies: Task*): Task = new Task(s"Ping $ip", Set(dependencies:_*)) {
+      type Result = Unit
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/f")
-      def createMessage(id: ID): Any = SimpleMessage(s"Ping $ip", id.self)
-    
+      def createMessage(id: Long): Any = SimpleMessage(s"Ping $ip", id)
+  
       def behavior: Receive = {
         case m @ SimpleMessage(s, id) if matchId(id) ⇒
-          terminateEarly(m, id)
+          finish(m, id, ())
       }
     }
   }
   
   case object GetTasks
   trait TaskRefactoringControls { self: AbstractOrchestrator ⇒
-    //we dont need to start the orchestrator
+    //We dont want to start the orchestrator right away
     override def startTasks(): Unit = ()
-  
-    override def extraCommands: Receive = {
-      case GetTasks ⇒ sender() ! tasks
-    }
   }
   
   def testNumberOfTasks[O <: AbstractOrchestrator: ClassTag](creator: ⇒ O)(numberOfTasks: Int): Unit = {
     val orchestrator = system.actorOf(Props(creator))
-    orchestrator ! GetTasks
+    orchestrator ! Status
   
-    val tasks = expectMsgClass(classOf[IndexedSeq[O#T]])
+    val tasks = expectMsgClass(classOf[StatusResponse]).tasks
     tasks.length shouldBe numberOfTasks
   }
   
@@ -136,8 +136,6 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
           val p = ping("127.0.0.1")
           //Using TaskProxy as a dependency for a Task
           deleteUser("a", p)
-      
-          tasks.length shouldBe 4
         }
         testNumberOfTasks(new Simple2Orchestrator())(4)
       }
@@ -154,4 +152,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
       }
     }
   }
+  
+  //TODO: create tasks that send messages or have behavior that is dependent upon the response obtained in a dependent task
+  //TODO: use TaskBundle
 }

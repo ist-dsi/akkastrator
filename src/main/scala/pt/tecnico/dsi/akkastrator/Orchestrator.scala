@@ -2,14 +2,11 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor.{Actor, ActorLogging, ActorPath}
 import akka.persistence._
-import pt.tecnico.dsi.akkastrator.Task.Waiting
 
 case object StartReadyTasks
 case object SaveSnapshot
-
-sealed trait Event
-case class MessageSent(taskIndex: Int) extends Event
-case class MessageReceived(taskIndex: Int, response: Any) extends Event
+case object Status
+case class StatusResponse(tasks: IndexedSeq[TaskView])
 
 /**
   * An Orchestrator executes a set of, possibly dependent, `Task`s.
@@ -47,30 +44,35 @@ case class MessageReceived(taskIndex: Int, response: Any) extends Event
   * }}}
   */
 sealed abstract class AbstractOrchestrator(settings: Settings) extends PersistentActor with AtLeastOnceDelivery
-  with ActorLogging with IdImplicits with OrchestratorContext {
+  with ActorLogging with IdImplicits {
+  //The type of the state this orchestrator maintains
+  type S <: State
+  //The type of Id this orchestrator handles
+  type ID <: Id
   
-  type S <: State //The type of the state this orchestrator maintains
-  type T <: AbstractTask[T] //The type of tasks this orchestrator creates
-  type ID <: Id //The type of Id this orchestrator handles
+  //This exists to make the creation of tasks easier
+  final implicit val orchestrator = this
+  
+  private[this] final var _tasks: IndexedSeq[Task] = Vector.empty
+  private[this] final var _state: S = _
+  
+  private[akkastrator] final def tasks: IndexedSeq[Task] = _tasks
+  private[akkastrator] final def addTask(task: Task): Int = {
+    val index = tasks.length
+    _tasks :+= task
+    index
+  }
+  
+  final def state: S = _state
+  final def state_=(state: S): Unit = _state = state
   
   //This gets the Orchestrator started
   startTasks()
-
-  private[akkastrator] final var earlyTerminated = false
   
-  private[this] final var _tasks: IndexedSeq[T] = Vector.empty
-  final def tasks: IndexedSeq[T] = _tasks
-  private[akkastrator] final def addTask(task: T): Unit = _tasks :+= task
-  
-  private[this] final var _state: S = _
-  final def state: S = _state
-  final def state_=(state: S): Unit = _state = state
-    
   /**
-    * Every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
+    * Roughly Every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
     * By default this method returns the value defined in the configuration.
     *
-    * Roughly every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
     * This is just a rough value because the orchestrator will not save it in the snapshots.
     * In fact it will not save it at all. Instead the value of lastSequenceNr will be used to estimate
     * how many messages have been processed.
@@ -79,44 +81,6 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
     */
   def saveSnapshotRoughlyEveryXMessages: Int = settings.saveSnapshotRoughlyEveryXMessages
   
-  
-  abstract class TaskProxy(description: String, dependencies: Set[TaskProxy] = Set.empty)
-    extends AbstractTask[TaskProxy](description, dependencies) {
-    /**
-      * This class exists to fulfill the following purposes:
-      *  1) Allow the refactoring of task creation in a manner that is agnostic to the type of orchestrator.
-      *     To do so the created task must behave in the same way as the tasks created in the concrete orchestrator.
-      *     More specifically a TaskProxy that is mixed-in in a "Simple" Orchestrator must match just the deliveryId,
-      *     However the same TaskProxy mixed-in in a DistinctIdsOrchestrator must match the sender and the correlationId.
-      *  2) It must be possible to create a TaskProxy that depends on other TaskProxies.
-      *  3) It must be possible to create a Task that depends on a TaskProxy.
-      *  4) It must be possible to create a TaskProxy that depends on a Task.
-      */
-  
-    /**
-      * The default implementation just calls toTask, which creates an instance of T and adds it to the concrete
-      * orchestrator.
-      */
-    @inline private[akkastrator] def createTask(): T = toTask(this)
-    @inline val realTask: T = createTask()
-    
-    @inline def matchId(id: Long): Boolean = realTask.matchId(id)
-  }
-  /** Converts the TaskProxy to the type of tasks the concrete subclass of this orchestrator creates. */
-  def toTask(proxy: TaskProxy): T
-  
-  //This allows using a task as a dependency for a TaskProxy
-  implicit final def task2TaskProxy(task: T): TaskProxy = new TaskProxy(task.description, task.dependencies.map(task2TaskProxy)) {
-    val destination: ActorPath = task.destination
-    def createMessage(id: ID): Any = task.createMessage(id)
-    def behavior: Receive = task.behavior
-    
-    //By overriding this method we ensure this task is not re-added to the orchestrator.
-    @inline override private[akkastrator] final def createTask(): T = task
-  }
-  //This allows using a TaskProxy as a dependency for a Task
-  @inline implicit final def taskProxy2Task(taskProxy: TaskProxy): T = taskProxy.realTask
-  
   /**
     * Converts the deliveryId obtained from the deliver method of akka-persistence to ID.
     * Also updates this orchestrator state if necessary.
@@ -124,6 +88,7 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   protected[akkastrator] def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): ID
   /** Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence. */
   protected[akkastrator] def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId
+  protected[akkastrator] def matchId(task: Task, id: Long): Boolean
   
   /**
     * User overridable callback. Its called to start the Tasks.
@@ -144,15 +109,17 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
     * By default logs that the Orchestrator has finished then stops it.
     *
     * You can use this to implement your termination strategy.
+    *
+    * An Orchestrator without tasks never finishes.
     */
   def onFinish(): Unit = {
     log.info(s"Orchestrator Finished!")
     context stop self
   }
-
-  //TODO: can we guarantee that waiting tasks will still process their responses even if the user performs become/unbecome?
+  
   /**
-    * User overridable callback. Its called when a task requests an early termination. Empty default implementation.
+    * User overridable callback. Its called when a task requests an early termination.
+    * By default logs that the Orchestrator has terminated early then stops it.
     *
     * @param instigator the task that initiated the early termination.
     * @param message the message that caused the early termination.
@@ -161,17 +128,19 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
     *       <cite>"Tasks that are waiting will remain untouched and the orchestrator will
     *       still be prepared to handle their responses"</cite> will no longer be guaranteed.
     */
-  def onEarlyTermination(instigator: T, message: Any, tasks: Map[Task.State, Seq[T]]): Unit = ()
+  def onEarlyTermination(instigator: Task, message: Any, tasks: Map[TaskState, Seq[Task]]): Unit = {
+    log.info(s"Orchestrator Terminated Early!")
+    context stop self
+  }
 
   /** @return the behaviors of the tasks which are waiting plus `orchestratorCommand`. */
   private[akkastrator] final def updateCurrentBehavior(): Unit = {
     val waitingTaskBehaviors = tasks.filter(_.isWaiting).map(_.behavior)
     // By folding left we ensure orchestratorCommand is always the first receive.
     // This is important to guarantee that StartReadyTasks, Status or SaveSnapshot won't be taken first
-    // by one of the tasks behaviors.
-    val newBehavior = waitingTaskBehaviors.foldLeft(orchestratorCommand)(_ orElse _)
-    // Extra commands will always come last
-    context become (newBehavior orElse extraCommands)
+    // by one of the tasks behaviors. The extraCommands will come last, after the waiting task behaviors.
+    val newBehavior = (waitingTaskBehaviors :+ extraCommands).foldLeft(orchestratorCommand)(_ orElse _)
+    context become newBehavior
 
     // This method is invoked whenever a task finishes, so it is a very appropriate location to place
     // the computation of whether we should perform an automatic snapshot.
@@ -183,15 +152,25 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   }
 
   final def orchestratorCommand: Actor.Receive = /*LoggingReceive.withLabel("orchestratorCommand")*/ {
+    //TODO: if we could somehow implement this with context.become it would be more efficient
+    //TODO: since the filter(_.canStart) and tasks.forall(_.hasFinished) will re-evaluate the same tasks over and over again
+    /**
+      * def orchestratorCommand(unstartedTasks: Seq[Task], terminatedEarly: Boolean = false): Actor.Receive = {
+      *   case StartReadyTasks =>
+      *     // The problem is that start, finish and terminatedEarly will have to invoke orchestratorCommand(...)
+      *     unstartedTasks.foreach(_.start())
+      *     if (terminatedEarly == false && unstartedTasks.length == 0) {
+      *       onFinish()
+      *     }
+      * }
+      */
     case StartReadyTasks ⇒
-      if (!earlyTerminated) {
-        tasks.filter(_.canStart).foreach(_.start())
-        if (tasks.forall(_.hasFinished)) {
-          onFinish()
-        }
+      tasks.filter(_.canStart).foreach(_.start())
+      if (tasks.nonEmpty && tasks.forall(_.hasFinished)) {
+        onFinish()
       }
     case Status ⇒
-      sender() ! StatusResponse(tasks.map(_.toTaskDescription))
+      sender() ! StatusResponse(tasks.map(_.toTaskView))
     case SaveSnapshot ⇒
       saveSnapshot(_state)
   }
@@ -203,7 +182,7 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
 
   final def receiveCommand: Actor.Receive = orchestratorCommand orElse extraCommands
 
-  final def receiveRecover: Actor.Receive = /*LoggingReceive.withLabel("receiveRecover")*/ {
+  def receiveRecover: Actor.Receive = /*LoggingReceive.withLabel("receiveRecover")*/ {
     case SnapshotOffer(metadata, offeredSnapshot: State) ⇒
       state = offeredSnapshot.asInstanceOf[S]
     case MessageSent(taskIndex) ⇒
@@ -215,16 +194,13 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
       log.info(task.withLoggingPrefix(s"Recovering MessageReceived."))
       task.behavior(message)
     case RecoveryCompleted ⇒
-      val tasksString = tasks.map { t ⇒
-        t.withLoggingPrefix(f"${t.state}%-9s (Expected DeliveryId: ${t.expectedDeliveryId})")
-      }.mkString("\n\t")
+      val tasksString = tasks.map(t ⇒ t.withLoggingPrefix(t.state.toString)).mkString("\n\t")
       log.info(s"Tasks after recovery completed:\n\t$tasksString\n\t#Unconfirmed: $numberOfUnconfirmed")
   }
 }
 
 abstract class Orchestrator(settings: Settings = new Settings()) extends AbstractOrchestrator(settings) {
   final type S = State //This orchestrator accepts any kind of State
-  final type T = Task
   final type ID = DeliveryId
   state = EmptyState
   
@@ -236,43 +212,31 @@ abstract class Orchestrator(settings: Settings = new Settings()) extends Abstrac
   
   protected[akkastrator] final def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
   protected[akkastrator] final def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = id
-  
-  abstract class Task(description: String, dependencies: Set[Task] = Set.empty) extends AbstractTask[Task](description, dependencies) {
-    addTask(this)
-    
-    /** @return whether `expectedDeliveryId` contains `id`. */
-    final def matchDeliveryId(id: DeliveryId): Boolean = {
-      val matches = expectedDeliveryId.contains(id)
-  
-      log.debug(withLoggingPrefix {
-        val length = expectedDeliveryId.toString.length max 6
-        String.format(
-          s"""matchDeliveryId:
-              |      FIELD │ %${length}s │ EXPECTED VALUE
-              |────────────┼─%${length}s─┼────────────────
-              | DeliveryId │ %${length}s │ %-${length}s
-              | Matches: $matches""".stripMargin,
-          "VALUE",
-          "─" * length,
-          id.toString, expectedDeliveryId
-        )
-      })
-      matches
+  protected[akkastrator] def matchId(task: Task, id: Long): Boolean = {
+    val matches = task.state match {
+      case Waiting(expectedDeliveryId) if expectedDeliveryId.self == id ⇒ true
+      case _ ⇒ false
     }
-    /** This method simply calls `matchDeliveryId`. */
-    final def matchId(id: Long): Boolean = matchDeliveryId(id)
-  }
-  
-  final def toTask(proxy: TaskProxy): T = new Task(proxy.description, proxy.dependencies.map(_.realTask)) {
-    val destination: ActorPath = proxy.destination
-    def createMessage(id: DeliveryId): Any = proxy.createMessage(id)
-    def behavior: Actor.Receive = proxy.behavior
+    
+    log.debug(task.withLoggingPrefix {
+      val length = task.state.toString.length
+      String.format(
+        s"""matchDeliveryId:
+            | FIELD │ %${length}s │ EXPECTED VALUE
+            |───────┼─%${length}s─┼────────────────
+            | State │ %${length}s │ %-${length}s
+            | Matches: $matches""".stripMargin,
+        "VALUE",
+        "─" * length,
+        task.state, Waiting(id)
+      )
+    })
+    matches
   }
 }
 
-abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) extends AbstractOrchestrator(settings) { orchestrator ⇒
+abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) extends AbstractOrchestrator(settings) {
   final type S = State with DistinctIds //This orchestrator requires that the state includes DistinctIds
-  final type T = Task
   final type ID = CorrelationId
   state = new MinimalState()
   
@@ -286,64 +250,42 @@ abstract class DistinctIdsOrchestrator(settings: Settings = new Settings()) exte
     */
   
   protected[akkastrator] final def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
-    val correlationId = orchestrator.state.getNextCorrelationIdFor(destination)
+    val correlationId = state.getNextCorrelationIdFor(destination)
     
-    orchestrator.state = orchestrator.state.updatedIdsPerDestination(destination, correlationId → deliveryId)
-    log.debug("New State:\n\t" + orchestrator.state.idsPerDestination.mkString("\n\t"))
+    state = state.updatedIdsPerDestination(destination, correlationId → deliveryId)
+    log.debug("New State:\n\t" + state.idsPerDestination.mkString("\n\t"))
     
     correlationId
   }
   protected[akkastrator] final def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = {
     state.getDeliveryIdFor(destination, id)
   }
+  protected[akkastrator] def matchId(task: Task, id: Long): Boolean = {
+    lazy val senderPath = sender().path
+    lazy val deliveryId = state.getDeliveryIdFor(task.destination, id)
   
-  abstract class Task(description: String, dependencies: Set[Task] = Set.empty) extends AbstractTask[Task](description, dependencies) {
-    addTask(this)
+    val matches = (if (recoveryRunning) true else senderPath == task.destination) && (task.state match {
+      case Waiting(expectedDeliveryId) if expectedDeliveryId == deliveryId ⇒ true
+      case _ ⇒ false
+    })
   
-    /**
-      * @param id the correlationId obtained from the received message.
-      * @return true if
-      *         1. This task status is Waiting
-      *         2. The actor path of the sender is the same as `destination`.
-      *         3. The `expectedDeliveryId` contains the deliveryId resolved from the correlationId.
-      *        false otherwise.
-      */
-    final def matchSenderAndId(id: CorrelationId): Boolean = {
-      lazy val senderPath = sender().path
-      lazy val deliveryId = orchestrator.state.getDeliveryIdFor(destination, id)
-
-      val matches = state == Waiting &&
-        (if (recoveryRunning) true else senderPath == destination) &&
-        expectedDeliveryId.contains(deliveryId)
-
-      log.debug(withLoggingPrefix {
-        val length = senderPath.toString.length max destination.toString.length
-        String.format(
-          s"""MatchSenderAndId:
-              |CorrelationId($id) resolved to DeliveryId($deliveryId)
-              |      FIELD │ %${length}s │ EXPECTED VALUE
-              |────────────┼─%${length}s─┼────────────────
-              |     Status │ %${length}s │ Waiting
-              | SenderPath │ %${length}s │ %-${length}s
-              | DeliveryId │ %${length}s │ %-${length}s
-              | Matches: $matches %s""".stripMargin,
-          "VALUE",
-          "─" * length,
-          state,
-          senderPath, destination,
-          deliveryId.toString, expectedDeliveryId,
-          if (recoveryRunning) "because recovery is running." else ""
-        )
-      })
-      matches
-    }
-    /** This method simply calls `matchSenderAndId`. */
-    final def matchId(id: Long): Boolean = matchSenderAndId(id)
-  }
-  
-  final def toTask(proxy: TaskProxy): T = new Task(proxy.description, proxy.dependencies.map(_.realTask)) {
-    val destination: ActorPath = proxy.destination
-    def createMessage(id: CorrelationId): Any = proxy.createMessage(id)
-    def behavior: Actor.Receive = proxy.behavior
+    log.debug(task.withLoggingPrefix {
+      val length = senderPath.toString.length max task.destination.toString.length
+      String.format(
+        s"""MatchSenderAndId:
+            |CorrelationId($id) resolved to DeliveryId($deliveryId)
+            |      FIELD │ %${length}s │ EXPECTED VALUE
+            |────────────┼─%${length}s─┼────────────────
+            | SenderPath │ %${length}s │ %-${length}s
+            |      State │ %${length}s │ %-${length}s
+            | Matches: $matches %s""".stripMargin,
+        "VALUE",
+        "─" * length,
+        senderPath, task.destination,
+        task.state, Waiting(deliveryId),
+        if (recoveryRunning) "because recovery is running." else ""
+      )
+    })
+    matches
   }
 }
