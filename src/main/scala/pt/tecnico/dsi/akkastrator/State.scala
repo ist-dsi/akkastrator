@@ -17,13 +17,13 @@ trait DistinctIds { self: State ⇒
     */
   def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State with DistinctIds
 
-  /** Get the SorteMap relation between CorrelationId and DeliveryId for the given `destination`. */
+  /** Get the SortedMap relation between CorrelationId and DeliveryId for the given `destination`. */
   final def getIdsFor(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
     idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId])
   }
   
   /**
-    * Compute the next correlationId the given `destination`.
+    * Compute the next correlationId for the given `destination`.
     * The computation is just the biggest correlationId + 1 or 0 if no correlationId exists.
     */
   final def getNextCorrelationIdFor(destination: ActorPath): CorrelationId = {
@@ -35,7 +35,7 @@ trait DistinctIds { self: State ⇒
   }
   
   /**
-    * Translates the correlationId for a given destination back to the DeliveryId.
+    * Translates the `correlationId` for a given `destination` back to a DeliveryId.
     * If the translation is unsuccessful an exception will be thrown in order to crash the orchestrator
     * since this will be a fatal error.
     */

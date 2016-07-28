@@ -1,12 +1,14 @@
 package pt.tecnico.dsi.akkastrator
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import akka.actor.{Actor, ActorLogging, ActorPath}
 import akka.persistence._
 
 case object StartReadyTasks
 case object SaveSnapshot
 case object Status
-case class StatusResponse(tasks: IndexedSeq[TaskView])
+case class StatusResponse(tasks: IndexedSeq[TaskReport])
 
 /**
   * An Orchestrator executes a set of, possibly dependent, `Task`s.
@@ -55,6 +57,8 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   
   private[this] final var _tasks: IndexedSeq[Task] = Vector.empty
   private[this] final var _state: S = _
+  //TODO: do we really need this to be an atomic integer? Can't it just be an integer?
+  private[akkastrator] val taskBundleIdCounter = new AtomicInteger(0)
   
   private[akkastrator] final def tasks: IndexedSeq[Task] = _tasks
   private[akkastrator] final def addTask(task: Task): Int = {
@@ -66,11 +70,8 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   final def state: S = _state
   final def state_=(state: S): Unit = _state = state
   
-  //This gets the Orchestrator started
-  startTasks()
-  
   /**
-    * Roughly Every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
+    * Roughly every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
     * By default this method returns the value defined in the configuration.
     *
     * This is just a rough value because the orchestrator will not save it in the snapshots.
@@ -91,7 +92,7 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   protected[akkastrator] def matchId(task: Task, id: Long): Boolean
   
   /**
-    * User overridable callback. Its called to start the Tasks.
+    * User overridable callback. Its called when recovery completes to start the Tasks.
     * By default logs that the orchestrator started and sends it the `StartReadyTasks` message.
     *
     * You can override this to prevent the Orchestrator from starting right away.
@@ -118,12 +119,12 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
   }
   
   /**
-    * User overridable callback. Its called when a task requests an early termination.
+    * User overridable callback. Its called when a task instigates an early termination.
     * By default logs that the Orchestrator has terminated early then stops it.
     *
-    * @param instigator the task that initiated the early termination.
+    * @param instigator the task that instigated the early termination.
     * @param message the message that caused the early termination.
-    * @param tasks Map with the tasks status at the moment of early termination.
+    * @param tasks Map with the tasks states at the moment of early termination.
     * @note if you invoke become/unbecome inside this method, the contract that states
     *       <cite>"Tasks that are waiting will remain untouched and the orchestrator will
     *       still be prepared to handle their responses"</cite> will no longer be guaranteed.
@@ -170,7 +171,7 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
         onFinish()
       }
     case Status ⇒
-      sender() ! StatusResponse(tasks.map(_.toTaskView))
+      sender() ! StatusResponse(tasks.map(_.toTaskReport))
     case SaveSnapshot ⇒
       saveSnapshot(_state)
   }
@@ -196,6 +197,8 @@ sealed abstract class AbstractOrchestrator(settings: Settings) extends Persisten
     case RecoveryCompleted ⇒
       val tasksString = tasks.map(t ⇒ t.withLoggingPrefix(t.state.toString)).mkString("\n\t")
       log.info(s"Tasks after recovery completed:\n\t$tasksString\n\t#Unconfirmed: $numberOfUnconfirmed")
+      //This gets the Orchestrator started
+      startTasks()
   }
 }
 

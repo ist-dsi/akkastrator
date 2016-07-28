@@ -1,39 +1,40 @@
 package pt.tecnico.dsi.akkastrator
 
-import akka.actor.{Actor, ActorPath, Props}
+import akka.actor.{Actor, ActorPath}
 
-sealed trait TaskState
-case object Unstarted extends TaskState
-case class Waiting(expectedDeliveryId: DeliveryId) extends TaskState
-case class Finished[R](result: R) extends TaskState
-case object TerminatedEarly extends TaskState
+// Task is a stateful class, so we cannot pass it as a response to Status queries. That is why
+// we created TaskReport which is an immutable report of a Task in a given moment of time.
 
-/** An immutable view of an Orchestrator Task. */
-case class TaskView(description: String, dependencies: Set[Int], destination: ActorPath, state: TaskState)
+case class TaskReport(description: String, dependencies: Set[Int], destination: ActorPath, state: TaskState)
 
-  /**
-    * A task corresponds to sending a message to an actor, handling its response and possibly
-    * mutate the internal state of the Orchestrator.
-    * The answer(s) to the sent message must be handled in `behavior`.
-    * `behavior` must invoke `finish` when no further processing is necessary.
-    * The pattern matching inside `behavior` must invoke `matchSenderAndID` to ensure
-    * the received message is in fact the one that its waiting to receive.
-    * The internal state of the orchestrator might be mutated inside `behavior`.
-    *
-    * This class is very tightly coupled with Orchestrator and the reverse is also true.
-    * Because of this you can only create instances of Task inside an orchestrator.
-    */
+/**
+  * A task corresponds to sending a message to an actor, handling its response and possibly
+  * mutate the internal state of the Orchestrator.
+  *
+  * The answer(s) to the sent message must be handled in `behavior`. `behavior` must invoke `finish` when
+  * no further processing is necessary or `terminateEarly` if the received message will prevent subsequent
+  * tasks from executing properly.
+  *
+  * The pattern matching inside `behavior` must invoke `matchId` to ensure the received message
+  * is in fact the one that this task its waiting to receive.
+  *
+  * The internal state of the orchestrator might be mutated inside `behavior`.
+  *
+  * This class is very tightly coupled with Orchestrator and the reverse is also true.
+  * Because of this you can only create instances of Task inside an orchestrator.
+  */
 abstract class Task(val description: String, val dependencies: Set[Task] = Set.empty)(implicit orchestrator: AbstractOrchestrator) {
-  //TODO: change the logging to a proper task logging
-  import orchestrator.log
+  //TODO: change the logging to a proper task logging, maybe with lazylogging
   import IdImplicits._
+  import orchestrator.log
   
-  type Result //The type of this task result
+  //The type of this task result
+  type Result
+  
   //The index of this task in the orchestrator task list.
-  //This also adds this task to the orchestrator
   final val index: Int = orchestrator.addTask(this)
 
-  //These methods aren't final to allow turning of the colors
+  //These methods aren't final to allow turning off the colors or customizing the logging prefix.
   val colors = Vector(
     Console.MAGENTA,
     Console.CYAN,
@@ -63,11 +64,6 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     }
   }
 
-  /**
-    * Starts the execution of this task.
-    * If this task is already Waiting or Finished an exception will be thrown.
-    * We first persist that the message was sent (unless the orchestrator is recovering), then we send it.
-    */
   final protected[akkastrator] def start(): Unit = {
     require(canStart, "Start can only be invoked when this task is Unstarted and all of its dependencies have finished.")
     log.info(withLoggingPrefix(s"Starting."))
@@ -103,7 +99,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     */
   def behavior: Actor.Receive
   
-  private def persistAndConfirmDelivery(receivedMessage: Any, id: Long)(continuation: ⇒ Unit): Unit = {
+  private def persistAndConfirmDelivery(receivedMessage: Serializable, id: Long)(continuation: ⇒ Unit): Unit = {
     recoveryAwarePersist(MessageReceived(index, receivedMessage)) {
       val deliveryId = orchestrator.ID2DeliveryId(destination, id).self
       orchestrator.confirmDelivery(deliveryId)
@@ -117,10 +113,12 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     *  1. Tasks that depend on this one will be started.
     *  2. Messages that would be handled by this task will no longer be handled.
     *
+    *  Finishing an already finished task will throw an exception.
+    *
     * @param receivedMessage the message which prompted the finish.
     * @param id the id obtained from the message.
     */
-  final def finish(receivedMessage: Any, id: Long, result: Result): Unit = {
+  final def finish(receivedMessage: Serializable, id: Long, result: Result): Unit = {
     require(isWaiting, "Finish can only be invoked when this task is Waiting.")
     log.info(withLoggingPrefix(s"Finishing."))
     persistAndConfirmDelivery(receivedMessage, id) {
@@ -144,7 +142,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     *  5. The method `onEarlyTermination` will be invoked in the orchestrator.
     *
     */
-  final def terminateEarly(receivedMessage: Any, id: Long): Unit = {
+  final def terminateEarly(receivedMessage: Serializable, id: Long): Unit = {
     require(isWaiting, "TerminateEarly can only be invoked when this task is Waiting.")
     log.info(withLoggingPrefix(s"Terminating Early."))
     persistAndConfirmDelivery(receivedMessage, id) {
@@ -170,8 +168,8 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   final def isWaiting: Boolean = state.isInstanceOf[Waiting]
   final def hasFinished: Boolean = state.isInstanceOf[Finished[_]]
 
-  /** The immutable view of this task. */
-  final def toTaskView: TaskView = TaskView(description, dependencies.map(_.index), destination, state)
+  /** The immutable TaskReport of this task. */
+  final def toTaskReport: TaskReport = TaskReport(description, dependencies.map(_.index), destination, state)
 
   private var _state: TaskState = Unstarted
   /** @return the current state of this Task. */

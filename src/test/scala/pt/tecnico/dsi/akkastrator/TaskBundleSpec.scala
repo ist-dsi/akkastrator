@@ -4,7 +4,6 @@ import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
 import pt.tecnico.dsi.akkastrator.TaskBundleSpec.SimpleTaskBundleOrchestrator
-import scala.concurrent.duration.DurationInt
 
 object TaskBundleSpec {
   class SimpleTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
@@ -32,6 +31,8 @@ class TaskBundleSpec extends ActorSysSpec {
                 destinations(1).reply(m)
               }
               
+              //Give some time for the inner orchestrator tasks to finish
+              //FIXME: remove the sleep
               Thread.sleep(100)
               
               thirdState.updatedStatuses(
@@ -45,9 +46,9 @@ class TaskBundleSpec extends ActorSysSpec {
           // First we test the orchestrator is in the expected state (aka the status is what we expect)
           testStatus(state.expectedStatus)
           // Then we crash the orchestrator
-          //orchestratorActor ! "boom"
+          orchestratorActor ! "boom"
           // Finally we test that the orchestrator recovered to the expected state
-          //testStatus(state.expectedStatus)
+          testStatus(state.expectedStatus)
         }
       }
     }

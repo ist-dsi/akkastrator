@@ -42,7 +42,6 @@ abstract class TaskBundle[I](collection: ⇒ Seq[I], description: String, depend
           }
         } else {
           //If we already have tasks we only want to start them once we receive the CreateAndStartTasks
-          log.info("\nALREADY HAVE TASKS\n")
           self ! StartReadyTasks
         }
     }
@@ -63,7 +62,8 @@ abstract class TaskBundle[I](collection: ⇒ Seq[I], description: String, depend
   }
   
   //TODO: create counter in AbstractOrchestrator and use it in the name of task bundle
-  final val destination = orchestrator.context.actorOf(Props(new InnerOrchestrator), "task-bundle-0").path
+  val taskBundleId = orchestrator.taskBundleIdCounter.getAndIncrement()
+  final val destination = orchestrator.context.actorOf(Props(new InnerOrchestrator), s"task-bundle-$taskBundleId").path
   final def createMessage(id: Long): Any = CreateAndStartTasks(collection, id)
   
   final def behavior: Receive = {
