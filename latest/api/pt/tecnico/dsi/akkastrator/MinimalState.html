@@ -49,7 +49,8 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>The simplest implementation of a State with DistinctIds. The is the default state used by a DistinctIdsOrchestrator.</p><p>It is not a case class so the user can extend it and implement more complex states.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a>, <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -97,7 +98,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">MinimalState</span><span class="params">(<span name="idsPerDestination">idsPerDestination: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]] = <span class="symbol">Map.empty</span></span>)</span>
+        <span class="name">MinimalState</span><span class="params">(<span name="idsPerDestination">idsPerDestination: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]] = <span class="symbol">Map.empty</span></span>)</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MinimalState@&lt;init&gt;(idsPerDestination:Map[akka.actor.ActorPath,scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]]):pt.tecnico.dsi.akkastrator.MinimalState" title="Permalink" target="_top">
@@ -205,23 +206,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIds#correlationIdOrdering" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="correlationIdOrdering:Ordering[pt.tecnico.dsi.akkastrator.CorrelationId]"></a>
-      <a id="correlationIdOrdering:Ordering[CorrelationId]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">lazy val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">correlationIdOrdering</span><span class="result">: <span class="extype" name="scala.Ordering">Ordering</span>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MinimalState@correlationIdOrdering:Ordering[pt.tecnico.dsi.akkastrator.CorrelationId]" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -301,18 +285,36 @@
       <a id="getIdsFor(ActorPath):SortedMap[CorrelationId,DeliveryId]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getIdsFor</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]</span>
+        <span class="name">getIdsFor</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MinimalState@getIdsFor(destination:akka.actor.ActorPath):scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Get the SorteMap relation between CorrelationId and DeliveryId for the given <code>destination</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Get the SorteMap relation between CorrelationId and DeliveryId for the given <code>destination</code>.
+      <p class="shortcomment cmt">Get the SortedMap relation between CorrelationId and DeliveryId for the given <code>destination</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Get the SortedMap relation between CorrelationId and DeliveryId for the given <code>destination</code>.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIds#getNextCorrelationIdFor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getNextCorrelationIdFor(destination:akka.actor.ActorPath):pt.tecnico.dsi.akkastrator.CorrelationId"></a>
+      <a id="getNextCorrelationIdFor(ActorPath):CorrelationId"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getNextCorrelationIdFor</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>)</span><span class="result">: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MinimalState@getNextCorrelationIdFor(destination:akka.actor.ActorPath):pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Compute the next correlationId for the given <code>destination</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Compute the next correlationId for the given <code>destination</code>.
+The computation is just the biggest correlationId + 1 or 0 if no correlationId exists.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
@@ -340,7 +342,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">idsPerDestination</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]]</span>
+        <span class="name">idsPerDestination</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MinimalState@idsPerDestination:Map[akka.actor.ActorPath,scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]]" title="Permalink" target="_top">
@@ -455,11 +457,11 @@
       <a id="updatedIdsPerDestination(ActorPath,(CorrelationId,DeliveryId)):StatewithDistinctIds"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">updatedIdsPerDestination</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>, <span name="newIdRelation">newIdRelation: (<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>)</span>)</span><span class="result">: <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></span>
+        <span class="name">updatedIdsPerDestination</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>, <span name="newIdRelation">newIdRelation: (<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>)</span>)</span><span class="result">: <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MinimalState@updatedIdsPerDestination(destination:akka.actor.ActorPath,newIdRelation:(pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId)):pt.tecnico.dsi.akkastrator.Statewithpt.tecnico.dsi.akkastrator.DistinctIds" title="Permalink" target="_top">
@@ -545,7 +547,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withIdsPerDestination</span><span class="params">(<span name="newIdsPerDestination">newIdsPerDestination: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]]</span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a></span>
+        <span class="name">withIdsPerDestination</span><span class="params">(<span name="newIdsPerDestination">newIdsPerDestination: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.SortedMap" class="extype" target="_top">SortedMap</a>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]]</span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MinimalState@withIdsPerDestination(newIdsPerDestination:Map[akka.actor.ActorPath,scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]]):pt.tecnico.dsi.akkastrator.MinimalState" title="Permalink" target="_top">

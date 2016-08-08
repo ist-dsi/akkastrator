@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>DistinctIdsOrchestrator - pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator</title>
-          <meta name="description" content="DistinctIdsOrchestrator - pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator" />
-          <meta name="keywords" content="DistinctIdsOrchestrator pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator" />
+          <title>InnerOrchestrator - pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator</title>
+          <meta name="description" content="InnerOrchestrator - pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator" />
+          <meta name="keywords" content="InnerOrchestrator pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../../index.html';
-            var hash = 'pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator';
+            var hash = 'pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -29,11 +29,11 @@
         <body class="type">
       <div id="definition">
         <img alt="Class" src="../../../../lib/class_big.png" />
-        <p id="owner"><a href="../../../package.html" class="extype" name="pt">pt</a>.<a href="../../package.html" class="extype" name="pt.tecnico">tecnico</a>.<a href="../package.html" class="extype" name="pt.tecnico.dsi">dsi</a>.<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">akkastrator</a></p>
-        <h1>DistinctIdsOrchestrator</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">package akkastrator</a>
+        <p id="owner"><a href="../../../package.html" class="extype" name="pt">pt</a>.<a href="../../package.html" class="extype" name="pt.tecnico">tecnico</a>.<a href="../package.html" class="extype" name="pt.tecnico.dsi">dsi</a>.<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">akkastrator</a>.<a href="TaskBundle.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle">TaskBundle</a></p>
+        <h1>InnerOrchestrator</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="TaskBundle.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle">package TaskBundle</a>
           </div></span></h3><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -41,17 +41,19 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
+        <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">DistinctIdsOrchestrator</span><span class="result"> extends <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></span>
+        <span class="name">InnerOrchestrator</span><span class="result"> extends <a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>TODO: what to do when a task of the inner orchestrator aborts?
+abort the inner orchestrator and consequently the TaskBundle?
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>, <a href="IdImplicits.html" class="extype" name="pt.tecnico.dsi.akkastrator.IdImplicits">IdImplicits</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDeliveryLike" class="extype" target="_top">AtLeastOnceDeliveryLike</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.Eventsourced" class="extype" target="_top">Eventsourced</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistenceRecovery" class="extype" target="_top">PersistenceRecovery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistenceIdentity" class="extype" target="_top">PersistenceIdentity</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistenceStash" class="extype" target="_top">PersistenceStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.StashFactory" class="extype" target="_top">StashFactory</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.Stash" class="extype" target="_top">Stash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.dispatch.RequiresMessageQueue" class="extype" target="_top">RequiresMessageQueue</a>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.dispatch.DequeBasedMessageQueueSemantics" class="extype" target="_top">DequeBasedMessageQueueSemantics</a>], <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.UnrestrictedStash" class="extype" target="_top">UnrestrictedStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.StashSupport" class="extype" target="_top">StashSupport</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.Snapshotter" class="extype" target="_top">Snapshotter</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.Actor" class="extype" target="_top">Actor</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a>, <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>, <a href="IdImplicits.html" class="extype" name="pt.tecnico.dsi.akkastrator.IdImplicits">IdImplicits</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDeliveryLike" class="extype" target="_top">AtLeastOnceDeliveryLike</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.Eventsourced" class="extype" target="_top">Eventsourced</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistenceRecovery" class="extype" target="_top">PersistenceRecovery</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistenceIdentity" class="extype" target="_top">PersistenceIdentity</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistenceStash" class="extype" target="_top">PersistenceStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.StashFactory" class="extype" target="_top">StashFactory</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.Stash" class="extype" target="_top">Stash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.dispatch.RequiresMessageQueue" class="extype" target="_top">RequiresMessageQueue</a>[<a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.dispatch.DequeBasedMessageQueueSemantics" class="extype" target="_top">DequeBasedMessageQueueSemantics</a>], <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.UnrestrictedStash" class="extype" target="_top">UnrestrictedStash</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.StashSupport" class="extype" target="_top">StashSupport</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.Snapshotter" class="extype" target="_top">Snapshotter</a>, <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.Actor" class="extype" target="_top">Actor</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -69,7 +71,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator"><span>DistinctIdsOrchestrator</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator"><span>AbstractOrchestrator</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.IdImplicits"><span>IdImplicits</span></li><li class="in" name="akka.actor.ActorLogging"><span>ActorLogging</span></li><li class="in" name="akka.persistence.AtLeastOnceDelivery"><span>AtLeastOnceDelivery</span></li><li class="in" name="akka.persistence.AtLeastOnceDeliveryLike"><span>AtLeastOnceDeliveryLike</span></li><li class="in" name="akka.persistence.PersistentActor"><span>PersistentActor</span></li><li class="in" name="akka.persistence.Eventsourced"><span>Eventsourced</span></li><li class="in" name="akka.persistence.PersistenceRecovery"><span>PersistenceRecovery</span></li><li class="in" name="akka.persistence.PersistenceIdentity"><span>PersistenceIdentity</span></li><li class="in" name="akka.persistence.PersistenceStash"><span>PersistenceStash</span></li><li class="in" name="akka.actor.StashFactory"><span>StashFactory</span></li><li class="in" name="akka.actor.Stash"><span>Stash</span></li><li class="in" name="akka.dispatch.RequiresMessageQueue"><span>RequiresMessageQueue</span></li><li class="in" name="akka.actor.UnrestrictedStash"><span>UnrestrictedStash</span></li><li class="in" name="akka.actor.StashSupport"><span>StashSupport</span></li><li class="in" name="akka.persistence.Snapshotter"><span>Snapshotter</span></li><li class="in" name="akka.actor.Actor"><span>Actor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator"><span>InnerOrchestrator</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.Orchestrator"><span>Orchestrator</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator"><span>AbstractOrchestrator</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.IdImplicits"><span>IdImplicits</span></li><li class="in" name="akka.actor.ActorLogging"><span>ActorLogging</span></li><li class="in" name="akka.persistence.AtLeastOnceDelivery"><span>AtLeastOnceDelivery</span></li><li class="in" name="akka.persistence.AtLeastOnceDeliveryLike"><span>AtLeastOnceDeliveryLike</span></li><li class="in" name="akka.persistence.PersistentActor"><span>PersistentActor</span></li><li class="in" name="akka.persistence.Eventsourced"><span>Eventsourced</span></li><li class="in" name="akka.persistence.PersistenceRecovery"><span>PersistenceRecovery</span></li><li class="in" name="akka.persistence.PersistenceIdentity"><span>PersistenceIdentity</span></li><li class="in" name="akka.persistence.PersistenceStash"><span>PersistenceStash</span></li><li class="in" name="akka.actor.StashFactory"><span>StashFactory</span></li><li class="in" name="akka.actor.Stash"><span>Stash</span></li><li class="in" name="akka.dispatch.RequiresMessageQueue"><span>RequiresMessageQueue</span></li><li class="in" name="akka.actor.UnrestrictedStash"><span>UnrestrictedStash</span></li><li class="in" name="akka.actor.StashSupport"><span>StashSupport</span></li><li class="in" name="akka.persistence.Snapshotter"><span>Snapshotter</span></li><li class="in" name="akka.actor.Actor"><span>Actor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -88,19 +90,19 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(settings:pt.tecnico.dsi.akkastrator.Settings):pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator"></a>
-      <a id="&lt;init&gt;:DistinctIdsOrchestrator"></a>
+              <ol><li name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():TaskBundle.this.InnerOrchestrator"></a>
+      <a id="&lt;init&gt;:InnerOrchestrator"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">DistinctIdsOrchestrator</span><span class="params">(<span name="settings">settings: <a href="Settings.html" class="extype" name="pt.tecnico.dsi.akkastrator.Settings">Settings</a> = <span class="symbol"><span class="name"><a href="Settings.html">new Settings()</a></span></span></span>)</span>
+        <span class="name">InnerOrchestrator</span><span class="params">()</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@&lt;init&gt;(settings:pt.tecnico.dsi.akkastrator.Settings):pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@&lt;init&gt;():TaskBundle.this.InnerOrchestrator" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -110,8 +112,8 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.ID" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ID=pt.tecnico.dsi.akkastrator.CorrelationId"></a>
+              <ol><li name="pt.tecnico.dsi.akkastrator.Orchestrator.ID" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ID=pt.tecnico.dsi.akkastrator.DeliveryId"></a>
       <a id="ID:ID"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -119,14 +121,14 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">ID</span><span class="result"> = <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>
+        <span class="name">ID</span><span class="result"> = <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@ID=pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@ID=pt.tecnico.dsi.akkastrator.DeliveryId" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator">DistinctIdsOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li><li name="akka.actor.Actor.Receive" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Receive=akka.actor.Actor.Receive"></a>
       <a id="Receive:Receive"></a>
@@ -139,13 +141,13 @@
         <span class="name">Receive</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.PartialFunction" class="extype" target="_top">PartialFunction</a>[<span class="extype" name="scala.Any">Any</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@Receive=akka.actor.Actor.Receive" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@Receive=akka.actor.Actor.Receive" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Actor</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.S" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="S=pt.tecnico.dsi.akkastrator.Statewithpt.tecnico.dsi.akkastrator.DistinctIds"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator.S" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="S=pt.tecnico.dsi.akkastrator.State"></a>
       <a id="S:S"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -153,41 +155,21 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">S</span><span class="result"> = <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></span>
+        <span class="name">S</span><span class="result"> = <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@S=pt.tecnico.dsi.akkastrator.Statewithpt.tecnico.dsi.akkastrator.DistinctIds" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@S=pt.tecnico.dsi.akkastrator.State" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator">DistinctIdsOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li></ol>
             </div>
 
-        <div id="values" class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="akka.persistence.PersistenceIdentity#persistenceId" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="persistenceId:String"></a>
-      <a id="persistenceId:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">persistenceId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@persistenceId:String" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>PersistenceIdentity</dd></dl></div>
-    </li></ol>
-            </div>
+        
 
         <div id="values" class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -200,7 +182,7 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -217,7 +199,7 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@##():Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@##():Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -234,12 +216,12 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator#ID2DeliveryId" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#ID2DeliveryId" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ID2DeliveryId(destination:akka.actor.ActorPath,id:Long):pt.tecnico.dsi.akkastrator.DeliveryId"></a>
       <a id="ID2DeliveryId(ActorPath,Long):DeliveryId"></a>
       <h4 class="signature">
@@ -251,11 +233,11 @@
         <span class="name">ID2DeliveryId</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>, <span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@ID2DeliveryId(destination:akka.actor.ActorPath,id:Long):pt.tecnico.dsi.akkastrator.DeliveryId" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@ID2DeliveryId(destination:akka.actor.ActorPath,id:Long):pt.tecnico.dsi.akkastrator.DeliveryId" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence.</p><div class="fullcomment"><div class="comment cmt"><p>Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence.</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator">DistinctIdsOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+      <p class="shortcomment cmt">Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence.</p><div class="fullcomment"><div class="comment cmt"><p>Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence.</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd><dt>Definition Classes</dt><dd><a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#aroundPostRestart" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="aroundPostRestart(reason:Throwable):Unit"></a>
       <a id="aroundPostRestart(Throwable):Unit"></a>
@@ -268,7 +250,7 @@
         <span class="name">aroundPostRestart</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@aroundPostRestart(reason:Throwable):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@aroundPostRestart(reason:Throwable):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -285,7 +267,7 @@
         <span class="name">aroundPostStop</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@aroundPostStop():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@aroundPostStop():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -302,7 +284,7 @@
         <span class="name">aroundPreRestart</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="message">message: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Any">Any</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@aroundPreRestart(reason:Throwable,message:Option[Any]):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@aroundPreRestart(reason:Throwable,message:Option[Any]):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -319,7 +301,7 @@
         <span class="name">aroundPreStart</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@aroundPreStart():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@aroundPreStart():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -333,10 +315,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">aroundReceive</span><span class="params">(<span name="receive">receive: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.Receive">Receive</a></span>, <span name="message">message: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">aroundReceive</span><span class="params">(<span name="receive">receive: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator.Receive">Receive</a></span>, <span name="message">message: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@aroundReceive(receive:AtLeastOnceDeliveryLike.this.Receive,message:Any):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@aroundReceive(receive:AtLeastOnceDeliveryLike.this.Receive,message:Any):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -353,7 +335,7 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -370,7 +352,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@clone():Object" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@clone():Object" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -393,7 +375,7 @@
         <span class="name">confirmDelivery</span><span class="params">(<span name="deliveryId">deliveryId: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@confirmDelivery(deliveryId:Long):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@confirmDelivery(deliveryId:Long):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -410,13 +392,13 @@
         <span class="name">context</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorContext" class="extype" target="_top">ActorContext</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@context:akka.actor.ActorContext" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@context:akka.actor.ActorContext" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Actor</dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#deferAsync" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="deferAsync[A](event:A)(handler:A=&gt;Unit):Unit"></a>
+      <a id="deferAsync[A&lt;:&lt;?&gt;](event:&lt;?&gt;)(handler:&lt;?&gt;):Unit"></a>
       <a id="deferAsync[A](A)((A)⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -427,13 +409,13 @@
         <span class="name">deferAsync</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="event">event: <span class="extype" name="akka.persistence.Eventsourced.deferAsync.A">A</span></span>)</span><span class="params">(<span name="handler">handler: (<span class="extype" name="akka.persistence.Eventsourced.deferAsync.A">A</span>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@deferAsync[A](event:A)(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@deferAsync[A](event:A)(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#deleteMessages" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="deleteMessages(toSequenceNr:Long):Unit"></a>
+      <a id="deleteMessages(toSequenceNr:&lt;?&gt;):Unit"></a>
       <a id="deleteMessages(Long):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -444,13 +426,13 @@
         <span class="name">deleteMessages</span><span class="params">(<span name="toSequenceNr">toSequenceNr: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@deleteMessages(toSequenceNr:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@deleteMessages(toSequenceNr:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Snapshotter#deleteSnapshot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="deleteSnapshot(sequenceNr:Long):Unit"></a>
+      <a id="deleteSnapshot(sequenceNr:&lt;?&gt;):Unit"></a>
       <a id="deleteSnapshot(Long):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -461,13 +443,13 @@
         <span class="name">deleteSnapshot</span><span class="params">(<span name="sequenceNr">sequenceNr: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@deleteSnapshot(sequenceNr:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@deleteSnapshot(sequenceNr:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Snapshotter</dd></dl></div>
     </li><li name="akka.persistence.Snapshotter#deleteSnapshots" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="deleteSnapshots(criteria:akka.persistence.SnapshotSelectionCriteria):Unit"></a>
+      <a id="deleteSnapshots(criteria:&lt;?&gt;):Unit"></a>
       <a id="deleteSnapshots(SnapshotSelectionCriteria):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -478,7 +460,7 @@
         <span class="name">deleteSnapshots</span><span class="params">(<span name="criteria">criteria: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.SnapshotSelectionCriteria" class="extype" target="_top">SnapshotSelectionCriteria</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@deleteSnapshots(criteria:akka.persistence.SnapshotSelectionCriteria):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@deleteSnapshots(criteria:akka.persistence.SnapshotSelectionCriteria):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -495,7 +477,7 @@
         <span class="name">deliver</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorSelection" class="extype" target="_top">ActorSelection</a></span>)</span><span class="params">(<span name="deliveryIdToMessage">deliveryIdToMessage: (<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>) ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@deliver(destination:akka.actor.ActorSelection)(deliveryIdToMessage:Long=&gt;Any):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@deliver(destination:akka.actor.ActorSelection)(deliveryIdToMessage:Long=&gt;Any):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -512,34 +494,32 @@
         <span class="name">deliver</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>)</span><span class="params">(<span name="deliveryIdToMessage">deliveryIdToMessage: (<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>) ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@deliver(destination:akka.actor.ActorPath)(deliveryIdToMessage:Long=&gt;Any):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@deliver(destination:akka.actor.ActorPath)(deliveryIdToMessage:Long=&gt;Any):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AtLeastOnceDeliveryLike</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator#deliveryId2ID" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="deliveryId2ID(destination:akka.actor.ActorPath,deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId):pt.tecnico.dsi.akkastrator.CorrelationId"></a>
-      <a id="deliveryId2ID(ActorPath,DeliveryId):CorrelationId"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#deliveryId2ID" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="deliveryId2ID(destination:akka.actor.ActorPath,deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId):pt.tecnico.dsi.akkastrator.DeliveryId"></a>
+      <a id="deliveryId2ID(ActorPath,DeliveryId):DeliveryId"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">deliveryId2ID</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>, <span name="deliveryId">deliveryId: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>
+        <span class="name">deliveryId2ID</span><span class="params">(<span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>, <span name="deliveryId">deliveryId: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@deliveryId2ID(destination:akka.actor.ActorPath,deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId):pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@deliveryId2ID(destination:akka.actor.ActorPath,deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId):pt.tecnico.dsi.akkastrator.DeliveryId" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.</p><div class="fullcomment"><div class="comment cmt"><p>In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.
-To be able to achieve this, an extra state is needed: the DistinctIds.
-In this orchestrator the delivery id is not sufficient to disambiguate which task should handle the message,
-so the ID = CorrelationId and the matchId also needs to check the sender.
-There is also the added necessity of being able to compute the correlation id for a given (sender, deliveryId)
-as well as translating a correlation id back to a delivery id.
-</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator">DistinctIdsOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+      <p class="shortcomment cmt">In a simple orchestrator the same sequence (of the akka-persistence) is used for all the destinations of the
+orchestrator.</p><div class="fullcomment"><div class="comment cmt"><p>In a simple orchestrator the same sequence (of the akka-persistence) is used for all the destinations of the
+orchestrator. Because of this, ID = DeliveryId, and matchId only checks the deliveryId
+as that will be enough information to disambiguate which task should handle the response.
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd><dt>Definition Classes</dt><dd><a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -552,7 +532,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -569,29 +549,29 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@equals(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator#extraCommands" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="extraCommands:akka.actor.Actor.Receive"></a>
-      <a id="extraCommands:akka.actor.Actor.Receive"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator#extraCommands" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="extraCommands:InnerOrchestrator.this.Receive"></a>
+      <a id="extraCommands:Receive"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">extraCommands</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">akka.actor.Actor.Receive</span></span>
+        <span class="name">extraCommands</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator.Receive">Receive</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@extraCommands:akka.actor.Actor.Receive" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@extraCommands:InnerOrchestrator.this.Receive" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Override this method to add extra commands that are always handled by this orchestrator (except when recovering).</p><div class="fullcomment"><div class="comment cmt"><p>Override this method to add extra commands that are always handled by this orchestrator (except when recovering).
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator">InnerOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -604,7 +584,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@finalize():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -627,7 +607,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@getClass():Class[_]" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -644,7 +624,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">getDeliverySnapshot</span><span class="result">: <span class="extype" name="akka.persistence.AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot">AtLeastOnceDeliverySnapshot</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@getDeliverySnapshot:akka.persistence.AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@getDeliverySnapshot:akka.persistence.AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -661,7 +641,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@hashCode():Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -678,7 +658,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">internalStashOverflowStrategy</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.StashOverflowStrategy" class="extype" target="_top">StashOverflowStrategy</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@internalStashOverflowStrategy:akka.persistence.StashOverflowStrategy" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@internalStashOverflowStrategy:akka.persistence.StashOverflowStrategy" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -695,7 +675,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -712,7 +692,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">journalPluginId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@journalPluginId:String" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@journalPluginId:String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -729,13 +709,13 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">lastSequenceNr</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@lastSequenceNr:Long" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@lastSequenceNr:Long" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Snapshotter#loadSnapshot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="loadSnapshot(persistenceId:String,criteria:akka.persistence.SnapshotSelectionCriteria,toSequenceNr:Long):Unit"></a>
+      <a id="loadSnapshot(persistenceId:&lt;?&gt;,criteria:&lt;?&gt;,toSequenceNr:&lt;?&gt;):Unit"></a>
       <a id="loadSnapshot(String,SnapshotSelectionCriteria,Long):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -746,7 +726,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">loadSnapshot</span><span class="params">(<span name="persistenceId">persistenceId: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="criteria">criteria: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.SnapshotSelectionCriteria" class="extype" target="_top">SnapshotSelectionCriteria</a></span>, <span name="toSequenceNr">toSequenceNr: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@loadSnapshot(persistenceId:String,criteria:akka.persistence.SnapshotSelectionCriteria,toSequenceNr:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@loadSnapshot(persistenceId:String,criteria:akka.persistence.SnapshotSelectionCriteria,toSequenceNr:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -763,7 +743,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">log</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.event.LoggingAdapter" class="extype" target="_top">LoggingAdapter</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@log:akka.event.LoggingAdapter" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@log:akka.event.LoggingAdapter" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -780,7 +760,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">longToCorrelationId</span><span class="params">(<span name="l">l: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@longToCorrelationId(l:Long):pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@longToCorrelationId(l:Long):pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -797,12 +777,12 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">longToDeliveryId</span><span class="params">(<span name="l">l: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@longToDeliveryId(l:Long):pt.tecnico.dsi.akkastrator.DeliveryId" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@longToDeliveryId(l:Long):pt.tecnico.dsi.akkastrator.DeliveryId" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="IdImplicits.html" class="extype" name="pt.tecnico.dsi.akkastrator.IdImplicits">IdImplicits</a></dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator#matchId" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator#matchId" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="matchId(task:pt.tecnico.dsi.akkastrator.Task[_],id:Long):Boolean"></a>
       <a id="matchId(Task[_],Long):Boolean"></a>
       <h4 class="signature">
@@ -814,11 +794,11 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">matchId</span><span class="params">(<span name="task">task: <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[_]</span>, <span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@matchId(task:pt.tecnico.dsi.akkastrator.Task[_],id:Long):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@matchId(task:pt.tecnico.dsi.akkastrator.Task[_],id:Long):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator">DistinctIdsOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd><dt>Definition Classes</dt><dd><a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li><li name="akka.persistence.AtLeastOnceDeliveryLike#maxUnconfirmedMessages" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="maxUnconfirmedMessages:Int"></a>
       <a id="maxUnconfirmedMessages:Int"></a>
@@ -831,7 +811,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">maxUnconfirmedMessages</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@maxUnconfirmedMessages:Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@maxUnconfirmedMessages:Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -848,7 +828,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -865,7 +845,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@notify():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@notify():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -882,7 +862,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -899,7 +879,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">numberOfUnconfirmed</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@numberOfUnconfirmed:Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@numberOfUnconfirmed:Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -916,7 +896,7 @@ as well as translating a correlation id back to a delivery id.
         <span class="name">onAbort</span><span class="params">(<span name="instigator">instigator: <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[_]</span>, <span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="tasks">tasks: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="TaskState.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskState">TaskState</a>, <span class="extype" name="scala.Seq">Seq</span>[<a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[_]]]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@onAbort(instigator:pt.tecnico.dsi.akkastrator.Task[_],message:Any,tasks:Map[pt.tecnico.dsi.akkastrator.TaskState,Seq[pt.tecnico.dsi.akkastrator.Task[_]]]):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@onAbort(instigator:pt.tecnico.dsi.akkastrator.Task[_],message:Any,tasks:Map[pt.tecnico.dsi.akkastrator.TaskState,Seq[pt.tecnico.dsi.akkastrator.Task[_]]]):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -925,7 +905,7 @@ By default logs that the Orchestrator has aborted then stops it.
 </p></div><dl class="paramcmts block"><dt class="param">instigator</dt><dd class="cmt"><p>the task that instigated the abort.</p></dd><dt class="param">message</dt><dd class="cmt"><p>the message that caused the abort.</p></dd><dt class="param">tasks</dt><dd class="cmt"><p>Map with the tasks states at the moment of abort.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd><dt>Note</dt><dd><span class="cmt"><p>if you invoke become/unbecome inside this method, the contract that states
       <cite>"Tasks that are waiting will remain untouched and the orchestrator will
       still be prepared to handle their responses"</cite> will no longer be guaranteed.</p></span></dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator#onFinish" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator#onFinish" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="onFinish():Unit"></a>
       <a id="onFinish():Unit"></a>
       <h4 class="signature">
@@ -937,15 +917,15 @@ By default logs that the Orchestrator has aborted then stops it.
         <span class="name">onFinish</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@onFinish():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@onFinish():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">User overridable callback.</p><div class="fullcomment"><div class="comment cmt"><p>User overridable callback. Its called once every task finishes.
 By default logs that the Orchestrator has finished then stops it.</p><p>You can use this to implement your termination strategy.</p><p>An Orchestrator without tasks never finishes.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator">InnerOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#onPersistFailure" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="onPersistFailure(cause:Throwable,event:Any,seqNr:Long):Unit"></a>
+      <a id="onPersistFailure(cause:&lt;?&gt;,event:&lt;?&gt;,seqNr:&lt;?&gt;):Unit"></a>
       <a id="onPersistFailure(Throwable,Any,Long):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -956,13 +936,13 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">onPersistFailure</span><span class="params">(<span name="cause">cause: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="event">event: <span class="extype" name="scala.Any">Any</span></span>, <span name="seqNr">seqNr: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@onPersistFailure(cause:Throwable,event:Any,seqNr:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@onPersistFailure(cause:Throwable,event:Any,seqNr:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#onPersistRejected" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="onPersistRejected(cause:Throwable,event:Any,seqNr:Long):Unit"></a>
+      <a id="onPersistRejected(cause:&lt;?&gt;,event:&lt;?&gt;,seqNr:&lt;?&gt;):Unit"></a>
       <a id="onPersistRejected(Throwable,Any,Long):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -973,13 +953,13 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">onPersistRejected</span><span class="params">(<span name="cause">cause: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="event">event: <span class="extype" name="scala.Any">Any</span></span>, <span name="seqNr">seqNr: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@onPersistRejected(cause:Throwable,event:Any,seqNr:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@onPersistRejected(cause:Throwable,event:Any,seqNr:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#onRecoveryFailure" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="onRecoveryFailure(cause:Throwable,event:Option[Any]):Unit"></a>
+      <a id="onRecoveryFailure(cause:&lt;?&gt;,event:&lt;?&gt;):Unit"></a>
       <a id="onRecoveryFailure(Throwable,Option[Any]):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -990,7 +970,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">onRecoveryFailure</span><span class="params">(<span name="cause">cause: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="event">event: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Any">Any</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@onRecoveryFailure(cause:Throwable,event:Option[Any]):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@onRecoveryFailure(cause:Throwable,event:Option[Any]):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1007,7 +987,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">orchestrator</span><span class="result">: <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@orchestrator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@orchestrator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1024,7 +1004,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">orchestratorCommand</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">akka.actor.Actor.Receive</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@orchestratorCommand:akka.actor.Actor.Receive" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@orchestratorCommand:akka.actor.Actor.Receive" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1041,13 +1021,13 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">persist</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="event">event: <span class="extype" name="akka.persistence.Eventsourced.persist.A">A</span></span>)</span><span class="params">(<span name="handler">handler: (<span class="extype" name="akka.persistence.Eventsourced.persist.A">A</span>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@persist[A](event:A)(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@persist[A](event:A)(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#persistAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="persistAll[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit"></a>
+      <a id="persistAll[A&lt;:&lt;?&gt;](events:&lt;?&gt;)(handler:&lt;?&gt;):Unit"></a>
       <a id="persistAll[A](Seq[A])((A)⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1058,13 +1038,13 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">persistAll</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="events">events: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.Seq" class="extype" target="_top">Seq</a>[<span class="extype" name="akka.persistence.Eventsourced.persistAll.A">A</span>]</span>)</span><span class="params">(<span name="handler">handler: (<span class="extype" name="akka.persistence.Eventsourced.persistAll.A">A</span>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@persistAll[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@persistAll[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#persistAllAsync" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="persistAllAsync[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit"></a>
+      <a id="persistAllAsync[A&lt;:&lt;?&gt;](events:&lt;?&gt;)(handler:&lt;?&gt;):Unit"></a>
       <a id="persistAllAsync[A](Seq[A])((A)⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1075,13 +1055,13 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">persistAllAsync</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="events">events: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.Seq" class="extype" target="_top">Seq</a>[<span class="extype" name="akka.persistence.Eventsourced.persistAllAsync.A">A</span>]</span>)</span><span class="params">(<span name="handler">handler: (<span class="extype" name="akka.persistence.Eventsourced.persistAllAsync.A">A</span>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@persistAllAsync[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@persistAllAsync[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#persistAsync" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="persistAsync[A](event:A)(handler:A=&gt;Unit):Unit"></a>
+      <a id="persistAsync[A&lt;:&lt;?&gt;](event:&lt;?&gt;)(handler:&lt;?&gt;):Unit"></a>
       <a id="persistAsync[A](A)((A)⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1092,13 +1072,30 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">persistAsync</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="event">event: <span class="extype" name="akka.persistence.Eventsourced.persistAsync.A">A</span></span>)</span><span class="params">(<span name="handler">handler: (<span class="extype" name="akka.persistence.Eventsourced.persistAsync.A">A</span>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@persistAsync[A](event:A)(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@persistAsync[A](event:A)(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator#persistenceId" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="persistenceId:String"></a>
+      <a id="persistenceId:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">persistenceId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@persistenceId:String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator">InnerOrchestrator</a> → PersistenceIdentity</dd></dl></div>
     </li><li name="akka.actor.Actor#postRestart" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="postRestart(reason:Throwable):Unit"></a>
+      <a id="postRestart(reason:&lt;?&gt;):Unit"></a>
       <a id="postRestart(Throwable):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1109,7 +1106,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">postRestart</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@postRestart(reason:Throwable):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@postRestart(reason:Throwable):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1132,7 +1129,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">postStop</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@postStop():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@postStop():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1149,7 +1146,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">preRestart</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="message">message: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Any">Any</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@preRestart(reason:Throwable,message:Option[Any]):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@preRestart(reason:Throwable,message:Option[Any]):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1166,7 +1163,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">preStart</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@preStart():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@preStart():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1186,10 +1183,10 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">receive</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.Receive">Receive</a></span>
+        <span class="name">receive</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator.Receive">Receive</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@receive:PersistentActor.this.Receive" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@receive:PersistentActor.this.Receive" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1206,28 +1203,28 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">receiveCommand</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">akka.actor.Actor.Receive</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@receiveCommand:akka.actor.Actor.Receive" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@receiveCommand:akka.actor.Actor.Receive" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a> → Eventsourced</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator#receiveRecover" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="receiveRecover:akka.actor.Actor.Receive"></a>
-      <a id="receiveRecover:akka.actor.Actor.Receive"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator#receiveRecover" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receiveRecover:InnerOrchestrator.this.Receive"></a>
+      <a id="receiveRecover:Receive"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">receiveRecover</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">akka.actor.Actor.Receive</span></span>
+        <span class="name">receiveRecover</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator.Receive">Receive</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@receiveRecover:akka.actor.Actor.Receive" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@receiveRecover:InnerOrchestrator.this.Receive" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a> → Eventsourced</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator">InnerOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a> → Eventsourced</dd></dl></div>
     </li><li name="akka.persistence.PersistenceRecovery#recovery" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="recovery:akka.persistence.Recovery"></a>
       <a id="recovery:Recovery"></a>
@@ -1240,7 +1237,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">recovery</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.Recovery" class="extype" target="_top">Recovery</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@recovery:akka.persistence.Recovery" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@recovery:akka.persistence.Recovery" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1257,7 +1254,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">recoveryFinished</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@recoveryFinished:Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@recoveryFinished:Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1274,7 +1271,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">recoveryRunning</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@recoveryRunning:Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@recoveryRunning:Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1291,7 +1288,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">redeliverInterval</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.FiniteDuration" class="extype" target="_top">FiniteDuration</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@redeliverInterval:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@redeliverInterval:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1308,7 +1305,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">redeliveryBurstLimit</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@redeliveryBurstLimit:Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@redeliveryBurstLimit:Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1325,7 +1322,7 @@ By default logs that the Orchestrator has finished then stops it.</p><p>You can 
         <span class="name">restart</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@restart():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@restart():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1345,7 +1342,7 @@ that is still waiting invoking this method will throw an exception.
         <span class="name">saveSnapshot</span><span class="params">(<span name="snapshot">snapshot: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@saveSnapshot(snapshot:Any):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@saveSnapshot(snapshot:Any):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1362,7 +1359,7 @@ that is still waiting invoking this method will throw an exception.
         <span class="name">saveSnapshotRoughlyEveryXMessages</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@saveSnapshotRoughlyEveryXMessages:Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@saveSnapshotRoughlyEveryXMessages:Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1383,7 +1380,7 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">self</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorRef" class="extype" target="_top">ActorRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@self:akka.actor.ActorRef" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@self:akka.actor.ActorRef" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1400,13 +1397,13 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">sender</span><span class="params">()</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorRef" class="extype" target="_top">ActorRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@sender():akka.actor.ActorRef" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@sender():akka.actor.ActorRef" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Actor</dd></dl></div>
     </li><li name="akka.persistence.AtLeastOnceDeliveryLike#setDeliverySnapshot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="setDeliverySnapshot(snapshot:akka.persistence.AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot):Unit"></a>
+      <a id="setDeliverySnapshot(snapshot:&lt;?&gt;):Unit"></a>
       <a id="setDeliverySnapshot(AtLeastOnceDeliverySnapshot):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1417,7 +1414,7 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">setDeliverySnapshot</span><span class="params">(<span name="snapshot">snapshot: <span class="extype" name="akka.persistence.AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot">AtLeastOnceDeliverySnapshot</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@setDeliverySnapshot(snapshot:akka.persistence.AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@setDeliverySnapshot(snapshot:akka.persistence.AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1434,7 +1431,7 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">settings</span><span class="result">: <a href="Settings.html" class="extype" name="pt.tecnico.dsi.akkastrator.Settings">Settings</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@settings:pt.tecnico.dsi.akkastrator.Settings" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@settings:pt.tecnico.dsi.akkastrator.Settings" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1451,7 +1448,7 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">snapshotPluginId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@snapshotPluginId:String" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@snapshotPluginId:String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1468,7 +1465,7 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">snapshotSequenceNr</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@snapshotSequenceNr:Long" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@snapshotSequenceNr:Long" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1485,12 +1482,12 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">snapshotterId</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@snapshotterId:String" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@snapshotterId:String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Eventsourced → Snapshotter</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator#startTasks" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator#startTasks" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="startTasks():Unit"></a>
       <a id="startTasks():Unit"></a>
       <h4 class="signature">
@@ -1502,7 +1499,7 @@ how many messages have been processed.</p><p>You can trigger a save snapshot man
         <span class="name">startTasks</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@startTasks():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@startTasks():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1511,7 +1508,7 @@ By default logs that the orchestrator started and sends it the <code>StartReadyT
 However that strategy will only be effective the first time the orchestrator starts, that is,
 if this orchestrator restarts with one task already finished, then that task will send the
 <code>StartReadyTasks</code> so that tasks that depend on it can start.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator">InnerOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li><li name="akka.actor.StashSupport#stash" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="stash():Unit"></a>
       <a id="stash():Unit"></a>
@@ -1524,7 +1521,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">stash</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@stash():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@stash():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1538,10 +1535,10 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">state</span><span class="result">: <a href="#S=pt.tecnico.dsi.akkastrator.Statewithpt.tecnico.dsi.akkastrator.DistinctIds" class="extmbr" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.S">S</a></span>
+        <span class="name">state</span><span class="result">: <a href="#S=pt.tecnico.dsi.akkastrator.State" class="extmbr" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator.S">S</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@state:AbstractOrchestrator.this.S" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@state:AbstractOrchestrator.this.S" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1555,10 +1552,10 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: state_$eq" class="name">state_=</span><span class="params">(<span name="state">state: <a href="#S=pt.tecnico.dsi.akkastrator.Statewithpt.tecnico.dsi.akkastrator.DistinctIds" class="extmbr" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.S">S</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span title="gt4s: state_$eq" class="name">state_=</span><span class="params">(<span name="state">state: <a href="#S=pt.tecnico.dsi.akkastrator.State" class="extmbr" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator.S">S</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@state_=(state:AbstractOrchestrator.this.S):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@state_=(state:AbstractOrchestrator.this.S):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1575,7 +1572,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">supervisorStrategy</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.SupervisorStrategy" class="extype" target="_top">SupervisorStrategy</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@supervisorStrategy:akka.actor.SupervisorStrategy" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@supervisorStrategy:akka.actor.SupervisorStrategy" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1592,7 +1589,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1609,7 +1606,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">taskColors</span><span class="result">: <span class="extype" name="scala.collection.immutable.Vector">Vector</span>[<span class="extype" name="java.lang.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@taskColors:scala.collection.immutable.Vector[String]" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@taskColors:scala.collection.immutable.Vector[String]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1626,7 +1623,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@toString():String" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@toString():String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1643,7 +1640,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">unhandled</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@unhandled(message:Any):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@unhandled(message:Any):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1660,7 +1657,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">unstashAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@unstashAll():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@unstashAll():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1677,7 +1674,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@wait():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@wait():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1700,7 +1697,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1723,7 +1720,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1746,12 +1743,12 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">warnAfterNumberOfUnconfirmedAttempts</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@warnAfterNumberOfUnconfirmedAttempts:Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@warnAfterNumberOfUnconfirmedAttempts:Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AtLeastOnceDeliveryLike</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator#withLoggingPrefix" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator#withLoggingPrefix" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withLoggingPrefix(task:pt.tecnico.dsi.akkastrator.Task[_],message:=&gt;String):String"></a>
       <a id="withLoggingPrefix(Task[_],⇒String):String"></a>
       <h4 class="signature">
@@ -1763,11 +1760,11 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name">withLoggingPrefix</span><span class="params">(<span name="task">task: <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[_]</span>, <span name="message">message: ⇒ <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@withLoggingPrefix(task:pt.tecnico.dsi.akkastrator.Task[_],message:=&gt;String):String" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@withLoggingPrefix(task:pt.tecnico.dsi.akkastrator.Task[_],message:=&gt;String):String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator">InnerOrchestrator</a> → <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -1787,7 +1784,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name deprecated" title="Deprecated: (Since version 2.4) use persistAll instead">persist</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="events">events: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.Seq" class="extype" target="_top">Seq</a>[<span class="extype" name="akka.persistence.Eventsourced.persist.A">A</span>]</span>)</span><span class="params">(<span name="handler">handler: (<span class="extype" name="akka.persistence.Eventsourced.persist.A">A</span>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@persist[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@persist[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1796,7 +1793,7 @@ if this orchestrator restarts with one task already finished, then that task wil
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 2.4)</i> use persistAll instead</p></dd></dl></div>
     </li><li name="akka.persistence.Eventsourced#persistAsync" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="persistAsync[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit"></a>
+      <a id="persistAsync[A&lt;:&lt;?&gt;](events:&lt;?&gt;)(handler:&lt;?&gt;):Unit"></a>
       <a id="persistAsync[A](Seq[A])((A)⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1807,7 +1804,7 @@ if this orchestrator restarts with one task already finished, then that task wil
         <span class="name deprecated" title="Deprecated: (Since version 2.4) use persistAllAsync instead">persistAsync</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="events">events: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.collection.immutable.Seq" class="extype" target="_top">Seq</a>[<span class="extype" name="akka.persistence.Eventsourced.persistAsync.A">A</span>]</span>)</span><span class="params">(<span name="handler">handler: (<span class="extype" name="akka.persistence.Eventsourced.persistAsync.A">A</span>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator@persistAsync[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.TaskBundle$InnerOrchestrator@persistAsync[A](events:scala.collection.immutable.Seq[A])(handler:A=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1820,7 +1817,9 @@ if this orchestrator restarts with one task already finished, then that task wil
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">
+        <div class="parent" name="pt.tecnico.dsi.akkastrator.Orchestrator">
+              <h3>Inherited from <a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a></h3>
+            </div><div class="parent" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">
               <h3>Inherited from <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a></h3>
             </div><div class="parent" name="pt.tecnico.dsi.akkastrator.IdImplicits">
               <h3>Inherited from <a href="IdImplicits.html" class="extype" name="pt.tecnico.dsi.akkastrator.IdImplicits">IdImplicits</a></h3>

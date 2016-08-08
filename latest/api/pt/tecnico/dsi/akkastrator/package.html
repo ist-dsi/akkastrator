@@ -75,7 +75,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="AbstractOrchestrator.html"><span class="name">AbstractOrchestrator</span></a><span class="result"> extends <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.7/akka-persistence_2.11-2.4.7-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.7/akka-actor_2.11-2.4.7-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a> with <a href="IdImplicits.html" class="extype" name="pt.tecnico.dsi.akkastrator.IdImplicits">IdImplicits</a></span>
+        <a href="AbstractOrchestrator.html"><span class="name">AbstractOrchestrator</span></a><span class="result"> extends <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.PersistentActor" class="extype" target="_top">PersistentActor</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-persistence_2.11/2.4.8/akka-persistence_2.11-2.4.8-javadoc.jar/!/index.html#akka.persistence.AtLeastOnceDelivery" class="extype" target="_top">AtLeastOnceDelivery</a> with <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorLogging" class="extype" target="_top">ActorLogging</a> with <a href="IdImplicits.html" class="extype" name="pt.tecnico.dsi.akkastrator.IdImplicits">IdImplicits</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@AbstractOrchestratorextendsPersistentActorwithAtLeastOnceDeliverywithActorLoggingwithIdImplicits" title="Permalink" target="_top">
@@ -99,7 +99,7 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
   }
 }</pre></div></div>
     </li><li name="pt.tecnico.dsi.akkastrator.CorrelationId" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CorrelationIdextendsAnyValwithOrderedProxy[Long]withId"></a>
+      <a id="CorrelationIdextendsAnyValwithOrdered[pt.tecnico.dsi.akkastrator.CorrelationId]withId"></a>
       <a id="CorrelationId:CorrelationId"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -107,16 +107,33 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="CorrelationId.html"><span class="name">CorrelationId</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.runtime.OrderedProxy" class="extype" target="_top">OrderedProxy</a>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>] with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
+        <a href="CorrelationId.html"><span class="name">CorrelationId</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>] with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@CorrelationIdextendsAnyValwithOrderedProxy[Long]withId" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@CorrelationIdextendsAnyValwithOrdered[pt.tecnico.dsi.akkastrator.CorrelationId]withId" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.CreateAndStartTasks" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CreateAndStartTasks[R]extendsProductwithSerializable"></a>
+      <a id="CreateAndStartTasks[R]:CreateAndStartTasks[R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CreateAndStartTasks.html"><span class="name">CreateAndStartTasks</span></a><span class="tparams">[<span name="R">R</span>]</span><span class="params">(<span name="collection">collection: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.CreateAndStartTasks.R">R</span>]</span>, <span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@CreateAndStartTasks[R]extendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li><li name="pt.tecnico.dsi.akkastrator.DeliveryId" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DeliveryIdextendsAnyValwithOrderedProxy[Long]withId"></a>
+      <a id="DeliveryIdextendsAnyValwithOrdered[pt.tecnico.dsi.akkastrator.DeliveryId]withId"></a>
       <a id="DeliveryId:DeliveryId"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -124,10 +141,10 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="DeliveryId.html"><span class="name">DeliveryId</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.runtime.OrderedProxy" class="extype" target="_top">OrderedProxy</a>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>] with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
+        <a href="DeliveryId.html"><span class="name">DeliveryId</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@DeliveryIdextendsAnyValwithOrderedProxy[Long]withId" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@DeliveryIdextendsAnyValwithOrdered[pt.tecnico.dsi.akkastrator.DeliveryId]withId" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -183,8 +200,25 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
       </a>
     </span>
       
+    </li><li name="pt.tecnico.dsi.akkastrator.Finished" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Finished[R]extendsTaskStatewithProductwithSerializable"></a>
+      <a id="Finished[R]:Finished[R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Finished.html"><span class="name">Finished</span></a><span class="tparams">[<span name="R">R</span>]</span><span class="params">(<span name="result">result: <span class="extype" name="pt.tecnico.dsi.akkastrator.Finished.R">R</span></span>)</span><span class="result"> extends <a href="TaskState.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskState">TaskState</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Finished[R]extendsTaskStatewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="pt.tecnico.dsi.akkastrator.Id" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="IdextendsAny"></a>
+      <a id="IdextendsAnywithProxy.Typed[Long]"></a>
       <a id="Id:Id"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -192,10 +226,10 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Id.html"><span class="name">Id</span></a><span class="result"> extends <span class="extype" name="scala.Any">Any</span></span>
+        <a href="Id.html"><span class="name">Id</span></a><span class="result"> extends <span class="extype" name="scala.Proxy.Typed">Typed</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@IdextendsAny" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@IdextendsAnywithProxy.Typed[Long]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -226,7 +260,7 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="MessageReceived.html"><span class="name">MessageReceived</span></a><span class="params">(<span name="taskIndex">taskIndex: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="response">response: <span class="extype" name="scala.Any">Any</span></span>, <span name="correlationId">correlationId: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>, <span name="deliveryId">deliveryId: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result"> extends <a href="Event.html" class="extype" name="pt.tecnico.dsi.akkastrator.Event">Event</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="MessageReceived.html"><span class="name">MessageReceived</span></a><span class="params">(<span name="taskIndex">taskIndex: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="response">response: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>)</span><span class="result"> extends <a href="Event.html" class="extype" name="pt.tecnico.dsi.akkastrator.Event">Event</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@MessageReceivedextendsEventwithProductwithSerializable" title="Permalink" target="_top">
@@ -251,7 +285,7 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
       </a>
     </span>
       
-    </li><li name="pt.tecnico.dsi.akkastrator.MinimalState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.MinimalState" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="MinimalStateextendsStatewithDistinctIds"></a>
       <a id="MinimalState:MinimalState"></a>
       <h4 class="signature">
@@ -267,7 +301,8 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">The simplest implementation of a State with DistinctIds.</p><div class="fullcomment"><div class="comment cmt"><p>The simplest implementation of a State with DistinctIds. The is the default state used by a DistinctIdsOrchestrator.</p><p>It is not a case class so the user can extend it and implement more complex states.
+</p></div></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="OrchestratorextendsAbstractOrchestrator"></a>
       <a id="Orchestrator:Orchestrator"></a>
@@ -331,7 +366,7 @@ context.actorOf(Props(classOf[YourAkkastrator], YourSettings))</pre></div></div>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="StatusResponse.html"><span class="name">StatusResponse</span></a><span class="params">(<span name="tasks">tasks: <span class="extype" name="scala.Seq">Seq</span>[<a href="TaskStatus.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskStatus">TaskStatus</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="StatusResponse.html"><span class="name">StatusResponse</span></a><span class="params">(<span name="tasks">tasks: <span class="extype" name="scala.IndexedSeq">IndexedSeq</span>[<a href="TaskReport.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskReport">TaskReport</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@StatusResponseextendsProductwithSerializable" title="Permalink" target="_top">
@@ -339,19 +374,115 @@ context.actorOf(Props(classOf[YourAkkastrator], YourSettings))</pre></div></div>
       </a>
     </span>
       
-    </li><li name="pt.tecnico.dsi.akkastrator.TaskStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TaskStatusextendsProductwithSerializable"></a>
-      <a id="TaskStatus:TaskStatus"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.Task" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Task[R]extendsAnyRef"></a>
+      <a id="Task[R]:Task[R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Task.html"><span class="name">Task</span></a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Task[R]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A task corresponds to sending a message to an actor, handling its response and possibly
+mutate the internal state of the Orchestrator.</p><div class="fullcomment"><div class="comment cmt"><p>A task corresponds to sending a message to an actor, handling its response and possibly
+mutate the internal state of the Orchestrator.</p><p>The answer(s) to the sent message must be handled in <code>behavior</code>. <code>behavior</code> must invoke <code>finish</code> when
+no further processing is necessary or <code>terminateEarly</code> if the received message will prevent subsequent
+tasks from executing properly.</p><p>The pattern matching inside <code>behavior</code> must invoke <code>matchId</code> to ensure the received message
+is in fact the one that this task its waiting to receive.</p><p>The internal state of the orchestrator might be mutated inside <code>behavior</code>.</p><p>This class is very tightly coupled with Orchestrator and the reverse is also true.
+Because of this you can only create instances of Task inside an orchestrator.
+</p></div></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TaskBundle[I,R]extendsTask[Seq[R]]"></a>
+      <a id="TaskBundle[I,R]:TaskBundle[I,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="TaskBundle.html"><span class="name">TaskBundle</span></a><span class="tparams">[<span name="I">I</span>, <span name="R">R</span>]</span><span class="result"> extends <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.R">R</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TaskBundle[I,R]extendsTask[Seq[R]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">TaskBundle:
+  Variable number of tasks
+  Fixed destination
+  Different messages
+</p>
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskReport" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TaskReportextendsProductwithSerializable"></a>
+      <a id="TaskReport:TaskReport"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="TaskStatus.html"><span class="name">TaskStatus</span></a><span class="params">(<span name="index">index: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="status">status: <a href="Task$$Status.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task.Status">Status</a></span>, <span name="dependencies">dependencies: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="TaskReport.html"><span class="name">TaskReport</span></a><span class="params">(<span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="dependencies">dependencies: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>, <span name="destination">destination: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/com/typesafe/akka/akka-actor_2.11/2.4.8/akka-actor_2.11-2.4.8-javadoc.jar/!/index.html#akka.actor.ActorPath" class="extype" target="_top">ActorPath</a></span>, <span name="state">state: <a href="TaskState.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskState">TaskState</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TaskStatusextendsProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TaskReportextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TaskStateextendsAnyRef"></a>
+      <a id="TaskState:TaskState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="TaskState.html"><span class="name">TaskState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TaskStateextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.TasksFinished" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TasksFinished[R]extendsProductwithSerializable"></a>
+      <a id="TasksFinished[R]:TasksFinished[R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="TasksFinished.html"><span class="name">TasksFinished</span></a><span class="tparams">[<span name="R">R</span>]</span><span class="params">(<span name="results">results: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TasksFinished.R">R</span>]</span>, <span name="id">id: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@TasksFinished[R]extendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Waiting" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WaitingextendsTaskStatewithProductwithSerializable"></a>
+      <a id="Waiting:Waiting"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Waiting.html"><span class="name">Waiting</span></a><span class="params">(<span name="expectedDeliveryId">expectedDeliveryId: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result"> extends <a href="TaskState.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskState">TaskState</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@WaitingextendsTaskStatewithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -363,7 +494,24 @@ context.actorOf(Props(classOf[YourAkkastrator], YourSettings))</pre></div></div>
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="pt.tecnico.dsi.akkastrator.EmptyState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="pt.tecnico.dsi.akkastrator.Aborted" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Aborted"></a>
+      <a id="Aborted:Aborted"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Aborted$.html"><span class="name">Aborted</span></a><span class="result"> extends <a href="TaskState.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskState">TaskState</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Aborted" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.EmptyState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="EmptyState"></a>
       <a id="EmptyState:EmptyState"></a>
       <h4 class="signature">
@@ -448,19 +596,19 @@ context.actorOf(Props(classOf[YourAkkastrator], YourSettings))</pre></div></div>
       </a>
     </span>
       
-    </li><li name="pt.tecnico.dsi.akkastrator.Task" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Task"></a>
-      <a id="Task:Task"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.Unstarted" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Unstarted"></a>
+      <a id="Unstarted:Unstarted"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Task$.html"><span class="name">Task</span></a>
+        <a href="Unstarted$.html"><span class="name">Unstarted</span></a><span class="result"> extends <a href="TaskState.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskState">TaskState</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Task" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.package@Unstarted" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

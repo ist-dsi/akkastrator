@@ -45,7 +45,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">MessageReceived</span><span class="params">(<span name="taskIndex">taskIndex: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="response">response: <span class="extype" name="scala.Any">Any</span></span>, <span name="correlationId">correlationId: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>, <span name="deliveryId">deliveryId: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result"> extends <a href="Event.html" class="extype" name="pt.tecnico.dsi.akkastrator.Event">Event</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">MessageReceived</span><span class="params">(<span name="taskIndex">taskIndex: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="response">response: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>)</span><span class="result"> extends <a href="Event.html" class="extype" name="pt.tecnico.dsi.akkastrator.Event">Event</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -89,7 +89,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="pt.tecnico.dsi.akkastrator.MessageReceived#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(taskIndex:Int,response:Any,correlationId:pt.tecnico.dsi.akkastrator.CorrelationId,deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId):pt.tecnico.dsi.akkastrator.MessageReceived"></a>
+      <a id="&lt;init&gt;(taskIndex:Int,response:Serializable):pt.tecnico.dsi.akkastrator.MessageReceived"></a>
       <a id="&lt;init&gt;:MessageReceived"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,10 +97,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">MessageReceived</span><span class="params">(<span name="taskIndex">taskIndex: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="response">response: <span class="extype" name="scala.Any">Any</span></span>, <span name="correlationId">correlationId: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>, <span name="deliveryId">deliveryId: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span>
+        <span class="name">MessageReceived</span><span class="params">(<span name="taskIndex">taskIndex: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="response">response: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MessageReceived@&lt;init&gt;(taskIndex:Int,response:Any,correlationId:pt.tecnico.dsi.akkastrator.CorrelationId,deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId):pt.tecnico.dsi.akkastrator.MessageReceived" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MessageReceived@&lt;init&gt;(taskIndex:Int,response:Serializable):pt.tecnico.dsi.akkastrator.MessageReceived" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -205,40 +205,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.MessageReceived#correlationId" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="correlationId:pt.tecnico.dsi.akkastrator.CorrelationId"></a>
-      <a id="correlationId:CorrelationId"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">correlationId</span><span class="result">: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MessageReceived@correlationId:pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="pt.tecnico.dsi.akkastrator.MessageReceived#deliveryId" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId"></a>
-      <a id="deliveryId:DeliveryId"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">deliveryId</span><span class="result">: <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MessageReceived@deliveryId:pt.tecnico.dsi.akkastrator.DeliveryId" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -365,18 +331,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.MessageReceived#response" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="response:Any"></a>
-      <a id="response:Any"></a>
+      <a id="response:Serializable"></a>
+      <a id="response:Serializable"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">response</span><span class="result">: <span class="extype" name="scala.Any">Any</span></span>
+        <span class="name">response</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MessageReceived@response:Any" title="Permalink" target="_top">
+      <a href="../../../../index.html#pt.tecnico.dsi.akkastrator.MessageReceived@response:Serializable" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
