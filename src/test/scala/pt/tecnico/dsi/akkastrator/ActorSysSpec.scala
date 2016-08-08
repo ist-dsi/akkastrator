@@ -15,24 +15,22 @@ import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
 import scala.util.control.NoStackTrace
 
-class TestException(msg: String) extends Exception(msg) with NoStackTrace
-
 object ActorSysSpec {
-  case object Finish
-  case object TerminatedEarly
+  case object FinishOrchestrator
+  case object OrchestratorAborted
   
-  abstract class ControllableOrchestrator(terminationProbe: ActorRef, startAndTerminateImmediately: Boolean = false) extends Orchestrator {
-    def task[R](description: String, _destination: ActorPath, _result: R, dependencies: Set[Task] = Set.empty[Task],
-                earlyTermination: Boolean = false)(implicit orchestrator: AbstractOrchestrator) = {
-      new Task(description, dependencies)(orchestrator) {
-        type Result = R
+  abstract class ControllableOrchestrator(terminationProbe: ActorRef, startAndTerminateImmediately: Boolean = false)
+    extends DistinctIdsOrchestrator {
+    def task[R](description: String, _destination: ActorPath, _result: R, dependencies: Set[Task[_]] = Set.empty[Task[_]],
+                abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator): Task[R] = {
+      new Task[R](description, dependencies) {
         val destination: ActorPath = _destination
         def createMessage(id: Long): Any = SimpleMessage(description, id)
         
         def behavior: Receive = /*LoggingReceive.withLabel(f"Task [$index%02d - $description]")*/ {
           case m @ SimpleMessage(_, id) if matchId(id) =>
-            if (earlyTermination) {
-              terminateEarly(m, id)
+            if (abortOnReceive) {
+              abort(m, id)
             } else {
               finish(m, id, _result)
             }
@@ -40,17 +38,15 @@ object ActorSysSpec {
       }
     }
     
-    def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task] = Set.empty[Task],
-                 earlyTermination: Boolean = false)(implicit orchestrator: AbstractOrchestrator) = {
-      task[String](description, _destination, "finished", dependencies, earlyTermination)(orchestrator)
+    def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task[_]] = Set.empty[Task[_]],
+                 abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator): Task[String] = {
+      task(description, _destination, "finished", dependencies, abortOnReceive)
     }
     
-    def taskBundle[I](collection: ⇒ Seq[I], _destination: ActorPath, description: String, dependencies: Set[Task] = Set.empty) = {
-      new TaskBundle(collection, description, dependencies) {
-        type InnerResult = String
-        
-        def toTask(input: I) = {
-          echoTask(s"$description-innerTask", _destination)(_)
+    def taskBundle[I](collection: ⇒ Seq[I], _destination: ActorPath, description: String, dependencies: Set[Task[_]] = Set.empty) = {
+      new TaskBundle[I, String](collection, description, dependencies) {
+        def toTask(input: I)(implicit orchestrator: AbstractOrchestrator): Task[String] = {
+          task(s"$input", _destination, s"$input")
         }
       }
     }
@@ -73,24 +69,23 @@ object ActorSysSpec {
         //Prevent the orchestrator from stopping as soon as all the tasks finish
         //We still want to handle Status messages
         context.become(orchestratorCommand orElse LoggingReceive {
-          case Finish ⇒ super.onFinish()
+          case FinishOrchestrator ⇒ super.onFinish()
         })
       }
     }
     
-    override def onEarlyTermination(instigator: Task, message: Any, tasks: Map[TaskState, Seq[Task]]): Unit = {
-      log.info("Terminated Early")
-      terminationProbe ! TerminatedEarly
+    override def onAbort(instigator: Task[_], message: Any, tasks: Map[TaskState, Seq[Task[_]]]): Unit = {
+      log.info("Aborted")
+      terminationProbe ! OrchestratorAborted
     }
     
     //Add a case to always be able to crash the orchestrator
     override def extraCommands: Receive = {
-      case "boom" ⇒ throw new TestException("BOOM")
+      case "boom" ⇒ throw new IllegalArgumentException("BOOM") with NoStackTrace
     }
   }
 }
-
-abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
+abstract class ActorSysSpec extends TestKit(ActorSystem())
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll
@@ -138,7 +133,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     )
   
     orchestratorActor.tell(Status, statusProbe.ref)
-    val taskDestinations = statusProbe.expectMsgClass(classOf[StatusResponse]).tasks.zipWithIndex.collect {
+    val destinationOfTask = statusProbe.expectMsgClass(classOf[StatusResponse]).tasks.zipWithIndex.collect {
       case (taskView, index) if destinations.indexWhere(_.ref.path == taskView.destination) >= 0 ⇒
         val destIndex = destinations.indexWhere(_.ref.path == taskView.destination)
         (Symbol(('A' + index).toChar.toString), destinations(destIndex))
@@ -157,23 +152,31 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
     }
     val transformations: Seq[State ⇒ State]
     val lastTransformation: State ⇒ State = { s ⇒
-      orchestratorActor ! Finish
+      orchestratorActor ! FinishOrchestrator
       s
     }
 
     private lazy val allTransformations = firstTransformation +: transformations :+ lastTransformation
-
+  
+    def pingPongDestinationOf(task: Symbol): Unit = {
+      val destination = destinationOfTask(task)
+      val m = destination.expectMsgClass(classOf[SimpleMessage])
+      destination.reply(m)
+      logger.info(s"$m: ${destination.sender().path.name} <-> ${destination.ref.path.name}")
+    }
+  
     //Performs the same test in each state
     def sameTestPerState(test: State ⇒ Unit): Unit = {
       var i = 1
       allTransformations.foldLeft(firstState) {
         case (lastState, transformationFunction) ⇒
-          logger.info(s"STATE #$i expecting\n$lastState\n")
+          val expectedStateString = lastState.expectedStatus.mapValues(_.mkString(" OR ")).mkString("\n\t", "\n\t", "\n\t")
+          logger.info(s"""\n\n\n=== STATE $i =============================
+                          |EXPECTING:$expectedStateString""".stripMargin)
           test(lastState)
           i += 1
-          logger.info(s"Computing state #$i")
+          logger.info(s"\n\n=== Computing next state ===========================")
           val newState = transformationFunction(lastState)
-          logger.info(s"Computed state #$i\n\n\n")
           newState
       }
     }
@@ -189,13 +192,6 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
           transformation(lastState)
       }
     }
-
-    def pingPongDestinationOf(task: Symbol): Unit = {
-      val destination = taskDestinations(task)
-      val m = destination.expectMsgClass(classOf[SimpleMessage])
-      logger.info(s"${destination.ref.path.name} received message $m")
-      destination.reply(m)
-    }
     
     def testStatus(expectedStatus: SortedMap[Int, Set[TaskState]], max: FiniteDuration = remainingOrDefault): Unit = {
       orchestratorActor.tell(Status, statusProbe.ref)
@@ -203,6 +199,15 @@ abstract class ActorSysSpec extends TestKit(ActorSystem("Orchestrator"))
       for((index, expected) <- expectedStatus) {
         expected should contain (taskViews(index).state)
       }
+    }
+  
+    def testRecovery(): Unit = sameTestPerState { state ⇒
+      // Test if the orchestrator is in the expected state (aka the status is what we expect)
+      testStatus(state.expectedStatus)
+      // Crash the orchestrator
+      orchestratorActor ! "boom"
+      // Test that the orchestrator recovered to the expected state
+      testStatus(state.expectedStatus)
     }
   }
 }

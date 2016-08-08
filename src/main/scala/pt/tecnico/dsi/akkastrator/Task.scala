@@ -23,28 +23,21 @@ case class TaskReport(description: String, dependencies: Set[Int], destination: 
   * This class is very tightly coupled with Orchestrator and the reverse is also true.
   * Because of this you can only create instances of Task inside an orchestrator.
   */
-abstract class Task(val description: String, val dependencies: Set[Task] = Set.empty)(implicit orchestrator: AbstractOrchestrator) {
+abstract class Task[R](val description: String, val dependencies: Set[Task[_]] = Set.empty)(implicit orchestrator: AbstractOrchestrator) {
+  //TODO: if we use a HList for the dependencies we can have tasks whose message depends on
+  //TODO: the result of another task without having to perform the cast. But since HList make the code significantly
+  //TODO: more complex we decided not to use them. Also they do not solve the problem of using .get on a option,
+  //TODO: which is a much more important problem to solve.
+  
   //TODO: change the logging to a proper task logging, maybe with lazylogging
   import IdImplicits._
   import orchestrator.log
-  
-  //The type of this task result
-  type Result
   
   //The index of this task in the orchestrator task list.
   final val index: Int = orchestrator.addTask(this)
 
   //These methods aren't final to allow turning off the colors or customizing the logging prefix.
-  val colors = Vector(
-    Console.MAGENTA,
-    Console.CYAN,
-    Console.GREEN,
-    Console.BLUE,
-    Console.YELLOW,
-    Console.WHITE
-  )
-  val color: String = colors(index % colors.size)
-  def withLoggingPrefix(message: ⇒ String): String = f"$color[$index%02d - $description] $message${Console.RESET}"
+  val color: String = orchestrator.taskColors(index % orchestrator.taskColors.size)
 
   /** The ActorPath to whom this task will send the message(s). */
   val destination: ActorPath //This must be a val because the destination cannot change.
@@ -58,7 +51,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
       handler
     } else {
       orchestrator.persist(event) { _ ⇒
-        log.debug(withLoggingPrefix(s"Persisted ${event.getClass.getSimpleName}."))
+        log.debug(orchestrator.withLoggingPrefix(this, s"Persisted ${event.getClass.getSimpleName}."))
         handler
       }
     }
@@ -66,7 +59,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
 
   final protected[akkastrator] def start(): Unit = {
     require(canStart, "Start can only be invoked when this task is Unstarted and all of its dependencies have finished.")
-    log.info(withLoggingPrefix(s"Starting."))
+    log.info(orchestrator.withLoggingPrefix(this, s"Starting."))
     recoveryAwarePersist(MessageSent(index)) {
       orchestrator.deliver(destination) { deliveryId ⇒
         //First we make sure the orchestrator is ready to deal with the answers from destination
@@ -76,7 +69,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
         if (!orchestrator.recoveryRunning) {
           //When we are recovering this method (the deliver handler) will be run
           //but the message won't be delivered every time so we hide the println to cause less confusion
-          log.debug(withLoggingPrefix(s"Delivering message"))
+          log.debug(orchestrator.withLoggingPrefix(this, s"Delivering message"))
         }
         
         val id = orchestrator.deliveryId2ID(destination, deliveryId)
@@ -118,9 +111,9 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
     * @param receivedMessage the message which prompted the finish.
     * @param id the id obtained from the message.
     */
-  final def finish(receivedMessage: Serializable, id: Long, result: Result): Unit = {
+  final def finish(receivedMessage: Serializable, id: Long, result: R): Unit = {
     require(isWaiting, "Finish can only be invoked when this task is Waiting.")
-    log.info(withLoggingPrefix(s"Finishing."))
+    log.info(orchestrator.withLoggingPrefix(this, s"Finishing."))
     persistAndConfirmDelivery(receivedMessage, id) {
       state = Finished(result)
       //Remove this task behavior from the orchestrator to ensure re-sends do not cause the orchestrator
@@ -132,34 +125,34 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   }
 
   /**
-    * Causes this task and its <b>orchestrator</b> to terminate early. This will have the following effects:
-    *  1. This task will change its state to `TerminatedEarly`.
+    * Causes this task and its <b>orchestrator</b> to abort. This will have the following effects:
+    *  1. This task will change its state to `Aborted`.
     *  2. Every unstarted task that depends on this one will never be started. This will happen because a task can
     *     only start if its dependencies have finished and this task did not finish.
     *  3. Waiting tasks will be untouched and the orchestrator will still be prepared to handle their responses.
     *  4. The method `onFinish` will <b>never</b> be called. Similarly to the unstarted tasks, onFinish will only
     *     be invoked if all tasks have finished and this task did not finish.
-    *  5. The method `onEarlyTermination` will be invoked in the orchestrator.
+    *  5. The method `onAbort` will be invoked in the orchestrator.
     *
     */
-  final def terminateEarly(receivedMessage: Serializable, id: Long): Unit = {
-    require(isWaiting, "TerminateEarly can only be invoked when this task is Waiting.")
-    log.info(withLoggingPrefix(s"Terminating Early."))
+  final def abort(receivedMessage: Serializable, id: Long): Unit = {
+    require(isWaiting, "Abort can only be invoked when this task is Waiting.")
+    log.info(orchestrator.withLoggingPrefix(this, s"Aborting."))
     persistAndConfirmDelivery(receivedMessage, id) {
       //This will prevent:
       // · Unstarted tasks, that depend on this one, from starting because canStart on those tasks will never return true
       // · onFinished from being called because the condition `tasks.forall(_.hasFinished)` on the orchestrator will never return true
       // It will also cause this task behavior to be removed from the orchestrator since this task will no longer be waiting.
-      state = TerminatedEarly
+      state = Aborted
       //Remove this task behavior from the orchestrator
       orchestrator.updateCurrentBehavior()
-      orchestrator.onEarlyTermination(this, receivedMessage, orchestrator.tasks.groupBy(_.state))
+      orchestrator.onAbort(this, receivedMessage, orchestrator.tasks.groupBy(_.state))
     }
   }
 
   /** @return The result of this task. A task will only have a result if it is finished. */
-  final def result: Option[Result] = state match {
-    case Finished(r) ⇒ Some(r.asInstanceOf[Result])
+  final def result: Option[R] = state match {
+    case Finished(r) ⇒ Some(r.asInstanceOf[R])
     case _ ⇒ None
   }
 
@@ -167,6 +160,7 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   final def canStart: Boolean = state == Unstarted && dependencies.forall(_.hasFinished)
   final def isWaiting: Boolean = state.isInstanceOf[Waiting]
   final def hasFinished: Boolean = state.isInstanceOf[Finished[_]]
+  final def hasAborted: Boolean = state == Aborted
 
   /** The immutable TaskReport of this task. */
   final def toTaskReport: TaskReport = TaskReport(description, dependencies.map(_.index), destination, state)
@@ -174,9 +168,9 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
   private var _state: TaskState = Unstarted
   /** @return the current state of this Task. */
   final def state: TaskState = _state
-  private def state_=(state: TaskState): Unit = {
+  private[akkastrator] def state_=(state: TaskState): Unit = {
     _state = state
-    log.info(withLoggingPrefix(s"State: $state."))
+    log.info(orchestrator.withLoggingPrefix(this, s"State: $state."))
   }
 
   override def toString: String =
@@ -184,10 +178,10 @@ abstract class Task(val description: String, val dependencies: Set[Task] = Set.e
        |Destination: $destination
        |State: $state""".stripMargin
 
-  def canEqual(other: Any): Boolean = other.isInstanceOf[Task]
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Task[R]]
   
   override def equals(other: Any): Boolean = other match {
-    case that: Task ⇒
+    case that: Task[_] ⇒
       (that canEqual this) &&
         index == that.index &&
         destination == that.destination &&

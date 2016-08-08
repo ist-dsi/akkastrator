@@ -5,7 +5,6 @@ import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.RecoverSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
 
-
 object RecoverSpec {
   class SingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
@@ -49,7 +48,6 @@ object RecoverSpec {
     echoTask("E", destinations(4).ref.path, dependencies = Set(c, d))
   }
 }
-
 class RecoverSpec extends ActorSysSpec {
   //Ensure that when the orchestrator crashes
   // · the correct state of the tasks is recovered
@@ -72,9 +70,7 @@ class RecoverSpec extends ActorSysSpec {
   "A crashing orchestrator" should {
     "recover the correct state" when {
       "there is only a single task: A" in {
-        /** Graph:
-          *  A
-          *
+        /**
           * Destinations:
           *  A -> destination(0)
           *
@@ -92,7 +88,7 @@ class RecoverSpec extends ActorSysSpec {
                 * This will cause Task A to start and therefor to send a message to the destination(0).
                 * Before task A receives the response we crash the orchestrator, which will cause it to restart and recover.
                 * In the recover the task A will resend the message again since the delivery hasn't been confirmed yet.
-                * So destination(0) gets a resend. And thats why we have 2 pingPongs here.
+                * So destination(0) gets a resend. And that is why we have 2 pingPongs here.
                 */
               pingPongDestinationOf('A)
         
@@ -107,10 +103,7 @@ class RecoverSpec extends ActorSysSpec {
       """there are two independent tasks:
         |  A
         |  B""".stripMargin in {
-        /** Graph:
-          *  A
-          *  B
-          *
+        /**
           * Destinations:
           *  A -> destination(0)
           *  B -> destination(0)
@@ -131,7 +124,7 @@ class RecoverSpec extends ActorSysSpec {
                 'A -> Finished("finished")
               )
             }, { thirdState ⇒
-              pingPongDestinationOf('A)
+              pingPongDestinationOf('B)
               //Resend of A
               pingPongDestinationOf('A)
               //Resend of B
@@ -146,9 +139,7 @@ class RecoverSpec extends ActorSysSpec {
         testOrchestrator(testCase2)
       }
       "there are two linear tasks: A → B" in {
-        /** Graph:
-          *  A → B
-          *
+        /**
           * Destinations:
           *  A -> destination(0)
           *  B -> destination(0)
@@ -188,11 +179,7 @@ class RecoverSpec extends ActorSysSpec {
         |  A
         |   ⟩→ C
         |  B""".stripMargin in {
-        /** Graph:
-          *  A
-          *   ⟩→ C
-          *  B
-          *
+        /**
           * Destinations:
           *  A -> destination(0)
           *  B -> destination(1)
@@ -241,11 +228,7 @@ class RecoverSpec extends ActorSysSpec {
         |    B
         |   ↗ ↘
         |  A → C""".stripMargin in {
-        /** Graph:
-          *    B
-          *   ↗ ↘
-          *  A → C
-          *
+        /**
           * Destinations:
           *  A -> destination(0)
           *  B -> destination(0)
@@ -297,11 +280,7 @@ class RecoverSpec extends ActorSysSpec {
         |  A → C
         |    ↘  ⟩→ E
         |  B → D""".stripMargin in {
-        /** Graph:
-          *  A → C
-          *    ↘  ⟩→ E
-          *  B → D
-          *
+        /**
           * Destinations:
           *  A -> destination(0)
           *  B -> destination(1)

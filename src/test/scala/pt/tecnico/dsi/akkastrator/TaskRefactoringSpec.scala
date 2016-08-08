@@ -7,8 +7,7 @@ import scala.reflect.ClassTag
 
 class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSender {
   trait SimpleTasks { self: Orchestrator ⇒
-    val someTask: Task = new Task("SomeTask") {
-      type Result = Unit
+    val someTask = new Task[Unit]("SomeTask") {
       val destination: ActorPath = ActorPath.fromString("akka://user/a")
       def createMessage(id: Long): Any = SimpleMessage("SomeTask", id)
   
@@ -18,8 +17,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
       }
     }
   
-    def deleteUser(user: String, dependencies: Task*): Task = new Task(s"Delete user $user", Set(dependencies:_*)) {
-      type Result = Unit
+    def deleteUser(user: String, dependencies: Task[_]*): Task[_] = new Task[Unit](s"Delete user $user", Set(dependencies:_*)) {
       val destination: ActorPath = ActorPath.fromString("akka://user/b")
       def createMessage(id: Long): Any = SimpleMessage(s"DELETE $user", id)
     
@@ -31,8 +29,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
   }
   
   trait DistinctIdsTasks { self: DistinctIdsOrchestrator ⇒
-    val anotherTask: Task = new Task("AnotherTask") {
-      type Result = Unit
+    val anotherTask = new Task[Unit]("AnotherTask") {
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/c")
       def createMessage(id: Long): Any = SimpleMessage("AnotherTask", id)
@@ -43,22 +40,22 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
       }
     }
   
-    def post(what: String, where: String, dependencies: Set[Task] = Set.empty): Task = new Task(s"Post $what in $where", dependencies) {
-      type Result = Unit
-      //Dummy destination
-      val destination: ActorPath = ActorPath.fromString("akka://user/d")
-      def createMessage(id: Long): Any = SimpleMessage(s"post $what in $where", id)
-    
-      def behavior: Receive = {
-        case m @ SimpleMessage(s, id) if matchId(id) ⇒
-          finish(m, id, ())
+    def post(what: String, where: String, dependencies: Set[Task[_]] = Set.empty): Task[Unit] = {
+      new Task[Unit](s"Post $what in $where", dependencies) {
+        //Dummy destination
+        val destination: ActorPath = ActorPath.fromString("akka://user/d")
+        def createMessage(id: Long): Any = SimpleMessage(s"post $what in $where", id)
+  
+        def behavior: Receive = {
+          case m @ SimpleMessage(s, id) if matchId(id) ⇒
+            finish(m, id, ())
+        }
       }
     }
   }
   
   trait AbstractTasks { self: AbstractOrchestrator ⇒
-    val theOneTask: Task = new Task("theOneTask") {
-      type Result = Unit
+    val theOneTask = new Task[Unit]("theOneTask") {
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/e")
       def createMessage(id: Long): Any = SimpleMessage("TheOneTask", id)
@@ -69,7 +66,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
       }
     }
   
-    def ping(ip: String, dependencies: Task*): Task = new Task(s"Ping $ip", Set(dependencies:_*)) {
+    def ping(ip: String, dependencies: Task[_]*): Task[Unit] = new Task[Unit](s"Ping $ip", Set(dependencies:_*)) {
       type Result = Unit
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/f")
@@ -154,5 +151,5 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
   }
   
   //TODO: create tasks that send messages or have behavior that is dependent upon the response obtained in a dependent task
-  //TODO: use TaskBundle
+  //TaskBundle has a dedicated suite
 }
