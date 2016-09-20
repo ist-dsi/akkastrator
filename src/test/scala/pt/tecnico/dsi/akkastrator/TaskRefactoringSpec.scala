@@ -2,11 +2,12 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.{ActorPath, Props}
 import akka.testkit.ImplicitSender
 import org.scalatest.concurrent.ScalaFutures
+import pt.tecnico.dsi.akkastrator.Orchestrator._
 
 import scala.reflect.ClassTag
 
 class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSender {
-  trait SimpleTasks { self: Orchestrator ⇒
+  trait SimpleTasks { self: Orchestrator[_] ⇒
     val someTask = new Task[Unit]("SomeTask") {
       val destination: ActorPath = ActorPath.fromString("akka://user/a")
       def createMessage(id: Long): Any = SimpleMessage("SomeTask", id)
@@ -28,7 +29,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
     }
   }
   
-  trait DistinctIdsTasks { self: DistinctIdsOrchestrator ⇒
+  trait DistinctIdsTasks { self: DistinctIdsOrchestrator[_] ⇒
     val anotherTask = new Task[Unit]("AnotherTask") {
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/c")
@@ -54,7 +55,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
     }
   }
   
-  trait AbstractTasks { self: AbstractOrchestrator ⇒
+  trait AbstractTasks { self: AbstractOrchestrator[_] ⇒
     val theOneTask = new Task[Unit]("theOneTask") {
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/e")
@@ -80,12 +81,8 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
   }
   
   case object GetTasks
-  trait TaskRefactoringControls { self: AbstractOrchestrator ⇒
-    //We dont want to start the orchestrator right away
-    override def startTasks(): Unit = ()
-  }
   
-  def testNumberOfTasks[O <: AbstractOrchestrator: ClassTag](creator: ⇒ O)(numberOfTasks: Int): Unit = {
+  def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: ⇒ O)(numberOfTasks: Int): Unit = {
     val orchestrator = system.actorOf(Props(creator))
     orchestrator ! Status
   
@@ -109,7 +106,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
     
     "add the refactored tasks to the orchestrator" when {
       "SimpleTasks are added to a simple orchestrator" in {
-        class Simple1Orchestrator extends Orchestrator() with SimpleTasks with TaskRefactoringControls {
+        class Simple1Orchestrator extends Orchestrator() with SimpleTasks {
           def persistenceId: String = "Simple1"
           
           deleteUser("a")
@@ -118,7 +115,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
         testNumberOfTasks(new Simple1Orchestrator())(3)
       }
       "DistinctIdsTasks are added to a distinctIds orchestrator" in {
-        class DistinctIds1Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with TaskRefactoringControls {
+        class DistinctIds1Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks {
           def persistenceId: String = "DistinctIds1"
   
           val p = post("something", "somewhere")
@@ -127,7 +124,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
         testNumberOfTasks(new DistinctIds1Orchestrator())(3)
       }
       "AbstractTasks are added to a simple orchestrator" in {
-        class Simple2Orchestrator extends Orchestrator() with SimpleTasks with AbstractTasks with TaskRefactoringControls {
+        class Simple2Orchestrator extends Orchestrator() with SimpleTasks with AbstractTasks {
           def persistenceId: String = "Simple2"
       
           val p = ping("127.0.0.1")
@@ -137,7 +134,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
         testNumberOfTasks(new Simple2Orchestrator())(4)
       }
       "AbstractTasks are added to a distinctIds orchestrator" in {
-        class DistinctIds2Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with AbstractTasks with TaskRefactoringControls {
+        class DistinctIds2Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with AbstractTasks {
           def persistenceId: String = "DistinctIds2"
   
           //Using TaskProxy as a dependency for a Task
@@ -151,5 +148,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
   }
   
   //TODO: create tasks that send messages or have behavior that is dependent upon the response obtained in a dependent task
+  //TODO: this is done via the result. And result can never be used in the destination.
+  
   //TaskBundle has a dedicated suite
 }

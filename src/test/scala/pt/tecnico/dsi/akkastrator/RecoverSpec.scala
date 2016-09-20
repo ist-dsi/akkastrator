@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.RecoverSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
+import pt.tecnico.dsi.akkastrator.Task._
 
 object RecoverSpec {
   class SingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
@@ -160,7 +161,7 @@ class RecoverSpec extends ActorSysSpec {
               secondState.updatedExactStatuses(
                 'A -> Finished("finished")
               ).updatedStatuses(
-                'B -> Set(Unstarted, Waiting(2L))
+                'B -> Set(Unstarted, Waiting)
               )
             }, { thirdState ⇒
               pingPongDestinationOf('B)
@@ -207,7 +208,7 @@ class RecoverSpec extends ActorSysSpec {
               thirdState.updatedExactStatuses(
                 'A -> Finished("finished")
               ).updatedStatuses(
-                'C -> Set(Unstarted, Waiting(3L))
+                'C -> Set(Unstarted, Waiting)
               )
             }, { fourthState ⇒
               pingPongDestinationOf('C)
@@ -251,7 +252,7 @@ class RecoverSpec extends ActorSysSpec {
               secondState.updatedExactStatuses(
                 'A → Finished("finished")
               ).updatedStatuses(
-                'B → Set(Unstarted, Waiting(2L))
+                'B → Set(Unstarted, Waiting)
               )
             }, { thirdState ⇒
               pingPongDestinationOf('B)
@@ -259,7 +260,7 @@ class RecoverSpec extends ActorSysSpec {
               thirdState.updatedExactStatuses(
                 'B → Finished("finished")
               ).updatedStatuses(
-                'C → Set(Unstarted, Waiting(3L))
+                'C → Set(Unstarted, Waiting)
               )
             }, { fourthState ⇒
               pingPongDestinationOf('C)
@@ -305,7 +306,7 @@ class RecoverSpec extends ActorSysSpec {
               secondState.updatedExactStatuses(
                 'A -> Finished("finished")
               ).updatedStatuses(
-                'C -> Set(Unstarted, Waiting(3L))
+                'C -> Set(Unstarted, Waiting)
               )
             }, { thirdState ⇒
               pingPongDestinationOf('C)
@@ -319,7 +320,7 @@ class RecoverSpec extends ActorSysSpec {
               fourthState.updatedExactStatuses(
                 'B -> Finished("finished")
               ).updatedStatuses(
-                'D -> Set(Unstarted, Waiting(4L))
+                'D -> Set(Unstarted, Waiting)
               )
             }, { fifthState ⇒
               pingPongDestinationOf('D)
@@ -327,7 +328,7 @@ class RecoverSpec extends ActorSysSpec {
               fifthState.updatedExactStatuses(
                 'D -> Finished("finished")
               ).updatedStatuses(
-                'E -> Set(Unstarted, Waiting(5L))
+                'E -> Set(Unstarted, Waiting)
               )
             }, { sixthState ⇒
               pingPongDestinationOf('E)

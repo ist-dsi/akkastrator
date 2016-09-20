@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.AbortSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
+import pt.tecnico.dsi.akkastrator.Task._
 
 object AbortSpec {
   class AbortSingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
@@ -68,7 +69,7 @@ class AbortSpec extends ActorSysSpec {
 
               secondState.updatedExactStatuses(
                 'A → Aborted,
-                'B → Waiting(2L)
+                'B → Waiting
               )
             }, { thirdState ⇒
               pingPongDestinationOf('B)

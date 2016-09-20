@@ -10,11 +10,10 @@ javacOptions ++= Seq(
   "-source", javaVersion,
   "-target", javaVersion,
   "-Xlint",
-  "-encoding", "UTF-8",
-  "-Dfile.encoding=utf-8"
+  "-encoding", "UTF-8"
 )
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.0-RC1"
 scalacOptions ++= Seq(
   "-deprecation", //Emit warning and location for usages of deprecated APIs.
   "-encoding", "UTF-8",
@@ -23,25 +22,24 @@ scalacOptions ++= Seq(
   "-unchecked", //Enable detailed unchecked (erasure) warnings
   "-Xfatal-warnings", //Fail the compilation if there are any warnings.
   "-Xlint", //Enable recommended additional warnings.
-  "-Yinline-warnings", //Emit inlining warnings.
   "-Yno-adapted-args", //Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
   "-Ywarn-dead-code" //Warn when dead code is identified.
 )
 
-val akkaVersion = "2.4.8"
+val akkaVersion = "2.4.10"
 libraryDependencies ++= Seq(
   //Akka
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   //Persistence
   "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
-  "org.iq80.leveldb" % "leveldb" % "0.7" % Test,
+  "org.iq80.leveldb" % "leveldb" % "0.9" % Test,
   "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8" % Test,
   //Logging
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0" % Test,
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0" % Test,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
   "ch.qos.logback" % "logback-classic" % "1.1.7" % Test,
   //Testing
-  "org.scalatest" %% "scalatest" % "2.2.6" % Test,
+  "org.scalatest" %% "scalatest" % "3.0.0" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
 
   "commons-io" % "commons-io" % "2.5" % Test

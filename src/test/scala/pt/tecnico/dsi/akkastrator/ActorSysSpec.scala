@@ -9,6 +9,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec._
+import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting}
+import pt.tecnico.dsi.akkastrator.Orchestrator._
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration.FiniteDuration
@@ -22,7 +24,7 @@ object ActorSysSpec {
   abstract class ControllableOrchestrator(terminationProbe: ActorRef, startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
     def task[R](description: String, _destination: ActorPath, _result: R, dependencies: Set[Task[_]] = Set.empty[Task[_]],
-                abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator): Task[R] = {
+                abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator[_]): Task[R] = {
       new Task[R](description, dependencies) {
         val destination: ActorPath = _destination
         def createMessage(id: Long): Any = SimpleMessage(description, id)
@@ -39,27 +41,22 @@ object ActorSysSpec {
     }
     
     def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task[_]] = Set.empty[Task[_]],
-                 abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator): Task[String] = {
+                 abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator[_]): Task[String] = {
       task(description, _destination, "finished", dependencies, abortOnReceive)
     }
-    
-    def taskBundle[I](collection: ⇒ Seq[I], _destination: ActorPath, description: String, dependencies: Set[Task[_]] = Set.empty) = {
-      new TaskBundle[I, String](collection, description, dependencies) {
-        def toTask(input: I)(implicit orchestrator: AbstractOrchestrator): Task[String] = {
-          task(s"$input", _destination, s"$input")
-        }
-      }
+  
+  
+    def taskBundle[I](collection: ⇒ Seq[I], _destination: ActorPath, description: String, dependencies: Set[Task[_]] = Set.empty): TaskBundle[I] = {
+      new TaskBundle(o ⇒ collection.map(i ⇒ task(s"$i", _destination, i)(o)), description, dependencies)
     }
     
     override def persistenceId: String = this.getClass.getSimpleName
     
     //No automatic snapshots
     override def saveSnapshotRoughlyEveryXMessages: Int = 0
-    
-    override def startTasks(): Unit = {
-      if (startAndTerminateImmediately) {
-        super.startTasks()
-      }
+  
+    if (startAndTerminateImmediately) {
+      self ! StartOrchestrator(1L)
     }
     
     override def onFinish(): Unit = {
@@ -73,8 +70,8 @@ object ActorSysSpec {
         })
       }
     }
-    
-    override def onAbort(instigator: Task[_], message: Any, tasks: Map[TaskState, Seq[Task[_]]]): Unit = {
+  
+    override def onAbort[A](instigator: Task[A], message: Any, tasks: Map[Task.State, Seq[Task[_]]]): Unit = {
       log.info("Aborted")
       terminationProbe ! OrchestratorAborted
     }
@@ -106,15 +103,15 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     shutdown(verifySystemShutdown = true)
   }
 
-  case class State(expectedStatus: SortedMap[Int, Set[TaskState]]) {
-    def updatedStatuses(newStatuses: (Symbol, Set[TaskState])*): State = {
+  case class State(expectedStatus: SortedMap[Int, Set[Task.State]]) {
+    def updatedStatuses(newStatuses: (Symbol, Set[Task.State])*): State = {
       val newExpectedStatus = newStatuses.foldLeft(expectedStatus) {
         case (statuses, (taskSymbol, possibleStatus)) ⇒
           statuses.updated(taskSymbol.name.head - 'A', possibleStatus)
       }
       this.copy(newExpectedStatus)
     }
-    def updatedExactStatuses(newStatuses: (Symbol, TaskState)*): State = {
+    def updatedExactStatuses(newStatuses: (Symbol, Task.State)*): State = {
       val n = newStatuses.map { case (s, state) ⇒
         (s, Set(state))
       }
@@ -141,14 +138,16 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     
     terminationProbe.watch(orchestratorActor)
 
-    val firstState: State = State(SortedMap.empty).updatedExactStatuses(startingTasks.toSeq.map((_, Unstarted)):_*)
+    val firstState: State = State(SortedMap.empty).updatedExactStatuses (
+      startingTasks.toSeq.map(startingTask ⇒ (startingTask, Unstarted)):_*
+    )
 
     val firstTransformation: State ⇒ State = { s ⇒
-      orchestratorActor ! StartReadyTasks
+      orchestratorActor ! StartOrchestrator(1L)
       val s = startingTasks.toSeq.map { s ⇒
-        (s, Waiting(new DeliveryId(s.name.head - 'A' + 1)))
+        (s, Set[Task.State](Unstarted, Waiting))
       }
-      firstState.updatedExactStatuses(s:_*)
+      firstState.updatedStatuses(s:_*)
     }
     val transformations: Seq[State ⇒ State]
     val lastTransformation: State ⇒ State = { s ⇒
@@ -170,7 +169,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       var i = 1
       allTransformations.foldLeft(firstState) {
         case (lastState, transformationFunction) ⇒
-          val expectedStateString = lastState.expectedStatus.mapValues(_.mkString(" OR ")).mkString("\n\t", "\n\t", "\n\t")
+          val expectedStateString = lastState.expectedStatus.mapValues(_.mkString(" | ")).mkString("\n\t", "\n\t", "\n\t")
           logger.info(s"""\n\n\n=== STATE $i =============================
                           |EXPECTING:$expectedStateString""".stripMargin)
           test(lastState)
@@ -193,7 +192,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       }
     }
     
-    def testStatus(expectedStatus: SortedMap[Int, Set[TaskState]], max: FiniteDuration = remainingOrDefault): Unit = {
+    def testStatus(expectedStatus: SortedMap[Int, Set[Task.State]], max: FiniteDuration = remainingOrDefault): Unit = {
       orchestratorActor.tell(Status, statusProbe.ref)
       val taskViews = statusProbe.expectMsgClass(max, classOf[StatusResponse]).tasks
       for((index, expected) <- expectedStatus) {

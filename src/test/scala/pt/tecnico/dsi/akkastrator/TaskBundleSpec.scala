@@ -5,6 +5,7 @@ import akka.actor.{ActorPath, ActorRef}
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
 import pt.tecnico.dsi.akkastrator.TaskBundleSpec._
+import pt.tecnico.dsi.akkastrator.Task._
 
 object TaskBundleSpec {
   object SimpleTaskBundleOrchestrator {
@@ -16,6 +17,7 @@ object TaskBundleSpec {
     val b = taskBundle(a.result.get, destinations(1).ref.path, "B", Set(a))
   }
   
+  /*
   object ComplexTaskBundleOrchestrator {
     val aResult = Seq("Apples", "Oranges")
   }
@@ -28,6 +30,7 @@ object TaskBundleSpec {
     val c = taskBundle(a.result.get, destinations(2).ref.path, "C", Set(a))
     val d = taskBundle(b.result.get ++ c.result.get, destinations(3).ref.path, "D", Set(b, c))
   }
+  */
 }
 class TaskBundleSpec extends ActorSysSpec {
   "An orchestrator with task bundles" should {
@@ -54,7 +57,7 @@ class TaskBundleSpec extends ActorSysSpec {
               Thread.sleep(100) //FIXME: remove the sleep
               
               thirdState.updatedStatuses(
-                'B → Set(Waiting(2L), Finished(aResult))
+                'B → Set(Waiting, Finished(aResult))
               )
             }
           )
@@ -63,6 +66,7 @@ class TaskBundleSpec extends ActorSysSpec {
         testCase.testRecovery()
       }
       
+      /*
       """there are two bundles:
         |     N*B
         | A →⟨   ⟩→ 2*N*D
@@ -77,8 +81,8 @@ class TaskBundleSpec extends ActorSysSpec {
               secondState.updatedExactStatuses(
                 'A → Finished(aResult)
               ).updatedStatuses(
-                'B → Set(Unstarted, Waiting(2L)),
-                'C → Set(Unstarted, Waiting(3L))
+                'B → Set(Unstarted, Waiting),
+                'C → Set(Unstarted, Waiting)
               )
             }, { thirdState ⇒
               //Re-send of A
@@ -96,9 +100,9 @@ class TaskBundleSpec extends ActorSysSpec {
               Thread.sleep(100) //FIXME: remove the sleep
           
               thirdState.updatedStatuses(
-                'B → Set(Waiting(2L), Finished(aResult)),
-                'C → Set(Waiting(3L), Finished(aResult)),
-                'D → Set(Unstarted, Waiting(4L))
+                'B → Set(Waiting, Finished(aResult)),
+                'C → Set(Waiting, Finished(aResult)),
+                'D → Set(Unstarted, Waiting)
               )
             }, { fourthState ⇒
               for(_ ← 0 until aResult.length * 2) {
@@ -120,6 +124,7 @@ class TaskBundleSpec extends ActorSysSpec {
         
         testCase.testRecovery()
       }
+      */
     }
   }
 }
