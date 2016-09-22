@@ -3,7 +3,7 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.{Actor, ActorPath}
 import pt.tecnico.dsi.akkastrator.Task._
 
-import scala.concurrent.TimeoutException
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 // Task is a stateful class, so we cannot pass it as a response to Status queries. That why there is the class TaskReport
 
@@ -12,11 +12,12 @@ case class TaskReport(description: String, dependencies: Set[Int], destination: 
 
 object Task {
   sealed trait State
-  
   case object Unstarted extends State
   case object Waiting extends State
-  case object Aborted extends State
+  case class Aborted(cause: AbortCause) extends State
   case class Finished[R](result: R) extends State
+  
+  case object Timeout
 }
 
 /**
@@ -39,15 +40,10 @@ object Task {
   * @param description a text that describes this task in a human readable way. It will be used when the status of this
   *                    task orchestrator is requested.
   * @param dependencies the tasks that must have finished in order for this task to be able to start.
-  * @param orchestrator the orchestrator upon which this task will be ran.
+  * @param orchestrator the orchestrator upon which this task will be added and ran.
   */
-abstract class Task[R](val description: String, val dependencies: Set[Task[_]] = Set.empty)
+abstract class Task[R](val description: String, val dependencies: Set[Task[_]] = Set.empty, timeout: Duration = Duration.Inf)
                       (implicit orchestrator: AbstractOrchestrator[_]) {
-  //TODO: if we use a HList for the dependencies we can have tasks whose message depends on
-  //TODO: the result of another task without having to perform the cast to the tasks return type.
-  //TODO: But since HList will make the code significantly more complex we decided not to use them.
-  //TODO: Also they do not solve the problem of using .get on a option, which is a much more important problem to solve.
-  
   import IdImplicits._
   import orchestrator.log
   
@@ -114,6 +110,20 @@ abstract class Task[R](val description: String, val dependencies: Set[Task[_]] =
           //but the message won't be delivered every time so we hide the println to cause less confusion
           log.debug(withLoggingPrefix("Delivering message"))
         }
+  
+        //Schedule the timeout
+        if (timeout.isFinite()) {
+          orchestrator.context.system.scheduler.scheduleOnce(FiniteDuration(timeout.length, timeout.unit)) {
+            if (isWaiting) {
+              behavior.applyOrElse(Timeout, { _: Timeout.type =>
+                //behavior does not handle timeout. So we abort it.
+                //We know get will work because the task is waiting.
+                val id = orchestrator.deliveryId2ID(destination, expectedDeliveryId.get)
+                abort(receivedMessage = Timeout, cause = TimedOut, id = id.self)
+              })
+            }
+          }(orchestrator.context.system.dispatcher)
+        }
         
         val id = orchestrator.deliveryId2ID(destination, deliveryId)
         createMessage(id.self)
@@ -170,7 +180,7 @@ abstract class Task[R](val description: String, val dependencies: Set[Task[_]] =
   }
 
   /**
-    * Causes this task and its <b>orchestrator</b> to abort. This will have the following effects:
+    * Causes this task to abort. This will have the following effects:
     *  1. This task will change its state to `Aborted`.
     *  2. Every unstarted task that depends on this one will never be started. This will happen because a task can
     *     only start if its dependencies have finished and this task did not finish.
@@ -180,19 +190,19 @@ abstract class Task[R](val description: String, val dependencies: Set[Task[_]] =
     *  5. The method `onAbort` will be invoked in the orchestrator.
     *
     */
-  final def abort(receivedMessage: Serializable, id: Long): Unit = {
+  final def abort(receivedMessage: Serializable, cause: AbortCause, id: Long): Unit = {
     require(isWaiting, "Abort can only be invoked when this task is Waiting.")
-    log.info(withLoggingPrefix(s"Aborting."))
+    log.info(withLoggingPrefix(s"Aborting due to $cause."))
     persistAndConfirmDelivery(receivedMessage, id) {
       expectedDeliveryId = None
       //This will prevent:
       // · Unstarted tasks, that depend on this one, from starting because canStart on those tasks will never return true
       // · onFinished from being called because the condition `tasks.forall(_.hasFinished)` on the orchestrator will never return true
       // It will also cause this task behavior to be removed from the orchestrator since this task will no longer be waiting.
-      state = Task.Aborted
+      state = Task.Aborted(cause)
       //Remove this task behavior from the orchestrator
       orchestrator.updateCurrentBehavior()
-      orchestrator.onAbort(this, receivedMessage, orchestrator.tasks.groupBy(_.state))
+      orchestrator.onAbort(this, receivedMessage, cause, orchestrator.tasks.groupBy(_.state))
     }
   }
 
@@ -210,7 +220,7 @@ abstract class Task[R](val description: String, val dependencies: Set[Task[_]] =
   /** @return whether this command state is Unstarted and all its dependencies have finished. */
   final def canStart: Boolean = state == Unstarted && dependencies.forall(_.hasFinished)
   final def isWaiting: Boolean = state == Waiting
-  final def hasAborted: Boolean = state == Aborted
+  final def hasAborted: Boolean = state.isInstanceOf[Aborted]
   final def hasFinished: Boolean = state.isInstanceOf[Finished[_]]
   
   /** @return the current state of this Task. */

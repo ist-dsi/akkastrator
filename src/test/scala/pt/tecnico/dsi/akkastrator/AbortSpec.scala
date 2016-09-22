@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.AbortSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
+import pt.tecnico.dsi.akkastrator.ActorSysSpec.standardAbortReason
 import pt.tecnico.dsi.akkastrator.Task._
 
 object AbortSpec {
@@ -42,7 +43,7 @@ class AbortSpec extends ActorSysSpec {
               pingPongDestinationOf('A)
 
               secondState.updatedExactStatuses(
-                'A → Aborted
+                'A → Aborted(standardAbortReason)
               )
             }
           )
@@ -68,7 +69,7 @@ class AbortSpec extends ActorSysSpec {
               pingPongDestinationOf('A)
 
               secondState.updatedExactStatuses(
-                'A → Aborted,
+                'A → Aborted(standardAbortReason),
                 'B → Waiting
               )
             }, { thirdState ⇒
@@ -109,7 +110,7 @@ class AbortSpec extends ActorSysSpec {
               pingPongDestinationOf('A)
 
               secondState.updatedExactStatuses(
-                'A → Aborted
+                'A → Aborted(standardAbortReason)
               )
             }
           )

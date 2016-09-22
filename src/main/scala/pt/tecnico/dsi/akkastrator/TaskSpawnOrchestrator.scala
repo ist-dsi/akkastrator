@@ -1,29 +1,34 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.reflect.classTag
 import akka.actor.Actor.Receive
-import akka.actor.{Actor, Props, Terminated}
+import akka.actor.{Actor, ActorLogging, Props, Terminated}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, classTag}
 
 case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
 
-class Spawner extends Actor {
+class Spawner extends Actor with ActorLogging {
   def receive: Receive = {
     case SpawnAndStart(props, innerOrchestratorId, startId) ⇒
       val innerOrchestrator = context.actorOf(props, s"inner-$innerOrchestratorId")
+      
       context watch innerOrchestrator
       
       innerOrchestrator ! StartOrchestrator(startId)
       
       context become {
-        //An orchestrator stops when it finishes (or aborts) so we also stop the spawner when that happens
         case Terminated(`innerOrchestrator`) ⇒
+          //This ensures we also stop the spawner when the innerOrchestrator finishes (or aborts).
           context stop self
         case msg if sender() == innerOrchestrator =>
-          context.parent.forward(msg)
+          //The TaskSpawnOrchestrator has this spawner path as its destination, if we forwarded the response from
+          //the innerOrchestrator to the parent (context.parent.forward(msg)) then the TaskSpawnOrchestrator
+          //would never match the senderPath because it would be expecting a message from this spawner but it would
+          //be getting it from the innerOrchestrator
+          context.parent ! msg
         case msg =>
+          //Here we forward the message because we want to hide the existence of this spawner from the innerOrchestrator.
           innerOrchestrator.forward(msg)
       }
   }
@@ -32,7 +37,7 @@ class Spawner extends Actor {
 /**
   *
   * In order for this task to work correctly one of two things must happen:
-  *  · The created orchestrator must send a TasksFinished and a TasksAborted when it finishes or aborts respectively.
+  *  · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.
   *  · The method behavior must be overridden to handle the messages the inner orchestrator sends when it terminates or
   *    aborts.
   *
@@ -59,7 +64,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](props: Pr
   def behavior: Receive = {
     case m @ TasksFinished(result, id) if matchId(id) =>
       finish(m, id, result.asInstanceOf[R])
-    case m @ TasksAborted(instigatorReport, id) if matchId(id) =>
-      abort(m, id)
+    case m @ TasksAborted(_, cause, id) if matchId(id) =>
+      abort(m, cause, id)
   }
 }

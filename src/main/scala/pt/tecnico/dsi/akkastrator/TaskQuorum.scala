@@ -20,18 +20,25 @@ object All extends MinimumVotes {
 }
 
 object TaskQuorum {
-  class InnerOrchestrator[R](tasksCreator: ⇒ Seq[AbstractOrchestrator[_] ⇒ Task[R]], minimumVotes: MinimumVotes,
+  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] ⇒ Seq[Task[R]], minimumVotes: MinimumVotes,
                              outerOrchestratorPersistenceId: String) extends Orchestrator[Seq[R]] {
     def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
+  
+    //Create the tasks and add them to this orchestrator
+    tasksCreator(this)
     
-    require(tasksCreator.nonEmpty, "TasksCreator must create at least one task.")
-    
-    val distinctDestinationsLength = tasks.map(_.destination).distinct.length
-    require(tasks.length == distinctDestinationsLength, "TasksCreator must generate tasks where every destination is distinct.")
-    require(tasks.forall(_.dependencies.isEmpty), "TasksCreator must generate tasks without dependencies.")
-    require(tasks.map(_.createMessage(1L)).distinct.length == 1, "TasksCreator must generate tasks with the same message.")
-    
-    tasksCreator.map(creator ⇒ creator(this))
+    //Check that every created task:
+    // · Has a distinct destination
+    // · Generates the same message
+    tasks.sliding(2).collectFirst {
+      case Seq(t1, t2) if t1.destination == t2.destination =>
+        (t2, InitializationError("TasksCreator must generate tasks with distinct destinations."))
+      case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) =>
+        (t2, InitializationError("TasksCreator must generate tasks with the same message."))
+    } foreach { case (task, cause) =>
+      context.parent ! TasksAborted(task.toTaskReport, cause, startId)
+      context stop self
+    }
     
     val votesToAchieveQuorum = minimumVotes(tasks.length)
     private var receivedVotes: Int = tasks.count(_.hasFinished)
@@ -42,12 +49,12 @@ object TaskQuorum {
         //We already achieved a quorum. So now we want to abort all the tasks that are still waiting.
         //But not cause the orchestrator to abort.
         tasks.filter(_.isWaiting).foreach { task ⇒
-          log.info(task.withLoggingPrefix(s"Aborting because quorum has already been achieved."))
-          //We know get will succeed because the task is waiting
+          log.info(task.withLoggingPrefix(s"Aborting due to $QuorumAlreadyAchieved"))
+          //We know "get" will succeed because the task is waiting
           //receivedMessage is set to None to make it more obvious that we did not receive a message for this task
           task.persistAndConfirmDelivery(receivedMessage = None, task.expectedDeliveryId.get.self) {
             task.expectedDeliveryId = None
-            task.state = Task.Aborted
+            task.state = Task.Aborted(QuorumAlreadyAchieved)
             updateCurrentBehavior()
           }
         }
@@ -58,14 +65,18 @@ object TaskQuorum {
     
     override def onFinish(): Unit = {
       log.info(s"${self.path.name} Finished!")
-      //We just return the obtained results
-      val results: IndexedSeq[R] = tasks.flatMap(_.result).map(_.asInstanceOf[R])
+      //We just return the result of finished tasks.
+      //We know the cast will succeed because every task is a Task[R].
+      val results = tasks.flatMap(_.result).map(_.asInstanceOf[R])
       context.parent ! TasksFinished(results, startId)
       context stop self
     }
+  }
   
-    //If any task on the quorum causes an abort, the inner orchestrator will be aborted,
-    //which in turn will cause the TaskSpawnOrchestrator to abort
+  def apply[I, R](description: String, dependencies: Set[Task[_]] = Set.empty, minimumVotes: MinimumVotes, collection: ⇒ Seq[I])
+                 (taskCreator: I ⇒ AbstractOrchestrator[_] ⇒ Task[R])
+                 (implicit orchestrator: AbstractOrchestrator[_]): TaskQuorum[R] = {
+    new TaskQuorum[R](description, dependencies, minimumVotes)(o ⇒ collection.map(i ⇒ taskCreator(i)(o)))
   }
 }
 
@@ -79,8 +90,8 @@ object TaskQuorum {
   *   Different destinations
   *   Fixed message
   */
-class TaskQuorum[R](tasksCreator: ⇒ Seq[AbstractOrchestrator[_] ⇒ Task[R]], minimumVotes: MinimumVotes,
-                    description: String, dependencies: Set[Task[_]] = Set.empty)
+class TaskQuorum[R](description: String, dependencies: Set[Task[_]] = Set.empty, minimumVotes: MinimumVotes)
+                   (tasksCreator: AbstractOrchestrator[_] ⇒ Seq[Task[R]])
                    (implicit orchestrator: AbstractOrchestrator[_])
   extends TaskSpawnOrchestrator[Seq[R], InnerOrchestrator[R]](
     Props(classOf[InnerOrchestrator[R]], tasksCreator, minimumVotes, orchestrator.persistenceId),

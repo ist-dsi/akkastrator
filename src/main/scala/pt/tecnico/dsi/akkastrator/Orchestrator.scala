@@ -8,7 +8,7 @@ object Orchestrator {
    
   //TODO: how to ensure the type R matches the type R of the Orchestrator that returns this message
   case class TasksFinished[R](result: R, id: Long)
-  case class TasksAborted(instigatorReport: TaskReport, id: Long)
+  case class TasksAborted(instigatorReport: TaskReport, cause: AbortCause, id: Long)
   
   case object SaveSnapshot
   
@@ -19,7 +19,7 @@ object Orchestrator {
 }
 
 /**
-  * An Orchestrator executes a set of, possibly dependent, `Task`s.
+  * An Orchestrator executes a set of, possibly dependent, `Tasks`.
   * A task corresponds to sending a message to an actor, handling its response and possibly
   * mutate the internal state of the Orchestrator.
   *
@@ -43,7 +43,7 @@ object Orchestrator {
   * If you have the need to refactor the creation of tasks so that you can use them in multiple orchestrators you can
   * leverage self type annotations like so:
   * {{{
-  *   trait DatabaseTasks { self: Orchestrator =>
+  *   trait DatabaseTasks { self: AbstractOrchestrator[_] =>
   *     def createQueryTask(): Task = new Task("") {
   *       val destination: ActorPath = ???
   *       def createMessage(correlationId: CorrelationId): Any = ???
@@ -57,14 +57,14 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   with ActorLogging with IdImplicits {
   import Orchestrator._
   
-  //The type of the state this orchestrator maintains
+  /** The type of the state this orchestrator maintains. */
   type S <: State
-  //The type of Id this orchestrator handles
+  /** The type of Id this orchestrator handles. */
   type ID <: Id
   
-  case object StartReadyTasks
+  private[akkastrator] case object StartReadyTasks
   
-  //This exists to make the creation of tasks easier
+  /** This exists to make the creation of tasks easier. */
   final implicit val orchestrator = this
   
   private[this] final var _tasks: IndexedSeq[Task[_]] = Vector.empty
@@ -76,7 +76,9 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   }
   
   private[this] final var _state: S = _
+  /** Gets the state this orchestrator currently has. */
   final def state: S = _state
+  /** Sets the new state for this orchestrator. */
   final def state_=(state: S): Unit = _state = state
   
   //The id obtained in the StartOrchestrator message which prompted the execution of this orchestrator tasks
@@ -96,7 +98,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * By default this method returns the value defined in the configuration.
     *
     * This is just a rough value because the orchestrator will not save it in the snapshots.
-    * In fact it will not save it at all. Instead the value of lastSequenceNr will be used to estimate
+    * In fact it will not save it at all. Instead the value of `lastSequenceNr` will be used to estimate
     * how many messages have been processed.
     *
     * You can trigger a save snapshot manually by sending a `SaveSnapshot` message to this orchestrator.
@@ -127,7 +129,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *
     * You can use this to implement your termination strategy.
     *
-    * An Orchestrator without tasks never finishes.
+    * If a orchestrator starts without tasks it will finish right away.
     */
   def onFinish(): Unit = {
     log.info(s"${self.path.name} Finished!")
@@ -138,6 +140,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * User overridable callback. Its called when a task instigates an abort.
     * By default logs that the Orchestrator has aborted then stops it.
     *
+    * You can use this to implement your termination strategy.
+    *
     * @param instigator the task that instigated the abort.
     * @param message the message that caused the abort.
     * @param tasks Map with the tasks states at the moment of abort.
@@ -145,13 +149,14 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *       <cite>"Tasks that are waiting will remain untouched and the orchestrator will
     *       still be prepared to handle their responses"</cite> will no longer be guaranteed.
     */
-  def onAbort[A](instigator: Task[A], message: Any, tasks: Map[Task.State, Seq[Task[_]]]): Unit = {
-    log.info(s"${self.path.name} Aborted!")
+  def onAbort(instigator: Task[_], message: Any, cause: AbortCause, tasks: Map[Task.State, Seq[Task[_]]]): Unit = {
+    log.info(s"${self.path.name} Aborted due to $cause!")
+    context.parent ! TasksAborted(instigator.toTaskReport, cause, startId)
     context stop self
   }
   
   /**
-    * Will cause the orchestrator to restart. That is, every task will become Unstarted and the tasks will start again.
+    * Every task will become Unstarted and the tasks will start again.
     *
     * Restart can only be invoked if all tasks have finished or a task caused an abort. If there is a task
     * that is still waiting invoking this method will throw an exception.
@@ -205,7 +210,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
         */
       
       tasks.filter(_.canStart).foreach(_.start())
-      if (tasks.nonEmpty && tasks.forall(_.hasFinished)) {
+      if (tasks.forall(_.hasFinished)) {
         onFinish()
       }
     case Status ⇒

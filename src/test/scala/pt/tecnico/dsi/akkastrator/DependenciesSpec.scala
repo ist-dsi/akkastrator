@@ -79,17 +79,17 @@ class DependenciesSpec  extends ActorSysSpec {
       }
     }
 
-    "Handle dependencies: A -> B" in {
+    "Handle dependencies: A → B" in {
       testNChainedEchoTasks(numberOfTasks = 2)
     }
-    "Handle dependencies: A -> B -> C" in {
+    "Handle dependencies: A → B → C" in {
       testNChainedEchoTasks(numberOfTasks = 3)
     }
-    "Handle dependencies: A -> ... -> J" in {
+    "Handle dependencies: A → ... → J" in {
       //We want 10 commands to ensure the command colors will repeat
       testNChainedEchoTasks(numberOfTasks = 10)
     }
-    "Handle dependencies: (A, B) -> C" in {
+    "Handle dependencies: (A, B) → C" in {
       val destinations = Array.fill(3)(TestProbe())
 
       val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {

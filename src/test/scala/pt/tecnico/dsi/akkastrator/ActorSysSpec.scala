@@ -21,9 +21,11 @@ object ActorSysSpec {
   case object FinishOrchestrator
   case object OrchestratorAborted
   
+  val standardAbortReason = OhSnap("I was pre-programmed to abort")
+  
   abstract class ControllableOrchestrator(terminationProbe: ActorRef, startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
-    def task[R](description: String, _destination: ActorPath, _result: R, dependencies: Set[Task[_]] = Set.empty[Task[_]],
+    def task[R](description: String, _destination: ActorPath, _result: R, dependencies: Set[Task[_]] = Set.empty,
                 abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator[_]): Task[R] = {
       new Task[R](description, dependencies) {
         val destination: ActorPath = _destination
@@ -32,7 +34,7 @@ object ActorSysSpec {
         def behavior: Receive = /*LoggingReceive.withLabel(f"Task [$index%02d - $description]")*/ {
           case m @ SimpleMessage(_, id) if matchId(id) =>
             if (abortOnReceive) {
-              abort(m, id)
+              abort(m, standardAbortReason, id)
             } else {
               finish(m, id, _result)
             }
@@ -40,16 +42,11 @@ object ActorSysSpec {
       }
     }
     
-    def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task[_]] = Set.empty[Task[_]],
+    def echoTask(description: String, _destination: ActorPath, dependencies: Set[Task[_]] = Set.empty,
                  abortOnReceive: Boolean = false)(implicit orchestrator: AbstractOrchestrator[_]): Task[String] = {
       task(description, _destination, "finished", dependencies, abortOnReceive)
     }
   
-  
-    def taskBundle[I](collection: ⇒ Seq[I], _destination: ActorPath, description: String, dependencies: Set[Task[_]] = Set.empty): TaskBundle[I] = {
-      new TaskBundle(o ⇒ collection.map(i ⇒ task(s"$i", _destination, i)(o)), description, dependencies)
-    }
-    
     override def persistenceId: String = this.getClass.getSimpleName
     
     //No automatic snapshots
@@ -71,8 +68,7 @@ object ActorSysSpec {
       }
     }
   
-    override def onAbort[A](instigator: Task[A], message: Any, tasks: Map[Task.State, Seq[Task[_]]]): Unit = {
-      log.info("Aborted")
+    override def onAbort[A](instigator: Task[A], message: Any, cause: AbortCause,   tasks: Map[Task.State, Seq[Task[_]]]): Unit = {
       terminationProbe ! OrchestratorAborted
     }
     
@@ -118,7 +114,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       updatedStatuses(n:_*)
     }
   }
-  abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int, startingTasks: Set[Symbol]) extends IdImplicits {
+  abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int, startingTasks: Set[Symbol]) {
     val terminationProbe = TestProbe("termination-probe")
     val statusProbe = TestProbe("status-probe")
     val destinations = Array.tabulate(numberOfDestinations)(i ⇒ TestProbe(s"Dest-$i"))
@@ -143,6 +139,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     )
 
     val firstTransformation: State ⇒ State = { s ⇒
+      logger.info(s"Starting the Orchestrator")
       orchestratorActor ! StartOrchestrator(1L)
       val s = startingTasks.toSeq.map { s ⇒
         (s, Set[Task.State](Unstarted, Waiting))
@@ -157,30 +154,29 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
 
     private lazy val allTransformations = firstTransformation +: transformations :+ lastTransformation
   
-    def pingPongDestinationOf(task: Symbol): Unit = {
-      val destination = destinationOfTask(task)
+    def pingPong(destination: TestProbe): Unit = {
       val m = destination.expectMsgClass(classOf[SimpleMessage])
       destination.reply(m)
       logger.info(s"$m: ${destination.sender().path.name} <-> ${destination.ref.path.name}")
     }
+    def pingPongDestinationOf(task: Symbol): Unit = pingPong(destinationOfTask(task))
   
-    //Performs the same test in each state
     def sameTestPerState(test: State ⇒ Unit): Unit = {
       var i = 1
       allTransformations.foldLeft(firstState) {
         case (lastState, transformationFunction) ⇒
           val expectedStateString = lastState.expectedStatus.mapValues(_.mkString(" | ")).mkString("\n\t", "\n\t", "\n\t")
-          logger.info(s"""\n\n\n=== STATE $i =============================
+          logger.info(s"""=== STATE $i =============================
                           |EXPECTING:$expectedStateString""".stripMargin)
           test(lastState)
           i += 1
-          logger.info(s"\n\n=== Computing next state ===========================")
+          logger.info("=== Computing next state ===========================")
           val newState = transformationFunction(lastState)
+          logger.info("\n\n\n\n")
           newState
       }
     }
 
-    //Performs a different test in each state
     def differentTestPerState(tests: (State ⇒ Unit)*): Unit = {
       val testsAndTransformations: Seq[(State ⇒ Unit, State ⇒ State)] = tests.zip(allTransformations)
       testsAndTransformations.foldLeft(firstState) {
