@@ -3,8 +3,7 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.AbortSpec._
-import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
-import pt.tecnico.dsi.akkastrator.ActorSysSpec.standardAbortReason
+import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, testsAbortReason}
 import pt.tecnico.dsi.akkastrator.Task._
 
 object AbortSpec {
@@ -34,16 +33,16 @@ class AbortSpec extends ActorSysSpec {
   //  · The method `onFinish` will NEVER be called even if the only tasks needed to finish
   //    the orchestrator are already waiting and the responses are received.
 
-  "An orchestrator that terminates early" should {
+  "An orchestrator with tasks that abort" should {
     "behave according to the documentation" when {
       "there is only a single task: A" in {
-        val testCase = new TestCase[AbortSingleTaskOrchestrator](1, Set('A)) {
+        val testCase = new TestCase[AbortSingleTaskOrchestrator](1, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
 
               secondState.updatedExactStatuses(
-                'A → Aborted(standardAbortReason)
+                "A" → Aborted(testsAbortReason)
               )
             }
           )
@@ -54,7 +53,7 @@ class AbortSpec extends ActorSysSpec {
           { firstState ⇒ () }, // We don't want to test anything for this state
           { secondState ⇒ () }, // We don't want to test anything for this state
           { thirdState ⇒
-            testStatus(thirdState.expectedStatus)
+            testStatus(thirdState)
             //Confirm we received the OrchestratorAborted
             terminationProbe.expectMsg(ActorSysSpec.OrchestratorAborted)
             //Confirm that onFinish was not invoked
@@ -63,20 +62,20 @@ class AbortSpec extends ActorSysSpec {
         )
       }
       "there are two independent tasks: A B" in {
-        val testCase = new TestCase[AbortTwoIndependentTasksOrchestrator](2, Set('A, 'B)) {
+        val testCase = new TestCase[AbortTwoIndependentTasksOrchestrator](2, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
 
               secondState.updatedExactStatuses(
-                'A → Aborted(standardAbortReason),
-                'B → Waiting
+                "A" → Aborted(testsAbortReason),
+                "B" → Waiting
               )
             }, { thirdState ⇒
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
 
               thirdState.updatedExactStatuses(
-                'B → Finished("finished")
+                "B" → Finished("finished")
               )
             }
           )
@@ -87,7 +86,7 @@ class AbortSpec extends ActorSysSpec {
           { firstState ⇒ () }, // We don't want to test anything for this state
           { secondState ⇒ () }, // We don't want to test anything for this state
           { thirdState ⇒
-            testStatus(thirdState.expectedStatus)
+            testStatus(thirdState)
             // Confirm we received the OrchestratorAborted
             terminationProbe.expectMsg(ActorSysSpec.OrchestratorAborted)
             // Confirm that onFinish was not invoked
@@ -95,7 +94,7 @@ class AbortSpec extends ActorSysSpec {
           }, { fourthState ⇒
             // This confirms that when aborting, tasks that are waiting will remain untouched
             // and the orchestrator will still be prepared to handle their responses
-            testStatus(fourthState.expectedStatus)
+            testStatus(fourthState)
 
             // This confirms the method `onFinish` will NEVER be called even if the only tasks needed to finish
             // the orchestrator (aka Task B) are already waiting and its response is received.
@@ -104,13 +103,13 @@ class AbortSpec extends ActorSysSpec {
         )
       }
       "there are two dependent tasks: A → B" in {
-        val testCase = new TestCase[AbortTwoLinearTasksOrchestrator](2, Set('A)) {
+        val testCase = new TestCase[AbortTwoLinearTasksOrchestrator](2, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
 
               secondState.updatedExactStatuses(
-                'A → Aborted(standardAbortReason)
+                "A" → Aborted(testsAbortReason)
               )
             }
           )
@@ -121,14 +120,14 @@ class AbortSpec extends ActorSysSpec {
           { firstState ⇒ () }, // We don't want to test anything for this state
           { secondState ⇒ () }, // We don't want to test anything for this state
           { thirdState ⇒
-            testStatus(thirdState.expectedStatus)
+            testStatus(thirdState)
             // Confirm we received the OrchestratorAborted
             terminationProbe.expectMsg(ActorSysSpec.OrchestratorAborted)
             // Confirm that onFinish was not invoked
             terminationProbe.expectNoMsg()
 
             // Confirm that every unstarted task (task B) will be prevented from starting even if its dependencies have finished.
-            destinationOfTask('B).expectNoMsg()
+            testProbeOfTask("B").expectNoMsg()
           }
         )
       }

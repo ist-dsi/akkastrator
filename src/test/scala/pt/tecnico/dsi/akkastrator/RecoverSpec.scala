@@ -54,20 +54,7 @@ class RecoverSpec extends ActorSysSpec {
   // · the correct state of the tasks is recovered
   // · the correct idsPerSender is recovered (actually computed), this is not directly tested
   //   if idsPerSender is not correctly recovered then the tasks will not recover to the correct state
-
-  def testOrchestrator(testCase: TestCase[_]): Unit = {
-    import testCase._
   
-    sameTestPerState { state ⇒
-      // First we test the orchestrator is in the expected state (aka the status is what we expect)
-      testStatus(state.expectedStatus)
-      // Then we crash the orchestrator
-      orchestratorActor ! "boom"
-      // Finally we test that the orchestrator recovered to the expected state
-      testStatus(state.expectedStatus)
-    }
-  }
-
   "A crashing orchestrator" should {
     "recover the correct state" when {
       "there is only a single task: A" in {
@@ -80,26 +67,27 @@ class RecoverSpec extends ActorSysSpec {
           *  · After task A starts
           *  · After Task A finishes
           */
-        val testCase1 = new TestCase[SingleTaskOrchestrator](1, Set('A)) {
+        val testCase1 = new TestCase[SingleTaskOrchestrator](1, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
               /**
-                * In the transition from the 1st state to the 2nd state we send a StartReadyTasks to the orchestrator.
+                * In the transition from the 1st state to the 2nd state we send a StartOrchestrator to the orchestrator.
                 * This will cause Task A to start and therefor to send a message to the destination(0).
                 * Before task A receives the response we crash the orchestrator, which will cause it to restart and recover.
                 * In the recover the task A will resend the message again since the delivery hasn't been confirmed yet.
                 * So destination(0) gets a resend. And that is why we have 2 pingPongs here.
                 */
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
         
               secondState.updatedExactStatuses(
-                'A -> Finished("finished")
+                "A" -> Finished("finished")
               )
             }
           )
         }
-        testOrchestrator(testCase1)
+        
+        testCase1.testExpectedStatusWithRecovery()
       }
       """there are two independent tasks:
         |  A
@@ -115,29 +103,29 @@ class RecoverSpec extends ActorSysSpec {
           *  · After task A finishes
           *  · After task B finishes
           */
-        val testCase2 = new TestCase[TwoIndependentTasksOrchestrator](1, Set('A, 'B)) {
+        val testCase2 = new TestCase[TwoIndependentTasksOrchestrator](1, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
               //The message of B will arrive before of the resend of A, so we can't deal with it right away.
         
               secondState.updatedExactStatuses(
-                'A -> Finished("finished")
+                "A" -> Finished("finished")
               )
             }, { thirdState ⇒
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
               //Resend of A
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
               //Resend of B
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
         
               thirdState.updatedExactStatuses(
-                'B -> Finished("finished")
+                "B" -> Finished("finished")
               )
             }
           )
         }
-        testOrchestrator(testCase2)
+        testCase2.testExpectedStatusWithRecovery()
       }
       "there are two linear tasks: A → B" in {
         /**
@@ -151,30 +139,30 @@ class RecoverSpec extends ActorSysSpec {
           *  · After Task A finishes and Task B is about to start or has already started
           *  · After Task B finishes
           */
-        val testCase3 = new TestCase[TwoLinearTasksOrchestrator](1, Set('A)) {
+        val testCase3 = new TestCase[TwoLinearTasksOrchestrator](1, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
               //Resend of A
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
         
               secondState.updatedExactStatuses(
-                'A -> Finished("finished")
+                "A" -> Finished("finished")
               ).updatedStatuses(
-                'B -> Set(Unstarted, Waiting)
+                "B" -> Set(Unstarted, Waiting)
               )
             }, { thirdState ⇒
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
               //Resend of B
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
         
               thirdState.updatedExactStatuses(
-                'B -> Finished("finished")
+                "B" -> Finished("finished")
               )
             }
           )
         }
-        testOrchestrator(testCase3)
+        testCase3.testExpectedStatusWithRecovery()
       }
       """there are three dependent tasks in T:
         |  A
@@ -192,38 +180,38 @@ class RecoverSpec extends ActorSysSpec {
           *  · After Task B finishes
           *  · After Task B finishes
           */
-        val testCase4 = new TestCase[TasksInTOrchestrator](3, Set('A, 'B)) {
+        val testCase4 = new TestCase[TasksInTOrchestrator](3, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
         
               secondState.updatedExactStatuses(
-                'B -> Finished("finished")
+                "B" -> Finished("finished")
               )
             }, { thirdState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
               //Resend of B. We do it here because it also must work here.
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
         
               thirdState.updatedExactStatuses(
-                'A -> Finished("finished")
+                "A" -> Finished("finished")
               ).updatedStatuses(
-                'C -> Set(Unstarted, Waiting)
+                "C" -> Set(Unstarted, Waiting)
               )
             }, { fourthState ⇒
-              pingPongDestinationOf('C)
+              pingPongTestProbeOf("C")
               //Resend of C
-              pingPongDestinationOf('C)
+              pingPongTestProbeOf("C")
               //Resend of A. We do it here because it also must work here.
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
         
               fourthState.updatedExactStatuses(
-                'C -> Finished("finished")
+                "C" -> Finished("finished")
               )
             }
           )
         }
-        testOrchestrator(testCase4)
+        testCase4.testExpectedStatusWithRecovery()
       }
       """there are three dependent tasks in a triangle:
         |    B
@@ -242,40 +230,40 @@ class RecoverSpec extends ActorSysSpec {
           *  · After Task B finishes and Task C is about to start or has already started
           *  · After Task C finishes
           */
-        val testCase5 = new TestCase[TasksInTriangleOrchestrator](2, Set('A)) {
+        val testCase5 = new TestCase[TasksInTriangleOrchestrator](2, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
               //Resend of A
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
         
               secondState.updatedExactStatuses(
-                'A → Finished("finished")
+                "A" → Finished("finished")
               ).updatedStatuses(
-                'B → Set(Unstarted, Waiting)
+                "B" → Set(Unstarted, Waiting)
               )
             }, { thirdState ⇒
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
         
               thirdState.updatedExactStatuses(
-                'B → Finished("finished")
+                "B" → Finished("finished")
               ).updatedStatuses(
-                'C → Set(Unstarted, Waiting)
+                "C" → Set(Unstarted, Waiting)
               )
             }, { fourthState ⇒
-              pingPongDestinationOf('C)
+              pingPongTestProbeOf("C")
               //Resend of B
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
               //Resend of C
-              pingPongDestinationOf('C)
+              pingPongTestProbeOf("C")
         
               fourthState.updatedExactStatuses(
-                'C → Finished("finished")
+                "C" → Finished("finished")
               )
             }
           )
         }
-        testOrchestrator(testCase5)
+        testCase5.testExpectedStatusWithRecovery()
       }
       """there are five dependent tasks:
         |  A → C
@@ -298,48 +286,48 @@ class RecoverSpec extends ActorSysSpec {
           *   · After Task D finishes and Task E is about to start or has already started
           *   · After Task E finishes
           */
-        val testCase6 = new TestCase[FiveTasksOrchestrator](5, Set('A, 'B)) {
+        val testCase6 = new TestCase[FiveTasksOrchestrator](5, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongDestinationOf('A)
+              pingPongTestProbeOf("A")
         
               secondState.updatedExactStatuses(
-                'A -> Finished("finished")
+                "A" -> Finished("finished")
               ).updatedStatuses(
-                'C -> Set(Unstarted, Waiting)
+                "C" -> Set(Unstarted, Waiting)
               )
             }, { thirdState ⇒
-              pingPongDestinationOf('C)
+              pingPongTestProbeOf("C")
         
               thirdState.updatedExactStatuses(
-                'C -> Finished("finished")
+                "C" -> Finished("finished")
               )
             }, { fourthState ⇒
-              pingPongDestinationOf('B)
+              pingPongTestProbeOf("B")
         
               fourthState.updatedExactStatuses(
-                'B -> Finished("finished")
+                "B" -> Finished("finished")
               ).updatedStatuses(
-                'D -> Set(Unstarted, Waiting)
+                "D" -> Set(Unstarted, Waiting)
               )
             }, { fifthState ⇒
-              pingPongDestinationOf('D)
+              pingPongTestProbeOf("D")
         
               fifthState.updatedExactStatuses(
-                'D -> Finished("finished")
+                "D" -> Finished("finished")
               ).updatedStatuses(
-                'E -> Set(Unstarted, Waiting)
+                "E" -> Set(Unstarted, Waiting)
               )
             }, { sixthState ⇒
-              pingPongDestinationOf('E)
+              pingPongTestProbeOf("E")
         
               sixthState.updatedExactStatuses(
-                'E -> Finished("finished")
+                "E" -> Finished("finished")
               )
             }
           )
         }
-        testOrchestrator(testCase6)
+        testCase6.testExpectedStatusWithRecovery()
       }
     }
   }

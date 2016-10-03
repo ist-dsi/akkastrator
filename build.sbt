@@ -72,6 +72,8 @@ pomExtra :=
     </developer>
   </developers>
 
+coverageScalacPluginVersion := "1.3.0-RC1"
+
 import ReleaseTransformations._
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,

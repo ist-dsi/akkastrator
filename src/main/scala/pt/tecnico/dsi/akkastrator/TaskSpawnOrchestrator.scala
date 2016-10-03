@@ -4,14 +4,17 @@ import akka.actor.Actor.Receive
 import akka.actor.{Actor, ActorLogging, Props, Terminated}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 
+import scala.concurrent.duration.Duration
 import scala.reflect.{ClassTag, classTag}
 
 case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
 
 class Spawner extends Actor with ActorLogging {
   def receive: Receive = {
-    case SpawnAndStart(props, innerOrchestratorId, startId) ⇒
+    case SpawnAndStart(props, innerOrchestratorId, startId) =>
       val innerOrchestrator = context.actorOf(props, s"inner-$innerOrchestratorId")
+  
+      log.debug(s"Created innerOrchestrator:\n\t$innerOrchestrator")
       
       context watch innerOrchestrator
       
@@ -38,6 +41,7 @@ class Spawner extends Actor with ActorLogging {
   *
   * In order for this task to work correctly one of two things must happen:
   *  · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.
+  *    And must terminate afterwords of sending the message.
   *  · The method behavior must be overridden to handle the messages the inner orchestrator sends when it terminates or
   *    aborts.
   *
@@ -49,16 +53,18 @@ class Spawner extends Actor with ActorLogging {
   * @tparam R the type the AbstractOrchestrator created in Props must have as its type parameter.
   * @tparam O the type of AbstractOrchestrator the Props must create.
   */
-class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](props: Props, description: String, dependencies: Set[Task[_]] = Set.empty)
-                                                                      (implicit orchestrator: AbstractOrchestrator[_])
+class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag]
+  (description: String,dependencies: Set[Task[_]] = Set.empty, timeout: Duration = Duration.Inf, props: Props)
+  (implicit orchestrator: AbstractOrchestrator[_])
   extends Task[R](description, dependencies)(orchestrator) {
   
   require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
     "Props.actorClass must comply with <: AbstractOrchestrator[R]")
   
   val innerOrchestratorId = orchestrator.nextInnerOrchestratorId()
+  final val spawner = orchestrator.context.actorOf(Props[Spawner], s"spawner-$innerOrchestratorId")
   
-  final val destination = orchestrator.context.actorOf(Props[Spawner], s"spawner-$innerOrchestratorId").path
+  final val destination = spawner.path
   final def createMessage(id: Long): Any = SpawnAndStart(props, innerOrchestratorId, id)
   
   def behavior: Receive = {

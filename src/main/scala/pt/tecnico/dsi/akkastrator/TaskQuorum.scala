@@ -4,6 +4,7 @@ import akka.actor.Props
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator
 
+import scala.concurrent.duration.Duration
 import scala.reflect.classTag
 
 trait MinimumVotes extends (Int ⇒ Int) {
@@ -20,7 +21,7 @@ object All extends MinimumVotes {
 }
 
 object TaskQuorum {
-  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] ⇒ Seq[Task[R]], minimumVotes: MinimumVotes,
+  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] => Seq[Task[R]], minimumVotes: MinimumVotes,
                              outerOrchestratorPersistenceId: String) extends Orchestrator[Seq[R]] {
     def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
   
@@ -55,7 +56,6 @@ object TaskQuorum {
           task.persistAndConfirmDelivery(receivedMessage = None, task.expectedDeliveryId.get.self) {
             task.expectedDeliveryId = None
             task.state = Task.Aborted(QuorumAlreadyAchieved)
-            updateCurrentBehavior()
           }
         }
         //Since we got the quorum we can finish the orchestrator
@@ -67,16 +67,43 @@ object TaskQuorum {
       log.info(s"${self.path.name} Finished!")
       //We just return the result of finished tasks.
       //We know the cast will succeed because every task is a Task[R].
-      val results = tasks.flatMap(_.result).map(_.asInstanceOf[R])
+      val results: Seq[R] = tasks.flatMap(_.result).map(_.asInstanceOf[R])
       context.parent ! TasksFinished(results, startId)
       context stop self
     }
   }
   
-  def apply[I, R](description: String, dependencies: Set[Task[_]] = Set.empty, minimumVotes: MinimumVotes, collection: ⇒ Seq[I])
-                 (taskCreator: I ⇒ AbstractOrchestrator[_] ⇒ Task[R])
+  /**
+    * Allows for the syntax:
+    * {{{
+    *  def doFoo(someArg: Int)(implicit orchestrator: AbstractOrchestrator[_]): Task[Int] = ???
+    *  TaskQuorum("quorum-description", dependencies = Set(...))(Majority, someOtherTask.result.get) { i =>
+    *    doFoo(i)(_)
+    *  }
+    * }}}
+    */
+  def apply[I, R](description: String, dependencies: Set[Task[_]] = Set.empty, timeout: Duration = Duration.Inf, minimumVotes: MinimumVotes = Majority, collection: => Seq[I])
+                 (taskCreator: I ⇒ AbstractOrchestrator[_] => Task[R])
                  (implicit orchestrator: AbstractOrchestrator[_]): TaskQuorum[R] = {
-    new TaskQuorum[R](description, dependencies, minimumVotes)(o ⇒ collection.map(i ⇒ taskCreator(i)(o)))
+    new TaskQuorum[R](description, dependencies, timeout, minimumVotes)(o => collection.map(i => taskCreator(i)(o)))
+  }
+  
+  /**
+    * Allows:
+    * {{{
+    *  def doFoo(someArg: Int)(implicit orchestrator: AbstractOrchestrator[_]): Task[Int] = ???
+    *  def doBar(someArg: String)(implicit orchestrator: AbstractOrchestrator[_]): Task[Int] = ???
+    *
+    *  TaskQuorum("quorum-description", dependencies = Set(...), timeout = Duration.Inf)(minimumVotes = Majority)(
+    *    doFoo(42)(_),
+    *    doBar("a string")(_)
+    *  )
+    * }}}
+    */
+  def apply[R](description: String, dependencies: Set[Task[_]], timeout: Duration, minimumVotes: MinimumVotes)
+              (tasksCreator: (AbstractOrchestrator[_] => Task[R])*)
+              (implicit orchestrator: AbstractOrchestrator[_]): TaskQuorum[R] = {
+    new TaskQuorum[R](description, dependencies, timeout, minimumVotes)(o => tasksCreator.map(_(o)))
   }
 }
 
@@ -90,10 +117,10 @@ object TaskQuorum {
   *   Different destinations
   *   Fixed message
   */
-class TaskQuorum[R](description: String, dependencies: Set[Task[_]] = Set.empty, minimumVotes: MinimumVotes)
-                   (tasksCreator: AbstractOrchestrator[_] ⇒ Seq[Task[R]])
+class TaskQuorum[R](description: String, dependencies: Set[Task[_]] = Set.empty, timeout: Duration = Duration.Inf, minimumVotes: MinimumVotes = Majority)
+                   (tasksCreator: AbstractOrchestrator[_] => Seq[Task[R]])
                    (implicit orchestrator: AbstractOrchestrator[_])
   extends TaskSpawnOrchestrator[Seq[R], InnerOrchestrator[R]](
-    Props(classOf[InnerOrchestrator[R]], tasksCreator, minimumVotes, orchestrator.persistenceId),
-    description,
-    dependencies)(classTag[InnerOrchestrator[R]], orchestrator)
+    description, dependencies, timeout,
+    Props(classOf[InnerOrchestrator[R]], tasksCreator, minimumVotes, orchestrator.persistenceId)
+  )(classTag[InnerOrchestrator[R]], orchestrator)
