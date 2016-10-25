@@ -14,13 +14,13 @@ import com.typesafe.config.{Config, ConfigFactory}
   *       new Settings(yourConfig)
   *     }}}
   *     However it will be more succinct to pass your config directly to your akkastrator: {{{
-  *      context.actorOf(Props(classOf[YourAkkastrator], yourConfig))
+  *      context.actorOf(Props(classOf[YourOrchestrator], yourConfig))
   *     }}}
   *  - Extend this class overriding the settings you want to redefine {{{
   *      object YourSettings extends Settings() {
   *        override val saveSnapshotEveryXMessages = 1000
   *      }
-  *      context.actorOf(Props(classOf[YourAkkastrator], YourSettings))
+  *      context.actorOf(Props(classOf[YourOrchestrator], YourSettings))
   *    }}}
   *
   * @param config
@@ -35,6 +35,7 @@ class Settings(config: Config = ConfigFactory.load()) {
   import akkastratorConfig._
 
   val saveSnapshotRoughlyEveryXMessages = getInt("save-snapshot-roughly-every-X-messages")
+  val useTaskColors = getBoolean("use-task-colors")
 
   override def toString: String = akkastratorConfig.root.render
 }

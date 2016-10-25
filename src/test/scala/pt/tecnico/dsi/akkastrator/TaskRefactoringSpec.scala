@@ -148,7 +148,7 @@ class TaskRefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSe
   }
   
   //TODO: create tasks that send messages or have behavior that is dependent upon the response obtained in a dependent task
-  //TODO: this is done via the result. And result can never be used in the destination.
+  //TODO: this is done via the result. And result can never be used in the destination, because destination if a val.
   
   //TaskBundle has a dedicated suite
 }

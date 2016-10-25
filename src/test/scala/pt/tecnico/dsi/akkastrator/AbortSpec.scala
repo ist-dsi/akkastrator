@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.AbortSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, testsAbortReason}
-import pt.tecnico.dsi.akkastrator.Task._
+import pt.tecnico.dsi.akkastrator.Work._
 
 object AbortSpec {
   class AbortSingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {

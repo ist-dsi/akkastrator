@@ -3,7 +3,7 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.{ActorPath, ActorRef}
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted, testsAbortReason}
-import pt.tecnico.dsi.akkastrator.Task._
+import pt.tecnico.dsi.akkastrator.Work._
 import pt.tecnico.dsi.akkastrator.TaskBundleSpec._
 import scala.concurrent.duration.DurationInt
 

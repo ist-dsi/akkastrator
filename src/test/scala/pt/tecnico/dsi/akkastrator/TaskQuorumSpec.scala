@@ -3,7 +3,7 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted}
-import pt.tecnico.dsi.akkastrator.Task._
+import pt.tecnico.dsi.akkastrator.Work._
 import pt.tecnico.dsi.akkastrator.TaskQuorumSpec._
 
 object TaskQuorumSpec {

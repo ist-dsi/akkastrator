@@ -10,7 +10,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec._
-import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting}
+import pt.tecnico.dsi.akkastrator.Work.{Unstarted, Waiting}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 
 import scala.collection.immutable.SortedMap
@@ -63,11 +63,11 @@ object ActorSysSpec {
       } else {
         // We include the orchestratorCommand because we still want to handle Status messages.
         // We include the extraCommands because we still want to be able to crash the orchestrator
-        context become (orchestratorCommand orElse crashable orElse finishable(super.onFinish()))
+        context become (running orElse crashable orElse finishable(super.onFinish()))
       }
     }
   
-    override def onAbort(instigator: Task[_], message: Any, cause: AbortCause, tasks: Map[Task.State, Seq[Task[_]]]): Unit = {
+    override def onAbort(instigator: Task[_], message: Any, cause: AbortCause, tasks: Map[Work.State, Seq[Task[_]]]): Unit = {
       terminationProbe ! OrchestratorAborted
       
       if (startAndTerminateImmediately) {
@@ -109,15 +109,15 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     shutdown(verifySystemShutdown = true)
   }
 
-  case class State(expectedStatus: SortedMap[String, Set[Task.State]]) {
-    def updatedStatuses(newStatuses: (String, Set[Task.State])*): State = {
+  case class State(expectedStatus: SortedMap[String, Set[Work.State]]) {
+    def updatedStatuses(newStatuses: (String, Set[Work.State])*): State = {
       val newExpectedStatus = newStatuses.foldLeft(expectedStatus) {
         case (statuses, (taskDescription, possibleStatus)) ⇒
           statuses.updated(taskDescription, possibleStatus)
       }
       this.copy(expectedStatus = newExpectedStatus)
     }
-    def updatedExactStatuses(newStatuses: (String, Task.State)*): State = {
+    def updatedExactStatuses(newStatuses: (String, Work.State)*): State = {
       val n = newStatuses.map { case (s, state) ⇒
         (s, Set(state))
       }
@@ -155,7 +155,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       logger.info(s"Starting the Orchestrator")
       orchestratorActor ! StartOrchestrator(1L)
       val s = startingTasks.toSeq.map { s ⇒
-        (s, Set[Task.State](Unstarted, Waiting))
+        (s, Set[Work.State](Unstarted, Waiting))
       }
       firstState.updatedStatuses(s:_*)
     }

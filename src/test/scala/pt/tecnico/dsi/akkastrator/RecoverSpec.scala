@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.RecoverSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
-import pt.tecnico.dsi.akkastrator.Task._
+import pt.tecnico.dsi.akkastrator.Work._
 
 object RecoverSpec {
   class SingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
