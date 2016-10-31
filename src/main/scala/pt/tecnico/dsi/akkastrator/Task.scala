@@ -1,9 +1,9 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 import akka.actor.{Actor, ActorPath}
-import pt.tecnico.dsi.akkastrator.Orchestrator.SaveSnapshot
+import pt.tecnico.dsi.akkastrator.Orchestrator.{SaveSnapshot, TaskReport}
 import pt.tecnico.dsi.akkastrator.Task._
 
 object Task {
@@ -16,6 +16,9 @@ object Task {
   
   case object Timeout
 }
+
+//TODO: it would be nice to receive FullTask with the type parameter: (task: FullTask[R, _, _])
+//For time being we cannot to it because it breaks the DSL
 
 /**
   * A task corresponds to sending a message to an actor, handling its response and possibly
@@ -34,7 +37,7 @@ object Task {
   * Because of this you need to pass an instance of orchestrator.
   * Because of this you can only create instances of Task inside an orchestrator.
   */
-abstract class Task[R](task: FullTask[_, _, _]) extends Serializable {
+abstract class Task[R](val task: FullTask[_, _, _]) {
   import IdImplicits._
   import task.orchestrator.log
   import task.{index, orchestrator, timeout}
@@ -48,12 +51,12 @@ abstract class Task[R](task: FullTask[_, _, _]) extends Serializable {
   def createMessage(id: Long): Any
   
   /** If recovery is running just executes `handler`, otherwise persists the `event` and uses `handler` as its handler. */
-  final private def recoveryAwarePersist(event: Event)(handler: ⇒ Unit): Unit = {
+  final private def recoveryAwarePersist(event: Event)(handler: => Unit): Unit = {
     if (orchestrator.recoveryRunning) {
       // When recovering the event is already persisted no need to persist it again.
       handler
     } else {
-      orchestrator.persist(event) { _ ⇒
+      orchestrator.persist(event) { _ =>
         log.debug(withLogPrefix(s"Persisted ${event.getClass.getSimpleName}."))
         handler
       }
@@ -64,7 +67,7 @@ abstract class Task[R](task: FullTask[_, _, _]) extends Serializable {
     require(state == Unstarted, "Start can only be invoked when this task is Unstarted.")
     log.info(withLogPrefix(s"Starting."))
     recoveryAwarePersist(MessageSent(task.index)) {
-      orchestrator.deliver(destination) { deliveryId ⇒
+      orchestrator.deliver(destination) { deliveryId =>
         //First we make sure the orchestrator is ready to deal with the answers from destination.
         expectedDeliveryId = Some(deliveryId)
         state = Waiting
@@ -81,6 +84,7 @@ abstract class Task[R](task: FullTask[_, _, _]) extends Serializable {
         //Schedule the timeout
         if (timeout.isFinite()) {
           orchestrator.context.system.scheduler.scheduleOnce(FiniteDuration(timeout.length, timeout.unit)) {
+            //TODO: check if state == Waiting this works
             if (state == Waiting) {
               behavior.applyOrElse(Timeout, { _: Timeout.type =>
                 //behavior does not handle timeout. So we abort it.
@@ -171,7 +175,8 @@ abstract class Task[R](task: FullTask[_, _, _]) extends Serializable {
     *  1. This task will change its state to `Aborted`.
     *  2. Every unstarted task that depends on this one will never be started. This will happen because a task can
     *     only start if its dependencies have finished and this task did not finish.
-    *  3. Waiting tasks will be untouched and the orchestrator will still be prepared to handle their responses.
+    *  3. Waiting tasks or tasks which do not have this task as a dependency will continue to be executed, unless
+    *     the orchestrator is stopped.
     *  4. The method `onFinish` will <b>never</b> be called. Similarly to the unstarted tasks, onFinish will only
     *     be invoked if all tasks have finished and this task did not finish.
     *  5. The method `onAbort` will be invoked in the orchestrator.
@@ -196,7 +201,14 @@ abstract class Task[R](task: FullTask[_, _, _]) extends Serializable {
     }
   }
   
+  /**
+    * INTERNAL API
+    * @return The result of this Task. A Task will only have a result if it is finished. */
+  private[akkastrator] def result: Option[R] = state match {
+    case Finished(value) => Some(value.asInstanceOf[R])
+    case _ => None
+  }
   
   def withLogPrefix(message: => String): String = task.withLogPrefix(message)
-  def toTaskReport: TaskReport = task.toTaskReport
+  def toTaskReport: TaskReport[R] = task.toTaskReport.asInstanceOf[TaskReport[R]]
 }

@@ -60,12 +60,16 @@ object DSL {
     }
   }
   
-  /*kerberos !! (Kerberos.addPrincipal("", _)) withBehavior {
+  /*
+  kerberos !! (Kerberos.addPrincipal("", _)) withBehavior {
     case m @ Success(id) if matchId(id) =>
-  }*/
-  /*kerberos deliver (AddPrincipal("", _)) withBehavior {
+  }
+  kerberos deliver (AddPrincipal("", _)) withBehavior {
     case m @ AddPrincipal(_, _) => println("bla")
-  }*/
+  }
+  */
+  
+  
   /*
   TODO: where to specify the type parameter R?
   implicit class actorPath2Task(path: ActorPath) {

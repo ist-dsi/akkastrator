@@ -4,7 +4,9 @@ import java.util.NoSuchElementException
 
 import scala.concurrent.duration.Duration
 import scala.collection.immutable.Seq
+
 import pt.tecnico.dsi.akkastrator.HListConstraints.{TaskComapped, taskHListOps}
+import pt.tecnico.dsi.akkastrator.Orchestrator.TaskReport
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{HList, HNil}
 
@@ -20,8 +22,8 @@ object FullTask {
 }
 
 /**
-  * @param description a text that describes this task in a human readable way. It will be used when the status of this
-  *                    task orchestrator is requested.
+  * @param description a text that describes this task in a human readable way, or a message key to be used in
+  *                    internationalization. It will be used when the status of this task orchestrator is requested.
   * @param dependencies the tasks that must have finished in order for this task to be able to start.
   * @param timeout NOTE: the timeout does not survive restarts!
   * @param createTask
@@ -90,6 +92,9 @@ final case class FullTask[R, DL <: HList, RL <: HList] (description: String, dep
   private def dependencyFinished(): Unit = {
     finishedDependencies += 1
     if (finishedDependencies == dependenciesIndexes.length) {
+      //TODO: orchestrator.self ! StartTask(index) might be a better option because:
+      //this method is being invoked from inside the persist handler of task.finish
+      //if we send a message to the orchestrator we are allowing it to handle responses from the tasks and shutdowns/status/etc
       val task = innerCreateTask()
       task.start()
     }
@@ -119,15 +124,17 @@ final case class FullTask[R, DL <: HList, RL <: HList] (description: String, dep
   
   /**
     * INTERNAL API
-    * @return The result of this Task. A Task will only have a result if it is finished. */
-  private[akkastrator] def result: R = state match {
-    // You cannot see a Option.get here. You cannot see a Option.get here. You cannot see a Option.get here.
-    case Finished(value) => value.asInstanceOf[R]
-    case _ => throw new NoSuchElementException()
+    * This is only invoked when the task is already finished. So we have the guarantee the .get will not throw.
+    * Nevertheless a check is made to ensure the task has in fact finished.
+    */
+  private[akkastrator] def result: R = {
+    require(innerTask.isDefined && innerTask.exists(_.state.isInstanceOf[Finished[R]]),
+      "A task only has a result if it is already finished.")
+    innerTask.flatMap(_.result).get
   }
   
   /** The immutable TaskReport of this task. */
-  def toTaskReport: TaskReport = TaskReport(description, dependenciesIndexes, state)
+  def toTaskReport: TaskReport[R] = TaskReport(description, dependenciesIndexes, state, innerTask.map(_.destination), innerTask.flatMap(_.result))
   
   override def toString: String =
     f"""Task [$index%03d - $description]:

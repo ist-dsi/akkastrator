@@ -21,8 +21,11 @@ object All extends MinimumVotes {
   def apply(numberOfDestinations: Int): Int = numberOfDestinations
 }
 
+//TODO: create a flag that maintains the quorum running when the quorum as been achieved but not every task has answered
+//this might imply removing the spawner from the implementation of TaskSpawnOrchestrator
+
+
 object TaskQuorum {
-  //TODO: can we lift the restriction that every task of the bundle must have no dependencies?
   //TODO: TaskQuorum is very similar to TaskBundle maybe we could inherit from it.
   
   object InnerOrchestrator {
@@ -47,7 +50,7 @@ object TaskQuorum {
       case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) =>
         (t2, InitializationError("TasksCreator must generate tasks with the same message."))
     } foreach { case (task, cause) =>
-      context.parent ! TasksAborted(task.toTaskReport, cause, startId)
+      context.parent ! TaskAborted(task.toTaskReport, cause, startId)
       context stop self
     }
     

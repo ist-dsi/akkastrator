@@ -8,8 +8,6 @@ import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator
 import shapeless.HNil
 
-//TODO: can we lift the restriction that every task of the bundle must have no dependencies?
-
 object TaskBundle {
   object InnerOrchestrator {
     def props[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil, HNil]], task: FullTask[_, _, _]): Props = {
@@ -32,6 +30,8 @@ object TaskBundle {
     
     //The default implementation of onAbort in AbstractOrchestrator is sufficient to handle the case when a task aborts.
   }
+  
+  //TODO: special apply when all dependencies have a type R conforming to CC[X] <: Transversable[X]
 }
 
 /**

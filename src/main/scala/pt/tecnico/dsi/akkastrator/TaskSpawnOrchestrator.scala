@@ -61,7 +61,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]](props: Props, task:
   def behavior: Receive = {
     case m @ TasksFinished(result, id) if matchId(id) =>
       finish(m, id, result.asInstanceOf[R])
-    case m @ TasksAborted(_, cause, id) if matchId(id) =>
+    case m @ TaskAborted(_, cause, id) if matchId(id) =>
       abort(m, cause, id)
   }
 }

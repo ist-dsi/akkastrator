@@ -8,14 +8,28 @@ import akka.persistence._
 object Orchestrator {
   case class StartOrchestrator(id: Long)
   
+  /**
+    * An immutable representation (a report) of a Task in a given moment of time.
+    *
+    * This is what is sent when someone queries the status of the orchestrator.
+    *
+    * @param description a text that describes the task in a human readable way. Or a message key to be used in internationalization.
+    * @param dependencies the tasks that must have finished in order for the task to be able to start.
+    * @param state the current state of the task.
+    * @param destination the destination of the task. If the task hasn't started this will be a None.
+    * @param result the result of the task. If the task hasn't finished this will be a None.
+    * @tparam R the type of the result.
+    */
+  case class TaskReport[R](description: String, dependencies: Seq[Int], state: Task.State, destination: Option[ActorPath], result: Option[R])
+  
   // It would be nice to find a way to ensure the type parameter R of this class matches with the type parameter R of orchestrator
   case class TasksFinished[R](result: R, id: Long)
-  case class TasksAborted(instigatorReport: TaskReport, cause: AbortCause, id: Long)
+  case class TaskAborted[R](instigatorReport: TaskReport[R], cause: AbortCause, id: Long)
   
   case object SaveSnapshot
   
   case object Status
-  case class StatusResponse(tasks: IndexedSeq[TaskReport])
+  case class StatusResponse(tasks: IndexedSeq[TaskReport[_]])
   
   case object ShutdownOrchestrator
 }
@@ -86,6 +100,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   
   // By using HashMaps instead of HashSets we let the implementation of hashCode and equals of Task and Action to be free.
   // We use HashMaps to ensure remove/insert operations are very fast O(eC). The keys are the Task.index.
+  // If you look at the Orchestrator as an ExecutionContext or as a process scheduler these lists are the queues.
   // INTERNAL API: These are only used by Task and Action.
   private[akkastrator] var unstartedTasks = HashMap.empty[Int, FullTask[_, _, _]]
   private[akkastrator] var waitingTasks = HashMap.empty[Int, Task[_]]
@@ -178,7 +193,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     */
   def onAbort(instigator: FullTask[_, _, _], message: Any, cause: AbortCause, tasks: Map[Task.State, Seq[FullTask[_, _, _]]]): Unit = {
     log.info(s"${self.path.name} Aborted due to $cause!")
-    context.parent ! TasksAborted(instigator.toTaskReport, cause, startId)
+    context.parent ! TaskAborted(instigator.toTaskReport, cause, startId)
     context stop self
   }
   
@@ -190,12 +205,20 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     */
   final def restart(): Unit = {
     //TODO: since require throws an exception it might cause a crash cycle
-    //TODO: how to know a task aborted
+    //TODO: how to know a task aborted - when a task aborts it is removed from the waitingTasks list but it
+    //is neither added to the unstartedTasks nor is the finishedTasks counter increased. So if:
+    //unstartedTasks.size + waitingTasks.size + finishedTasks < tasks.size
+    //then that means a task aborted
     require(finishedTasks == tasks.length /*|| aTaskAborted*/,
       "An orchestrator can only restart if all tasks have finished or a task caused an abort.")
     unstartedTasks = HashMap.empty[Int, FullTask[_, _, _]]
     waitingTasks = HashMap.empty[Int, Task[_]]
     finishedTasks = 0
+    //TODO: clean the distinct ids state
+    //TODO: because restart can be invoked when a task aborted (most notably inside onAbort) there may exist tasks
+    //which were waiting when we restarted the orchestrator, so now the orchestrator might receive their responses.
+    //Handling their responses will most likely crash the orchestrator since we cleared the distinct ids state
+    //and the method getDeliveryIdFor will blow.
     tasks.foreach(_.restart())
     start()
   }
