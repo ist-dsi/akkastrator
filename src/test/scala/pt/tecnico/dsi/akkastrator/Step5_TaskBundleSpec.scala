@@ -3,72 +3,88 @@ package pt.tecnico.dsi.akkastrator
 import akka.actor.{ActorPath, ActorRef}
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted, testsAbortReason}
-import pt.tecnico.dsi.akkastrator.Work._
-import pt.tecnico.dsi.akkastrator.TaskBundleSpec._
-import scala.concurrent.duration.DurationInt
+import pt.tecnico.dsi.akkastrator.Task._
+import pt.tecnico.dsi.akkastrator.Step5_TaskBundleSpec._
+import pt.tecnico.dsi.akkastrator.DSL.FullTask
+import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
+import shapeless.{::, HNil}
 
-import scala.concurrent.duration.Duration
-
-object TaskBundleSpec {
+object Step5_TaskBundleSpec {
   val aResult = Seq("Farfalhi", "Kunami", "Funini", "Katuki", "Maracaté")
   
   // A -> N*B
   class SimpleTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = task("A", destinations(0).ref.path, aResult)
-    val b = new TaskBundle("B", dependencies = Set(a))(o =>
-      a.result.get.zipWithIndex.map { case (s, i) =>
-        //This implementation shows that we can implement the inner task here.
-        //In this implementation only behavior and description depends on "s", but destination and createMessage could depend as well.
-        new Task[Int](s)(o) { //The second argument list with the underscore is vital for this to work
-          val destination: ActorPath = destinations(i + 1).ref.path
-          def createMessage(id: Long): Any = SimpleMessage(description, id)
-    
-          def behavior: Receive =  {
-            case m @ SimpleMessage(_, id) if matchId(id) =>
-              finish(m, id, s.length)
-          }
+    val a = fulltask("A", destinations(0), aResult)
+    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+      new TaskBundle(_)(o =>
+        fruits.zipWithIndex.map { case (fruit, i) =>
+          //Declaring the inner task directly in the body of the task bundle.
+          //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
+          FullTask(fruit).createTaskWith { case HNil =>
+            new Task[Int](_) {
+              val destination: ActorPath = destinations(i + 1).ref.path
+              def createMessage(id: Long): Any = SimpleMessage(fruit, id)
+              def behavior: Receive = {
+                case m @ SimpleMessage(_, id) if matchId(id) =>
+                  finish(m, id, fruit.length)
+              }
+            }
+          }(o)
         }
-      }
-    )
+      )
+    }
   }
+  
   //     N*B
-  // A →⟨   ⟩→ 2*N*D
+  // A →⟨   ⟩→ 2N*D
   //     N*C
   class ComplexTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = task("A", destinations(0).ref.path, aResult)
-    val b = TaskBundle("B", dependencies = Set(a))(a.result.get) { s =>
-      task(s"$s-B", destinations(1).ref.path, s)(_)
+    val a = fulltask("A", destinations(0), aResult)
+    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+      new TaskBundle(_)(o =>
+        fruits.map { fruit =>
+          //Using a method that creates a full task.
+          //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
+          // We are using the default value for Taskcommaped.
+          fulltask(s"$fruit-B", destinations(1), fruit)(o)
+        }
+      )
     }
-    //Alternative way. Instead of using _ for the implicit orchestrator argument, we make it explicit via currying.
-    val c = TaskBundle("C", Set(a))(a.result.get) { s => o =>
-      task(s"$s-C", destinations(2).ref.path, s)(o)
+    val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
+      new TaskBundle(_)(o =>
+        fruits.map { fruit =>
+          fulltask(s"$fruit-C", destinations(2), fruit)(o)
+        }
+      )
     }
-    //Using the constructor directly. Watch out for the second argument list, which is enclosed in parenthesis and not in curly braces.
-    val d = new TaskBundle("D", dependencies = Set(b, c))(o =>
-      (b.result.get ++ c.result.get).map { s =>
-        task(s, destinations(3).ref.path, s)(o)
-      }
-    )
+    val d = FullTask("D", b :: c :: HNil) createTaskWith { case fruitsB :: fruitsC :: HNil =>
+      new TaskBundle(_)(o =>
+        (fruitsB ++ fruitsC) map { fruit =>
+          fulltask(s"$fruit-D", destinations(3), fruit)(o)
+        }
+      )
+    }
   }
   class ComplexBFirstTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ComplexTaskBundleOrchestrator(destinations, probe)
   class ComplexCFirstTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ComplexTaskBundleOrchestrator(destinations, probe)
   
-  // A -> N*B (of of B aborts)
+  // A -> N*B (one of B aborts)
   class AbortingTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = task("A", destinations(0).ref.path, aResult)
-    val b = new TaskBundle("B", Set(a): Set[Task[_]], Duration.Inf)(o =>
-      Seq(
-        task("Farfalhi", destinations(1).ref.path, "Farfalhi")(o),
-        task("Kunami", destinations(1).ref.path, "Kunami")(o),
-        task("Funini", destinations(1).ref.path, "Funini", abortOnReceive = true)(o),
-        task("Katuki", destinations(1).ref.path, "Katuki")(o),
-        task("Maracaté", destinations(1).ref.path, "Maracaté")(o)
-      )
-    )
+    val a = fulltask("A", destinations(0), aResult)
+    FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+        new TaskBundle(_)(o =>
+          Seq(
+            fulltask("Farfalhi", destinations(1), "Farfalhi")(o),
+            fulltask("Kunami", destinations(2), "Kunami")(o),
+            fulltask("Funini", destinations(3), "Funini", abortOnReceive = true)(o),
+            fulltask("Katuki", destinations(4), "Katuki")(o),
+            fulltask("Maracaté", destinations(5), "Maracaté")(o)
+          )
+        )
+    }
   }
 }
-class TaskBundleSpec extends ActorSysSpec {
-  //Because we are reusing the ComplexTaskBundleOrchestrator we also need to clean the storage locations after each test
+class Step5_TaskBundleSpec extends ActorSysSpec {
   "An orchestrator with task bundles" should {
     "behave according to the documentation" when {
       //A -> N*B
@@ -76,7 +92,7 @@ class TaskBundleSpec extends ActorSysSpec {
         val testCase = new TestCase[SimpleTaskBundleOrchestrator](6, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
-              pingPongTestProbeOf("A")
+              pingPong("A")
               
               secondState.updatedExactStatuses(
                 "A" -> Finished(aResult)
@@ -85,7 +101,7 @@ class TaskBundleSpec extends ActorSysSpec {
               )
             }, { thirdState =>
               //Resend of A
-              pingPongTestProbeOf("A")
+              pingPong("A")
     
               //In parallel why not
               (1 to 5).par.foreach { i =>
@@ -112,6 +128,7 @@ class TaskBundleSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
+      
       //     N*B
       // A →⟨   ⟩→ 2*N*D
       //     N*C
@@ -119,7 +136,7 @@ class TaskBundleSpec extends ActorSysSpec {
         val testCase = new TestCase[ComplexTaskBundleOrchestrator](4, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
-              pingPongTestProbeOf("A")
+              pingPong("A")
           
               secondState.updatedExactStatuses(
                 "A" -> Finished(aResult)
@@ -128,8 +145,7 @@ class TaskBundleSpec extends ActorSysSpec {
                 "C" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
-              //Re-send of A
-              pingPongTestProbeOf("A")
+              handleResend("A")
               
               //In parallel why not
               aResult.par.foreach { _ =>
@@ -166,7 +182,7 @@ class TaskBundleSpec extends ActorSysSpec {
         val testCase = new TestCase[ComplexBFirstTaskBundleOrchestrator](4, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
-              pingPongTestProbeOf("A")
+              pingPong("A")
           
               secondState.updatedExactStatuses(
                 "A" -> Finished(aResult)
@@ -175,8 +191,7 @@ class TaskBundleSpec extends ActorSysSpec {
                 "C" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
-              //Re-send of A
-              pingPongTestProbeOf("A")
+              handleResend("A")
           
               //In parallel why not
               aResult.par.foreach { _ =>
@@ -240,7 +255,7 @@ class TaskBundleSpec extends ActorSysSpec {
         val testCase = new TestCase[ComplexCFirstTaskBundleOrchestrator](4, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
-              pingPongTestProbeOf("A")
+              pingPong("A")
           
               secondState.updatedExactStatuses(
                 "A" -> Finished(aResult)
@@ -249,8 +264,7 @@ class TaskBundleSpec extends ActorSysSpec {
                 "C" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
-              //Resend of A
-              pingPongTestProbeOf("A")
+              handleResend("A")
               
               //In parallel why not
               aResult.par.foreach { _ =>
@@ -312,10 +326,10 @@ class TaskBundleSpec extends ActorSysSpec {
     }
     "should abort" when {
       "when an inner task aborts" in {
-        val testCase = new TestCase[AbortingTaskBundleOrchestrator](2, Set("A")) {
+        val testCase = new TestCase[AbortingTaskBundleOrchestrator](6, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
-              pingPongTestProbeOf("A")
+              pingPong("A")
               
               secondState.updatedExactStatuses(
                 "A" -> Finished(aResult)
@@ -323,12 +337,11 @@ class TaskBundleSpec extends ActorSysSpec {
                 "B" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
-              //Resend of A
-              pingPongTestProbeOf("A")
+              handleResend("A")
               
               //In parallel why not
-              aResult.par.foreach { _ =>
-                pingPong(destinations(1))
+              aResult.indices.par.foreach { i =>
+                pingPong(destinations(i + 1))
               }
               
               expectInnerOrchestratorTermination("B")
@@ -337,12 +350,13 @@ class TaskBundleSpec extends ActorSysSpec {
                 "B" -> Aborted(testsAbortReason)
               )
             }, { fourthState =>
-              aResult.par.foreach { _ =>
-                destinations(1).expectNoMsg()
-              }
+              //Because the inner orchestrator of the bundle wont be started the destinations wont receive resends
+              /*aResult.indices.par.foreach { i =>
+                pingPong(destinations(i + 1))
+              }*/
               
               terminationProbe.expectMsg(OrchestratorAborted)
-    
+              
               fourthState
             }
           )

@@ -13,7 +13,7 @@ javacOptions ++= Seq(
   "-encoding", "UTF-8"
 )
 
-scalaVersion := "2.12.0-RC2"
+scalaVersion := "2.12.0"
 scalacOptions ++= Seq(
   "-deprecation", //Emit warning and location for usages of deprecated APIs.
   "-encoding", "UTF-8",
@@ -26,7 +26,7 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code" //Warn when dead code is identified.
 )
 
-val akkaVersion = "2.4.11"
+val akkaVersion = "2.4.12"
 libraryDependencies ++= Seq(
   //Shapeless
   "com.chuusai" %% "shapeless" % "2.3.2",

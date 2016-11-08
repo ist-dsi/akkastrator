@@ -2,86 +2,112 @@ package pt.tecnico.dsi.akkastrator
 
 import scala.concurrent.duration.Duration
 
-import akka.actor.{Actor, ActorPath}
-import shapeless.{HList, HNil}
-import shapeless.Generic
-import shapeless.ops.hlist.Tupler
-import shapeless._0
-import shapeless.ops.hlist.At
 import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
+import shapeless.ops.hlist.At
+import shapeless.{::, Generic, HList, HNil, _0}
 
 object DSL {
-  //The FullTask DSL is possible due to these classes
-  //TODO: would using @inline in these methods help?
-  //TODO: how to deal with timeouts?
-  
-  implicit class string2FullTask(val description: String) extends AnyVal {
-    //Supports the creation of a FullTask where the inner task has no dependencies
-    def describes[R](task: FullTask[_, HNil, HNil] => Task[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, HNil, HNil] = {
-      FullTask(description, HNil, createTask = _ => task)
-    }
-    //Supports the creation of a FullTask where the inner task has dependencies
-    def describes[R, DL <: HList, RL <: HList](task: TaskWithDependencies[R, DL, RL]): FullTask[R, DL, RL] = {
-      task(description)
-    }
-  }
-  
-  //How do you get around type erasure? Simple, you "waste" memory creating a TaskWithDependencies class.
-  abstract class TaskWithDependencies[R, DL <: HList, RL <: HList] extends (String => FullTask[R, DL, RL])
-  
-  implicit def givenDependencies[DL <: HList, DP <: Product, RL <: HList, RP <: Product](dependencies: DP)
-                                                                                        (implicit orchestrator: AbstractOrchestrator[_],
-                                                                                         gen: Generic.Aux[DP, DL],
-                                                                                         ev: TaskComapped.Aux[DL, RL],
-                                                                                         t: Tupler.Aux[RL, RP],
-                                                                                         at: At[DL, _0]): givenDependencies[DL, RL, RP] = {
-    new givenDependencies(gen.to(dependencies))
-  }
-  implicit class givenDependencies[DL <: HList, RL <: HList, RP <: Product](val dependencies: DL)
-                                                                           (implicit orchestrator: AbstractOrchestrator[_],
-                                                                            ev: TaskComapped.Aux[DL, RL],
-                                                                            tupler: Tupler.Aux[RL, RP],
-                                                                            at: At[DL, _0]) {
-    def createTaskWith[R](builder: RL => FullTask[_, DL, RL] => Task[R]): TaskWithDependencies[R, DL, RL] = {
-      new TaskWithDependencies[R, DL, RL] {
-        def apply(description: String): FullTask[R, DL, RL] = FullTask(description, dependencies, createTask = builder)
+  object FullTask {
+    class PartialTask[DL <: HList, RL <: HList] private[FullTask] (description: String, dependencies: DL, timeout: Duration)
+                                                                  (implicit cm: TaskComapped.Aux[DL, RL]) {
+      /*
+      // Because of type erasure we cannot declare this method :(
+      def createTaskWith[R](f: FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_], ev: RL =:= HNil): FullTask[R, DL] = {
+        new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
+          def createTask(results: comapped.ResultsList): Task[R] = f(this)
+        }
+      }*/
+      def createTaskWith[R](f: RL => FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
+        new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
+          def createTask(results: comapped.ResultsList): Task[R] = f(results.asInstanceOf[RL])(this)
+        }
       }
-    }
-    def createTaskWithTuple[R](builder: RP => FullTask[_, DL, RL] => Task[R]): TaskWithDependencies[R, DL, RL] = {
-      createTaskWith(resultsList => builder(tupler(resultsList)))
-    }
-  
-    import shapeless.ops.function.FnToProduct
-    def createTask[F, T, R](builder: F)(implicit fntp: FnToProduct.Aux[F, RL => T], ev: <:<[T, FullTask[_, DL, RL] => Task[R]]): TaskWithDependencies[R, DL, RL] = {
-      createTaskWith(fntp(builder) andThen ev)
-    }
-    def ->[F, T, R](builder: F)(implicit fntp: FnToProduct.Aux[F, RL => T], ev: <:<[T, FullTask[_, DL, RL] => Task[R]]): TaskWithDependencies[R, DL, RL] = {
-      createTaskWith(fntp(builder) andThen ev)
-    }
-  }
-  
-  /*
-  kerberos !! (Kerberos.addPrincipal("", _)) withBehavior {
-    case m @ Success(id) if matchId(id) =>
-  }
-  kerberos deliver (AddPrincipal("", _)) withBehavior {
-    case m @ AddPrincipal(_, _) => println("bla")
-  }
-  */
-  
-  
-  /*
-  TODO: where to specify the type parameter R?
-  implicit class actorPath2Task(path: ActorPath) {
-    class taskBehavior(f: Long => Any) {
-      def withBehavior(behavior: Actor.Receive): Task[?] = new Task[?](?) {
-        val destination: ActorPath = path
-        def createMessage(id: Long): Any = f(id)
-        def behavior: Actor.Receive = behavior
+      /*//Yey for type erasure </sarcasm>
+      def createTaskWithTuple[R](f: RP => FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
+        createTaskWith(resultsList => f(tupler(resultsList)))
+      }*/
+      
+      /*
+      import shapeless.ops.function.FnToProduct
+      def createTask[F, T, R](builder: F)(implicit orchestrator: AbstractOrchestrator[_],
+                                          fntp: FnToProduct.Aux[F, RL => T],
+                                          ev: <:<[T, FullTask[_, _] => Task[R]]): FullTask[R, DL] = {
+        createTaskWith(fntp(builder) andThen ev)
       }
+      //TODO: does Predef.ArrowAssoc takes precedence over this one?
+      def ->[F, T, R](builder: F)(implicit orchestrator: AbstractOrchestrator[_], fntp: FnToProduct.Aux[F, RL => T],
+                                  ev: <:<[T, FullTask[_, _] => Task[R]]): FullTask[R, DL] = {
+        createTask(builder)
+      }
+      */
     }
-    def deliver(f: Long => Any) = new taskBehavior(f)
-    def !!(f: Long => Any) = new taskBehavior(f)
+  
+    /**
+      * Allows creating a FullTask using tuple syntax:
+      * {{{
+      *   FullTask("some description", (a, b)) createTaskWith { case aResult :: bResult :: HNil =>
+      *
+      *   }
+      * }}}
+      */
+    def apply[DL <: HList, DP <: Product, RL <: HList](description: String, dependencies: DP, timeout: Duration)
+                                                      (implicit cm: TaskComapped.Aux[DL, RL], gen: Generic.Aux[DP, DL]) = {
+      new PartialTask(description, gen.to(dependencies), timeout)
+    }
+  
+    /**
+      * Allows creating a FullTask using HList syntax:
+      * {{{
+      *   FullTask("some description", a :: b :: HNil) createTaskWith { case aResult :: bResult :: HNil =>
+      *
+      *   }
+      * }}}
+      */
+    def apply[DL <: HList, RL <: HList](description: String, dependencies: DL = HNil: HNil, timeout: Duration = Duration.Inf)
+                                       (implicit cm: TaskComapped.Aux[DL, RL]) = {
+      new PartialTask(description, dependencies, timeout)
+    }
   }
-  */
+  
+  // The DSL for FullTask returns a FullTask[R, DL] (this is needed for TaskSpawnOrchestrator and derivatives, because they expect FullTask[R, HNil])
+  // whereas the DSL for dependencies returns FullTask[R, _ <: HList]
+  // This means that when using the dependencies DSL we do not allow the following:
+  // val a: FullTask[String, HNil] = //...
+  // val b: FullTask[Int, HNil] = //...
+  // def changePassword(dependencies: FullTask[String, HNil] :: FullTask[String, HNil] :: HNil) = {
+  //   FullTask("changePassword", dependencies) createTaskWith { case what :: where :: HNil =>
+  //     new Task[Unit](_) {
+  //       //...
+  //     }}
+  //   }
+  // }
+  // val c = (a, b) areDependenciesOf changePassword //Works and c is of type FullTask[Unit, _ <: HList]
+  // def doSomething(dependencies: FullTask[String, HNil] :: FullTask[Unit, HNil] :: HNil) = //...
+  // (a, c) areDependenciesOf doSomething //Does not work since c is not a FullTask[Unit, HNil]
+  //
+  // This is not very problematic since we don't really care about the dependencies of a task except for the HNil dependency
+  
+  
+  // Allows dependency isDependencyOf otherTaskMethod
+  implicit class richFullTask[DR](val dependency: FullTask[DR, _ <: HList]) extends AnyVal {
+    def isDependencyOf[R](task: FullTask[DR, _] :: HNil => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = {
+      task(dependency :: HNil)
+    }
+    def ->[R](task: FullTask[DR, _] :: HNil => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = {
+      isDependencyOf(task)
+    }
+  }
+  
+  // Allows (task1, task2) areDependenciesOf otherTaskMethod
+  implicit def tuple2TaskWithDependencies[DL <: HList, DP <: Product](dependencies: DP)(implicit gen: Generic.Aux[DP, DL],
+                                                                                        ev: TaskComapped[DL], at: At[DL, _0]): hlist2TaskWithDependencies[DL] = {
+    new hlist2TaskWithDependencies[DL](gen.to(dependencies))
+  }
+  
+  // Allows task1 :: task2 :: HNil areDependenciesOf otherTaskMethod, where otherTaskMethod:
+  //  def otherTaskMethod(dependencies: FullTask[String, _] :: FullTask[Unit, _] :: HNil)
+  implicit class hlist2TaskWithDependencies[DL <: HList](dependencies: DL)(implicit ev: TaskComapped[DL], at: At[DL, _0]) {
+    def areDependenciesOf[R](task: DL => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = task(dependencies)
+    def ->[R](task: DL => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = areDependenciesOf(task)
+  }
 }

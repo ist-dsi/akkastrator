@@ -2,24 +2,26 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor.ActorRef
 import akka.testkit.TestProbe
-import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted}
-import pt.tecnico.dsi.akkastrator.Work._
-import pt.tecnico.dsi.akkastrator.TaskQuorumSpec._
+import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted, testsAbortReason}
+import pt.tecnico.dsi.akkastrator.DSL.FullTask
+import pt.tecnico.dsi.akkastrator.Task._
+import pt.tecnico.dsi.akkastrator.Step6_TaskQuorumSpec._
+import shapeless.{HNil, ::}
 
-object TaskQuorumSpec {
+object Step6_TaskQuorumSpec {
   val aResult = Seq("Farfalhi", "Kunami", "Funini", "Katuki", "Maracaté")
-  
-  /*
   
   class TasksWithDependenciesQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A -> Error B
-    val a = task("A", destinations(0).ref.path, aResult)
-    val b = TaskQuorum("B", dependencies = Set(a), a.result.get) { s =>
-      task(s, destinations(1).ref.path, s.length, dependencies = Set(a))(_)
+    val a = fulltask("A", destinations(0), aResult)
+    FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+      new TaskQuorum(_)(o =>
+        fruits.map { fruit =>
+          fulltask(s"$fruit-C", destinations(2), fruit.length)(o)
+        }
+      )
     }
   }
-  
-  */
   
   class TasksWithSameDestinationQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // Error A
@@ -56,35 +58,35 @@ object TaskQuorumSpec {
   
   */
 }
-class TaskQuorumSpec extends ActorSysSpec {
-  /*
-  
+class Step6_TaskQuorumSpec extends ActorSysSpec {
   "An orchestrator with task quorum" should {
     "must fail" when {
-      /*
       "the tasksCreator generates tasks with dependencies" in {
-        val testCase = new TestCase[TasksWithDependenciesQuorumOrchestrator](2, Set('A)) {
+        /*
+        val testCase = new TestCase[TasksWithDependenciesQuorumOrchestrator](2, Set("A")) {
           val transformations: Seq[(State) => State] = Seq(
             { secondState =>
-              pingPongDestinationOf('A)
+              pingPong("A")
               
               secondState.updatedExactStatuses(
-                'A -> Finished(aResult)
+                "A" -> Finished(aResult)
               ).updatedStatuses(
-                'B -> Set(Unstarted, Waiting)
+                "B" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
               terminationProbe.expectMsg(OrchestratorAborted)
               
               thirdState.updatedExactStatuses(
-                'B -> Aborted(InitializationError("TasksCreator must generate tasks without dependencies."))
+                "B" -> Aborted(testsAbortReason)
               )
             }
           )
         }
-        testCase.testRecovery()
+        testCase.testExpectedStatusWithRecovery()
+        */
       }
-      */
+      
+      /*
       "the tasksCreator generates tasks with the same destination" in {
         val testCase = new TestCase[TasksWithSameDestinationQuorumOrchestrator](2, Set("A")) {
           val transformations: Seq[(State) => State] = Seq(
@@ -99,6 +101,7 @@ class TaskQuorumSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
+      */
     }
     /*
     "behave according to the documentation" when {
@@ -192,6 +195,4 @@ class TaskQuorumSpec extends ActorSysSpec {
     }
     */
   }
-  
-  */
 }

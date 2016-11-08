@@ -2,28 +2,29 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor.ActorRef
 import akka.testkit.TestProbe
-import pt.tecnico.dsi.akkastrator.AbortSpec._
+import pt.tecnico.dsi.akkastrator.Step4_AbortSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, testsAbortReason}
-import pt.tecnico.dsi.akkastrator.Work._
+import pt.tecnico.dsi.akkastrator.Task._
+import shapeless.HNil
 
-object AbortSpec {
+object Step4_AbortSpec {
   class AbortSingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
-    echoTask("A", destinations(0).ref.path, abortOnReceive = true)
+    echoFulltask("A", destinations(0), abortOnReceive = true)
   }
   class AbortTwoIndependentTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
     // B
-    echoTask("A", destinations(0).ref.path, abortOnReceive = true)
-    echoTask("B", destinations(1).ref.path)
+    echoFulltask("A", destinations(0), abortOnReceive = true)
+    echoFulltask("B", destinations(1))
   }
   class AbortTwoLinearTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A → B
-    val a = echoTask("A", destinations(0).ref.path, abortOnReceive = true)
-    echoTask("B", destinations(1).ref.path, dependencies = Set(a))
+    val a = echoFulltask("A", destinations(0), abortOnReceive = true)
+    echoFulltask("B", destinations(1), a :: HNil)
   }
 }
-class AbortSpec extends ActorSysSpec {
+class Step4_AbortSpec extends ActorSysSpec {
   //Ensure the following happens:
   //  · The task that instigated the early termination will change state to Aborted.
   //  · Every unstarted task will be prevented from starting even if its dependencies have finished.
@@ -39,7 +40,7 @@ class AbortSpec extends ActorSysSpec {
         val testCase = new TestCase[AbortSingleTaskOrchestrator](1, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongTestProbeOf("A")
+              pingPong("A")
 
               secondState.updatedExactStatuses(
                 "A" → Aborted(testsAbortReason)
@@ -65,14 +66,14 @@ class AbortSpec extends ActorSysSpec {
         val testCase = new TestCase[AbortTwoIndependentTasksOrchestrator](2, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongTestProbeOf("A")
+              pingPong("A")
 
               secondState.updatedExactStatuses(
                 "A" → Aborted(testsAbortReason),
                 "B" → Waiting
               )
             }, { thirdState ⇒
-              pingPongTestProbeOf("B")
+              pingPong("B")
 
               thirdState.updatedExactStatuses(
                 "B" → Finished("finished")
@@ -106,7 +107,7 @@ class AbortSpec extends ActorSysSpec {
         val testCase = new TestCase[AbortTwoLinearTasksOrchestrator](2, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
-              pingPongTestProbeOf("A")
+              pingPong("A")
 
               secondState.updatedExactStatuses(
                 "A" → Aborted(testsAbortReason)

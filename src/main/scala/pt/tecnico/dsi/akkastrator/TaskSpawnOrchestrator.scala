@@ -47,7 +47,7 @@ class Spawner extends Actor with ActorLogging {
   * @tparam R the type the AbstractOrchestrator created in Props must have as its type parameter.
   * @tparam O the type of AbstractOrchestrator the Props must create.
   */
-class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]](props: Props, task: FullTask[_, _, _])
+class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]](props: Props, task: FullTask[_, _])
                                                             (implicit classtag: ClassTag[O]) extends Task[R](task) {
   require(classtag.runtimeClass.isAssignableFrom(props.actorClass()),
     "Props.actorClass must comply with <: AbstractOrchestrator[R]")
@@ -62,6 +62,6 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]](props: Props, task:
     case m @ TasksFinished(result, id) if matchId(id) =>
       finish(m, id, result.asInstanceOf[R])
     case m @ TaskAborted(_, cause, id) if matchId(id) =>
-      abort(m, cause, id)
+      abort(m, id, cause)
   }
 }

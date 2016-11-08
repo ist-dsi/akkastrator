@@ -1,11 +1,13 @@
 package pt.tecnico.dsi.akkastrator
 
+import scala.concurrent.duration.DurationInt
+
 import akka.actor._
 import akka.testkit.{TestDuration, TestProbe}
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
-import scala.concurrent.duration.DurationInt
+import shapeless.{HList, HNil}
 
-class DependenciesSpec  extends ActorSysSpec {
+class Step2_DependenciesSpec  extends ActorSysSpec {
   def NChainedTasksOrchestrator(numberOfTasks: Int): (Array[TestProbe], ActorRef) = {
     require(numberOfTasks >= 2, "Must have at least 2 tasks")
     val destinations = Array.fill(numberOfTasks)(TestProbe())
@@ -14,10 +16,11 @@ class DependenciesSpec  extends ActorSysSpec {
     val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
       override def persistenceId: String = s"$numberOfTasks-chained-orchestrator"
       
-      var last = echoTask(letters(0).toString, destinations(0).ref.path)
-      
+      var last: FullTask[String, _ <: HList] = echoFulltask(letters(0).toString, destinations(0))
+  
+      import scala.language.existentials
       for (i <- 1 until numberOfTasks) {
-        val current = echoTask(letters(i).toString, destinations(i).ref.path, Set(last))
+        val current = echoFulltask(letters(i).toString, destinations(i), last :: HNil)
         last = current
       }
     }))
@@ -34,7 +37,7 @@ class DependenciesSpec  extends ActorSysSpec {
         for (j <- (i + 1) until numberOfTasks) {
           destinations(j).expectNoMsg(100.millis.dilated)
         }
-        destinations(i).reply(SimpleMessage(s"Destination $i", message.id))
+        destinations(i) reply SimpleMessage(s"Destination $i", message.id)
       }
     }
   }
@@ -49,36 +52,35 @@ class DependenciesSpec  extends ActorSysSpec {
   "An Orchestrator" should {
     "Send one message, handle the response and finish" in {
       val destinationActor0 = TestProbe()
-
+      
       val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-single-task"
-
-        echoTask("A", destinationActor0.ref.path)
+        echoFulltask("A", destinationActor0)
       }))
-
+      
       withOrchestratorTermination(orchestrator) {
         val a0m = destinationActor0.expectMsgClass(classOf[SimpleMessage])
-        destinationActor0.reply(SimpleMessage("Destination 0", a0m.id))
+        destinationActor0 reply SimpleMessage("Destination 0", a0m.id)
       }
     }
     "Send two messages, handle the response with the same type and finish" in {
       val destinations = Array.fill(2)(TestProbe())
-
+      
       val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-two-tasks"
-
-        echoTask("A", destinations(0).ref.path)
-        echoTask("B", destinations(1).ref.path)
+        
+        echoFulltask("A", destinations(0))
+        echoFulltask("B", destinations(1))
       }))
-
+      
       withOrchestratorTermination(orchestrator) {
         val a0m = destinations(0).expectMsgClass(classOf[SimpleMessage])
         val a1m = destinations(1).expectMsgClass(classOf[SimpleMessage])
-        destinations(0).reply(SimpleMessage("Destination 0", a0m.id))
-        destinations(1).reply(SimpleMessage("Destination 1", a1m.id))
+        destinations(0) reply SimpleMessage("Destination 0", a0m.id)
+        destinations(1) reply SimpleMessage("Destination 1", a1m.id)
       }
     }
-
+    
     "Handle dependencies: A → B" in {
       testNChainedEchoTasks(numberOfTasks = 2)
     }
@@ -94,9 +96,9 @@ class DependenciesSpec  extends ActorSysSpec {
 
       val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-tasks-in-T"
-        val a = echoTask("A", destinations(0).ref.path)
-        val b = echoTask("B", destinations(1).ref.path)
-        echoTask("C", destinations(2).ref.path, Set(a, b))
+        val a = echoFulltask("A", destinations(0))
+        val b = echoFulltask("B", destinations(1))
+        echoFulltask("C", destinations(2), a :: b :: HNil)
       }))
 
       withOrchestratorTermination(orchestrator) {

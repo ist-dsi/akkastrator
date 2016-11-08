@@ -10,11 +10,11 @@ import shapeless.HNil
 
 object TaskBundle {
   object InnerOrchestrator {
-    def props[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil, HNil]], task: FullTask[_, _, _]): Props = {
+    def props[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], task: FullTask[_, _]): Props = {
       Props(classOf[InnerOrchestrator[R]], tasksCreator, task.orchestrator.persistenceId)
     }
   }
-  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil, HNil]], outerOrchestratorPersistenceId: String) extends Orchestrator[Seq[R]] {
+  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], outerOrchestratorPersistenceId: String) extends Orchestrator[Seq[R]] {
     def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
     
     //Create the tasks and add them to this orchestrator
@@ -31,7 +31,9 @@ object TaskBundle {
     //The default implementation of onAbort in AbstractOrchestrator is sufficient to handle the case when a task aborts.
   }
   
-  //TODO: special apply when all dependencies have a type R conforming to CC[X] <: Transversable[X]
+  def apply[R](task: FullTask[_, _])(taskCreator: Seq[AbstractOrchestrator[_] => FullTask[R, HNil]]): TaskBundle[R] = {
+    new TaskBundle[R](task)(o => taskCreator.map(task => task(o)))
+  }
 }
 
 /**
@@ -42,7 +44,5 @@ object TaskBundle {
   * @param tasksCreator
   * @tparam R the type the AbstractOrchestrator created in Props must have as its type parameter.
   */
-class TaskBundle[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil, HNil]], task: FullTask[_, _, _])
-  extends TaskSpawnOrchestrator[Seq[R], InnerOrchestrator[R]](
-    InnerOrchestrator.props(tasksCreator, task), task
-  )(classTag[InnerOrchestrator[R]])
+class TaskBundle[R](task: FullTask[_, _])(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
+  extends TaskSpawnOrchestrator[Seq[R], InnerOrchestrator[R]](InnerOrchestrator.props(tasksCreator, task), task)//(classTag[InnerOrchestrator[R]])

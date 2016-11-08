@@ -24,12 +24,13 @@ object Orchestrator {
   
   // It would be nice to find a way to ensure the type parameter R of this class matches with the type parameter R of orchestrator
   case class TasksFinished[R](result: R, id: Long)
-  case class TaskAborted[R](instigatorReport: TaskReport[R], cause: AbortCause, id: Long)
+  case class TaskAborted[R](instigatorReport: TaskReport[R], cause: Exception, id: Long)
   
   case object SaveSnapshot
   
   case object Status
   case class StatusResponse(tasks: IndexedSeq[TaskReport[_]])
+  //TODO: we could also respond with a OrchestratorWasntStarted
   
   case object ShutdownOrchestrator
 }
@@ -78,6 +79,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   /** The type of Id this orchestrator handles. */
   type ID <: Id
   
+  protected[akkastrator] case class StartTask(index: Int)
+  
   /** This exists to make the creation of tasks easier. */
   final implicit val orchestrator = this
   
@@ -86,25 +89,25 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * Once every task is added to this list, this becomes "immutable", that is, it will no longer be modified.
     * This is a Vector because we want to ensure indexing elements and appending is very fast O(eC).
     */
-  private[this] var _tasks = Vector.empty[FullTask[_, _, _]]
+  private[this] final var _tasks = Vector.empty[FullTask[_, _]]
   /**
     * INTERNAL API
     * Only FullTask takes advantage of the private[akkastrator].
     */
-  private[akkastrator] def addTask(task: FullTask[_, _, _]): Int = {
+  private[akkastrator] def addTask(task: FullTask[_, _]): Int = {
     val index = tasks.length
     _tasks :+= task
     index
   }
-  def tasks: Vector[FullTask[_, _, _]] = _tasks
+  def tasks: Vector[FullTask[_, _]] = _tasks
   
   // By using HashMaps instead of HashSets we let the implementation of hashCode and equals of Task and Action to be free.
   // We use HashMaps to ensure remove/insert operations are very fast O(eC). The keys are the Task.index.
   // If you look at the Orchestrator as an ExecutionContext or as a process scheduler these lists are the queues.
   // INTERNAL API: These are only used by Task and Action.
-  private[akkastrator] var unstartedTasks = HashMap.empty[Int, FullTask[_, _, _]]
-  private[akkastrator] var waitingTasks = HashMap.empty[Int, Task[_]]
-  private[akkastrator] var finishedTasks = 0
+  private[akkastrator] final var unstartedTasks = HashMap.empty[Int, FullTask[_, _]]
+  private[akkastrator] final var waitingTasks = HashMap.empty[Int, Task[_]]
+  private[akkastrator] final var finishedTasks = 0
   
   // The state this orchestrator is storing. Starts out empty.
   private[this] final var _state: S = _
@@ -113,7 +116,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   /** Sets the new state for this orchestrator. */
   final def state_=(state: S): Unit = _state = state
   
-  //The id obtained in the StartOrchestrator message which prompted the execution of this orchestrator tasks
+  // The id obtained in the StartOrchestrator message which prompted the execution of this orchestrator tasks
+  // This is mainly used for TaskSpawnOrchestrator
   private[this] final var _startId: Long = _
   protected def startId: Long = _startId
   
@@ -152,6 +156,9 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     */
   def matchId(task: Task[_], id: Long): Boolean
   
+  
+  
+  
   /**
     * User overridable callback. Its called every time a task finishes.
     *
@@ -159,7 +166,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *
     * This method is not invoked when a task aborts.
     */
-  def onTaskFinish(finishedTask: Task[_]): Unit = ()
+  def onTaskFinish(finishedTask: FullTask[_, _]): Unit = ()
   
   /**
     * User overridable callback. Its called once every task finishes.
@@ -191,10 +198,20 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * @param message the message that caused the abort.
     * @param tasks Map with the tasks states at the moment of abort.
     */
-  def onAbort(instigator: FullTask[_, _, _], message: Any, cause: AbortCause, tasks: Map[Task.State, Seq[FullTask[_, _, _]]]): Unit = {
+  def onAbort(instigator: FullTask[_, _], message: Any, cause: Exception, tasks: Map[Task.State, Seq[FullTask[_, _]]]): Unit = {
     log.info(s"${self.path.name} Aborted due to $cause!")
     context.parent ! TaskAborted(instigator.toTaskReport, cause, startId)
     context stop self
+  }
+  
+  
+  final def recoveryAwarePersist(event: Any)(handler: => Unit): Unit = {
+    if (orchestrator.recoveryRunning) {
+      // When recovering the event is already persisted no need to persist it again.
+      handler
+    } else {
+      orchestrator.persist(event)(_ => handler)
+    }
   }
   
   /**
@@ -205,17 +222,20 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     */
   final def restart(): Unit = {
     //TODO: since require throws an exception it might cause a crash cycle
-    //TODO: how to know a task aborted - when a task aborts it is removed from the waitingTasks list but it
-    //is neither added to the unstartedTasks nor is the finishedTasks counter increased. So if:
-    //unstartedTasks.size + waitingTasks.size + finishedTasks < tasks.size
-    //then that means a task aborted
-    require(finishedTasks == tasks.length /*|| aTaskAborted*/,
+    
+    // When a task aborts it is removed from the waitingTasks list but it is neither added to
+    // the unstartedTasks nor is the finishedTasks counter increased. So if:
+    //   unstartedTasks.size + waitingTasks.size + finishedTasks < tasks.size
+    // then that means a task aborted
+    val aTaskAborted = unstartedTasks.size + waitingTasks.size + finishedTasks < tasks.size
+    require(finishedTasks == tasks.length || aTaskAborted,
       "An orchestrator can only restart if all tasks have finished or a task caused an abort.")
-    unstartedTasks = HashMap.empty[Int, FullTask[_, _, _]]
+    
+    unstartedTasks = HashMap.empty[Int, FullTask[_, _]]
     waitingTasks = HashMap.empty[Int, Task[_]]
     finishedTasks = 0
-    //TODO: clean the distinct ids state
-    //TODO: because restart can be invoked when a task aborted (most notably inside onAbort) there may exist tasks
+    //TODO: clean the distinct ids state:
+    //because restart can be invoked when a task aborted (most notably inside onAbort) there may exist tasks
     //which were waiting when we restarted the orchestrator, so now the orchestrator might receive their responses.
     //Handling their responses will most likely crash the orchestrator since we cleared the distinct ids state
     //and the method getDeliveryIdFor will blow.
@@ -224,11 +244,10 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   }
   
   final def computeCurrentBehavior(): Receive = {
-    val baseCommands: Actor.Receive = shutdownAndSaveSnapshot orElse {
-      case Status =>
-        sender() ! StatusResponse(tasks.map(_.toTaskReport))
+    val baseCommands: Actor.Receive = alwaysAvailableCommands orElse {
+      case StartTask(index) => tasks(index).start()
     }
-    // baseCommands is the first receive to guarantee that ShutdownOrchestrator, SaveSnapshot and Status
+    // baseCommands is the first receive to guarantee that ShutdownOrchestrator, SaveSnapshot, StartTask and Status
     // won't be taken first by one of the tasks behaviors or the extraCommands. Similarly extraCommands
     // is the last receive to ensure it doesn't take one of the messages of the waiting task behaviors.
     waitingTasks.values.map(_.behavior).fold(baseCommands)(_ orElse _) orElse extraCommands
@@ -237,45 +256,50 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   private def start(): Unit = {
     if (tasks.isEmpty) {
       onFinish()
-    } else {
+    } else if (!recoveryRunning) {
       // When a task is created it adds itself to:
       // · waitingTasks, if its dependencies == HNil
       // · unstartedTasks, otherwise.
       // So in order to start the orchestrator we only need to start the tasks in the waitingTasks map.
       waitingTasks.foreach { case (_, task) =>
-        // The start will eventually invoke context.become(computeCurrentBehavior)
+        // The start will eventually invoke context become computeCurrentBehavior()
         task.start()
       }
+      // If recovery is running we don't need to start the tasks because we will eventually handle a MessageSent
+      // which will start the task(s).
     }
   }
   
+  /**
+    * Override this method to add extra commands that are always handled by this orchestrator (except when recovering).
+    */
+  def extraCommands: Actor.Receive = PartialFunction.empty[Any, Unit]
+  
+  //TODO: find better names for these methods
   final def unstarted: Actor.Receive = {
     case m @ StartOrchestrator(id) =>
-      persist(m) { _ =>
+      recoveryAwarePersist(m) {
         _startId = id
+        log.info(s"${self.path.name} - $m")
         start()
       }
   }
-  
-  final def shutdownAndSaveSnapshot: Actor.Receive = {
+  final def alwaysAvailableCommands: Actor.Receive = {
+    case Status =>
+      sender() ! StatusResponse(tasks.map(_.toTaskReport))
     case ShutdownOrchestrator =>
       context stop self
     case SaveSnapshot =>
       saveSnapshot(_state)
   }
-
-  /**
-    * Override this method to add extra commands that are always handled by this orchestrator (except when recovering).
-    */
-  def extraCommands: Actor.Receive = PartialFunction.empty[Any, Unit]
-
-  final def receiveCommand: Actor.Receive = unstarted orElse shutdownAndSaveSnapshot orElse extraCommands
+  
+  final def receiveCommand: Actor.Receive = unstarted orElse alwaysAvailableCommands orElse extraCommands
 
   def receiveRecover: Actor.Receive = unstarted orElse {
     case SnapshotOffer(metadata, offeredSnapshot: State) =>
       state = offeredSnapshot.asInstanceOf[S]
     case MessageSent(taskIndex) =>
-      val task = waitingTasks(taskIndex)
+      val task = tasks(taskIndex)
       log.info(task.withLogPrefix("Recovering MessageSent."))
       task.start()
     case MessageReceived(taskIndex, message) =>
@@ -285,9 +309,9 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     case RecoveryCompleted =>
       if (tasks.nonEmpty) {
         val tasksString = tasks.map(t ⇒ t.withLogPrefix(t.state.toString)).mkString("\n\t")
-        log.debug( s"""${self.path.name} - recovery completed:
-                      |\t$tasksString
-                      |\t#Unconfirmed: $numberOfUnconfirmed""".stripMargin)
+        log.debug(s"""${self.path.name} - recovery completed:
+                     |\t$tasksString
+                     |\t#Unconfirmed: $numberOfUnconfirmed""".stripMargin)
       }
   }
 }

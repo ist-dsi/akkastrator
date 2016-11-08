@@ -36,6 +36,16 @@ class Settings(config: Config = ConfigFactory.load()) {
 
   val saveSnapshotRoughlyEveryXMessages = getInt("save-snapshot-roughly-every-X-messages")
   val useTaskColors = getBoolean("use-task-colors")
+  
+  //TODO: can we allow defining these on the settings?
+  val taskColors = Vector(
+    Console.MAGENTA,
+    Console.CYAN,
+    Console.GREEN,
+    Console.BLUE,
+    Console.YELLOW,
+    Console.WHITE
+  )
 
   override def toString: String = akkastratorConfig.root.render
 }
