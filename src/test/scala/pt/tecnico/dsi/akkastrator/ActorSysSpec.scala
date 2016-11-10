@@ -52,8 +52,10 @@ object ActorSysSpec {
       }
     }
     
-    def simpleMessagefulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, _result: R, dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
-                                                          (implicit orchestrator: AbstractOrchestrator[_], tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
+    def simpleMessagefulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, _result: R,
+                                                           dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
+                                                          (implicit orchestrator: AbstractOrchestrator[_],
+                                                           tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
       fulltask(description, dest, SimpleMessage(description, _), _result, dependencies, abortOnReceive)
     }
     

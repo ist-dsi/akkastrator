@@ -8,8 +8,7 @@ import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.HNil
 
 object RecoverSpec {
-  class NoTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-  }
+  class NoTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe)
   /**
     * A
     */
@@ -136,7 +135,7 @@ class RecoverSpec extends ActorSysSpec {
       """there are two independent tasks:
         |  A
         |  B""".stripMargin in {
-        val testCase2 = new TestCase[TwoTasksOrchestrator](1, Set("A", "B")) {
+        val testCase2 = new TestCase[TwoTasksOrchestrator](numberOfDestinations = 1, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
               pingPong("A")

@@ -89,7 +89,7 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
     "behave according to the documentation" when {
       //A -> N*B
       "there's a single bundle" in {
-        val testCase = new TestCase[SimpleTaskBundleOrchestrator](6, Set("A")) {
+        val testCase = new TestCase[SimpleTaskBundleOrchestrator](numberOfDestinations = 6, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
               pingPong("A")
@@ -132,7 +132,7 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
       // A →⟨   ⟩→ 2*N*D
       //     N*C
       "there are three bundles: B and C handled at same time" in {
-        val testCase = new TestCase[ComplexTaskBundleOrchestrator](4, Set("A")) {
+        val testCase = new TestCase[ComplexTaskBundleOrchestrator](numberOfDestinations = 4, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
               pingPong("A")
@@ -178,7 +178,7 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
       "there are three bundles: B handled then C handled" in {
-        val testCase = new TestCase[ComplexBFirstTaskBundleOrchestrator](4, Set("A")) {
+        val testCase = new TestCase[ComplexBFirstTaskBundleOrchestrator](numberOfDestinations = 4, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
               pingPong("A")
@@ -251,7 +251,7 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
       "there are three bundles: C handled then B handled" in {
-        val testCase = new TestCase[ComplexCFirstTaskBundleOrchestrator](4, Set("A")) {
+        val testCase = new TestCase[ComplexCFirstTaskBundleOrchestrator](numberOfDestinations = 4, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
               pingPong("A")
@@ -325,7 +325,7 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
     }
     "should abort" when {
       "when an inner task aborts" in {
-        val testCase = new TestCase[AbortingTaskBundleOrchestrator](6, Set("A")) {
+        val testCase = new TestCase[AbortingTaskBundleOrchestrator](numberOfDestinations = 6, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
               pingPong("A")

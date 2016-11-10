@@ -51,7 +51,7 @@ object DSL {
       * }}}
       */
     def apply[DP <: Product, DL <: HList, RL <: HList](description: String, dependencies: DP, timeout: Duration)
-                                                      (implicit gen: Generic.Aux[DP, DL], cm: TaskComapped.Aux[DL, RL]) = {
+                                                      (implicit gen: Generic.Aux[DP, DL], cm: TaskComapped.Aux[DL, RL]): PartialTask[DL, RL] = {
       new PartialTask(description, gen.to(dependencies), timeout)
     }
   
@@ -64,7 +64,7 @@ object DSL {
       * }}}
       */
     def apply[DL <: HList, RL <: HList](description: String, dependencies: DL = HNil: HNil, timeout: Duration = Duration.Inf)
-                                       (implicit cm: TaskComapped.Aux[DL, RL]) = {
+                                       (implicit cm: TaskComapped.Aux[DL, RL]): PartialTask[DL, RL] = {
       new PartialTask(description, dependencies, timeout)
     }
   }
@@ -99,8 +99,10 @@ object DSL {
   }
   
   // Allows (task1, task2) areDependenciesOf otherTaskMethod
-  implicit def tuple2TaskWithDependencies[DL <: HList, DP <: Product](dependencies: DP)(implicit gen: Generic.Aux[DP, DL],
-                                                                                        ev: TaskComapped[DL], at: At[DL, _0]): hlist2TaskWithDependencies[DL] = {
+  implicit def tuple2TaskWithDependencies[DL <: HList, DP <: Product](dependencies: DP)
+                                                                     (implicit gen: Generic.Aux[DP, DL],
+                                                                      ev: TaskComapped[DL],
+                                                                      at: At[DL, _0]): hlist2TaskWithDependencies[DL] = {
     new hlist2TaskWithDependencies[DL](gen.to(dependencies))
   }
   

@@ -14,7 +14,8 @@ object TaskBundle {
       Props(classOf[InnerOrchestrator[R]], tasksCreator, task.orchestrator.persistenceId)
     }
   }
-  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], outerOrchestratorPersistenceId: String) extends Orchestrator[Seq[R]] {
+  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
+                             outerOrchestratorPersistenceId: String) extends Orchestrator[Seq[R]] {
     def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
     
     //Create the tasks and add them to this orchestrator

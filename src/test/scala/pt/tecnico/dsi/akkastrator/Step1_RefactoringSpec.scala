@@ -94,7 +94,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     }
   }
   
-  def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: ⇒ O)(numberOfTasks: Int): Unit = {
+  def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: ⇒ O, numberOfTasks: Int): Unit = {
     val orchestrator = system.actorOf(Props(creator))
     orchestrator ! Status
   
@@ -123,7 +123,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           
           deleteUser("a")
         }
-        testNumberOfTasks(new Simple1Orchestrator())(2)
+        testNumberOfTasks(new Simple1Orchestrator(), numberOfTasks = 2)
       }
       "DistinctIdsTasks are added to a distinctIds orchestrator" in {
         class DistinctIds1Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks {
@@ -166,7 +166,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           // This would fail
           //  d :: where :: HNil areDependenciesOf post
         }
-        testNumberOfTasks(new DistinctIds1Orchestrator())(4)
+        testNumberOfTasks(new DistinctIds1Orchestrator(), numberOfTasks = 4)
       }
       "AbstractTasks are added to a simple orchestrator" in {
         class Simple2Orchestrator extends Orchestrator() with SimpleTasks with AbstractTasks {
@@ -175,7 +175,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           obtainLocation isDependencyOf ping
           obtainLocation -> ping
         }
-        testNumberOfTasks(new Simple2Orchestrator())(4)
+        testNumberOfTasks(new Simple2Orchestrator(), numberOfTasks = 4)
       }
       "AbstractTasks are added to a distinctIds orchestrator" in {
         class DistinctIds2Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with AbstractTasks {
@@ -183,7 +183,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
   
           (getHiggs, obtainLocation) -> post
         }
-        testNumberOfTasks(new DistinctIds2Orchestrator())(3)
+        testNumberOfTasks(new DistinctIds2Orchestrator(), numberOfTasks = 3)
       }
     }
   }

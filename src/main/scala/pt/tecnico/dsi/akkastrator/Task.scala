@@ -214,5 +214,5 @@ abstract class Task[R](val task: FullTask[_, _]) {
   def withLogPrefix(message: => String): String = task.withLogPrefix(message)
   def toTaskReport: TaskReport[R] = task.toTaskReport.asInstanceOf[TaskReport[R]]
   
-  override def toString = s"Task($expectedDeliveryId, $state, $destination)"
+  override def toString: String = s"Task($expectedDeliveryId, $state, $destination)"
 }

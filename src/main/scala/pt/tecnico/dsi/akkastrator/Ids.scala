@@ -6,12 +6,12 @@ sealed trait Id extends Any with Typed[Long]
 final class DeliveryId(val self: Long) extends AnyVal with Ordered[DeliveryId] with Id {
   def compare(that: DeliveryId): Int = self.compare(that.self)
   
-  override def toString = s"DeliveryId($self)"
+  override def toString: String = s"DeliveryId($self)"
 }
 final class CorrelationId(val self: Long) extends AnyVal with Ordered[CorrelationId] with Id {
   def compare(that: CorrelationId): Int = self.compare(that.self)
   
-  override def toString = s"CorrelationId($self)"
+  override def toString: String = s"CorrelationId($self)"
 }
 
 trait IdImplicits {
