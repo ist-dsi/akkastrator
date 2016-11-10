@@ -57,7 +57,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
     require(state == Unstarted, "Start can only be invoked when this task is Unstarted.")
     log.info(withLogPrefix(s"Starting."))
     orchestrator.recoveryAwarePersist(MessageSent(task.index)) {
-      log.debug(withLogPrefix(s"Persisted MessageSent."))
+      if (!orchestrator.recoveryRunning) log.debug(withLogPrefix(s"Persisted MessageSent."))
       
       orchestrator.deliver(destination) { deliveryId =>
         // First we make sure the orchestrator is ready to deal with the answers from destination.
@@ -118,7 +118,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
   
   protected[akkastrator] def persistAndConfirmDelivery(receivedMessage: Serializable, id: Long)(continuation: => Unit): Unit = {
     orchestrator.recoveryAwarePersist(MessageReceived(task.index, receivedMessage)) {
-      log.debug(withLogPrefix(s"Persisted MessageReceived."))
+      if (!orchestrator.recoveryRunning) log.debug(withLogPrefix(s"Persisted MessageReceived."))
       val deliveryId = orchestrator.ID2DeliveryId(destination, id).self
       orchestrator.confirmDelivery(deliveryId)
       continuation

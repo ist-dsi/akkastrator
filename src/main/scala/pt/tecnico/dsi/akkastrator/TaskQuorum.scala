@@ -1,5 +1,6 @@
 package pt.tecnico.dsi.akkastrator
 
+import scala.collection.mutable
 import scala.reflect.classTag
 
 import akka.actor.Props
@@ -46,8 +47,6 @@ object TaskQuorum {
       case Seq(t1, t2) if t1.destination == t2.destination =>
         (t2, InitializationError("TasksCreator must generate tasks with distinct destinations."))
       case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) =>
-        // The check being performed is not fail proof because the user might have implemented a createMessage in task
-        // which returns different messages according to the id.
         (t2, InitializationError("TasksCreator must generate tasks with the same message."))
     } foreach { case (task, cause) =>
       // Saying a TaskAborted is an abuse of language, in fact it was the orchestrator that aborted
@@ -56,18 +55,35 @@ object TaskQuorum {
     }
     
     val votesToAchieveQuorum = minimumVotes(tasks.length)
-    private var receivedVotes: Int = finishedTasks
+    // Tolerance = how many votes the quorum can afford to not obtain/lose (due to an aborted) such that
+    // its not necessary to terminate the quorum inner orchestrator (this orchestrator)
+    // For example: if the quorum has 5 tasks, and minimumVotes = Majority then at most 2 tasks can abort/not answer
+    // if 3 tasks abort then we need to finish the orchestrator, TODO: which reason to give for the abortion?
+    val tolerance = tasks.length - votesToAchieveQuorum
+    
+    private[this] val resultsCount = mutable.Map.empty[R, Int]
+    private[this] var winningResult: R = _ // The result which has most votes so far
+    private[this] var winningResultCount: Int = 0 // The number of votes of the winning result
     
     override def onTaskFinish(finishedTask: FullTask[_, _]): Unit = {
-      receivedVotes += 1
-      if (receivedVotes >= votesToAchieveQuorum) {
+      val result = finishedTask.result.asInstanceOf[R]
+      val currentCount = resultsCount.getOrElse(result, 0)
+      val newCount = currentCount + 1
+      resultsCount(result) = newCount
+      
+      if (newCount > winningResultCount) {
+        winningResult = result
+        winningResultCount = newCount
+      }
+      
+      if (winningResultCount >= votesToAchieveQuorum) {
         // We already achieved a quorum. So now we want to abort all the tasks that are still waiting.
         // But not cause the orchestrator to abort.
         waitingTasks.foreach { case (_, task) =>
           log.info(task.withLogPrefix(s"Aborting due to $QuorumAlreadyAchieved"))
           //We know "get" will succeed because the task is waiting
           //receivedMessage is set to None to make it more obvious that we did not receive a message for this task
-          task.persistAndConfirmDelivery(receivedMessage = None, task.expectedDeliveryId.get.self) {
+          task.persistAndConfirmDelivery(receivedMessage = None, id = task.expectedDeliveryId.get.self) {
             task.expectedDeliveryId = None
             task.state = Aborted(QuorumAlreadyAchieved)
             waitingTasks -= task.task.index
@@ -81,12 +97,7 @@ object TaskQuorum {
     
     override def onFinish(): Unit = {
       log.info(s"${self.path.name} Finished!")
-      //We just return the result of finished tasks.
-      //We know the cast will succeed because every task is a Task[R].
-      val results: Seq[R] = tasks.map(_.state).collect {
-        case Finished(result) => result.asInstanceOf[R]
-      }
-      context.parent ! TasksFinished(results, startId)
+      context.parent ! TasksFinished(winningResult, startId)
       context stop self
     }
   

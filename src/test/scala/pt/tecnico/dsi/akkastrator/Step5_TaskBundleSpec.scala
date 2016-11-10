@@ -14,7 +14,7 @@ object Step5_TaskBundleSpec {
   
   // A -> N*B
   class SimpleTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = fulltask("A", destinations(0), aResult)
+    val a = simpleMessagefulltask("A", destinations(0), aResult)
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
@@ -39,28 +39,28 @@ object Step5_TaskBundleSpec {
   // A →⟨   ⟩→ 2N*D
   //     N*C
   class ComplexTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = fulltask("A", destinations(0), aResult)
+    val a = simpleMessagefulltask("A", destinations(0), aResult)
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
           //Using a method that creates a full task.
           //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
           // We are using the default value for Taskcommaped.
-          fulltask(s"$fruit-B", destinations(1), fruit)(o)
+          simpleMessagefulltask(s"$fruit-B", destinations(1), fruit)(o)
         }
       )
     }
     val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
-          fulltask(s"$fruit-C", destinations(2), fruit)(o)
+          simpleMessagefulltask(s"$fruit-C", destinations(2), fruit)(o)
         }
       )
     }
     val d = FullTask("D", b :: c :: HNil) createTaskWith { case fruitsB :: fruitsC :: HNil =>
       new TaskBundle(_)(o =>
         (fruitsB ++ fruitsC) map { fruit =>
-          fulltask(s"$fruit-D", destinations(3), fruit)(o)
+          simpleMessagefulltask(s"$fruit-D", destinations(3), fruit)(o)
         }
       )
     }
@@ -70,15 +70,15 @@ object Step5_TaskBundleSpec {
   
   // A -> N*B (one of B aborts)
   class AbortingTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = fulltask("A", destinations(0), aResult)
+    val a = simpleMessagefulltask("A", destinations(0), aResult)
     FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
         new TaskBundle(_)(o =>
           Seq(
-            fulltask("Farfalhi", destinations(1), "Farfalhi")(o),
-            fulltask("Kunami", destinations(2), "Kunami")(o),
-            fulltask("Funini", destinations(3), "Funini", abortOnReceive = true)(o),
-            fulltask("Katuki", destinations(4), "Katuki")(o),
-            fulltask("Maracaté", destinations(5), "Maracaté")(o)
+            simpleMessagefulltask("Farfalhi", destinations(1), "Farfalhi")(o),
+            simpleMessagefulltask("Kunami", destinations(2), "Kunami")(o),
+            simpleMessagefulltask("Funini", destinations(3), "Funini", abortOnReceive = true)(o),
+            simpleMessagefulltask("Katuki", destinations(4), "Katuki")(o),
+            simpleMessagefulltask("Maracaté", destinations(5), "Maracaté")(o)
           )
         )
     }
@@ -364,5 +364,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
     }
+    //TODO: test timeouts
   }
 }

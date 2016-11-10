@@ -30,10 +30,6 @@ object TaskBundle {
     
     //The default implementation of onAbort in AbstractOrchestrator is sufficient to handle the case when a task aborts.
   }
-  
-  def apply[R](task: FullTask[_, _])(taskCreator: Seq[AbstractOrchestrator[_] => FullTask[R, HNil]]): TaskBundle[R] = {
-    new TaskBundle[R](task)(o => taskCreator.map(task => task(o)))
-  }
 }
 
 /**

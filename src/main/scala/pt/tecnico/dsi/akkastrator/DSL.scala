@@ -45,13 +45,13 @@ object DSL {
     /**
       * Allows creating a FullTask using tuple syntax:
       * {{{
-      *   FullTask("some description", (a, b)) createTaskWith { case aResult :: bResult :: HNil =>
+      *   FullTask("some description", (a, b), Duration.Inf) createTaskWith { case aResult :: bResult :: HNil =>
       *
       *   }
       * }}}
       */
-    def apply[DL <: HList, DP <: Product, RL <: HList](description: String, dependencies: DP, timeout: Duration)
-                                                      (implicit cm: TaskComapped.Aux[DL, RL], gen: Generic.Aux[DP, DL]) = {
+    def apply[DP <: Product, DL <: HList, RL <: HList](description: String, dependencies: DP, timeout: Duration)
+                                                      (implicit gen: Generic.Aux[DP, DL], cm: TaskComapped.Aux[DL, RL]) = {
       new PartialTask(description, gen.to(dependencies), timeout)
     }
   

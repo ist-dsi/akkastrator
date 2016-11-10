@@ -30,15 +30,17 @@ object ActorSysSpec {
   abstract class ControllableOrchestrator(terminationProbe: ActorRef, startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
     private var destinations = Map.empty[String, TestProbe]
-    
-    def fulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, _result: R, dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
-                                             (implicit orchestrator: AbstractOrchestrator[_], tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
+  
+    def fulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, message: Long => Any, _result: R,
+                                              dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
+                                             (implicit orchestrator: AbstractOrchestrator[_],
+                                              tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
       destinations += description -> dest
       FullTask(description, dependencies) createTaskWith { _ =>
         new Task[R](_) {
           val destination: ActorPath = dest.ref.path
-          def createMessage(id: Long): Any = SimpleMessage(description, id)
-          def behavior: Receive = /*LoggingReceive.withLabel(f"Task [$index%02d - $description]")*/ {
+          def createMessage(id: Long): Any = message(id)
+          def behavior: Receive =  {
             case m @ SimpleMessage(_, id) if matchId(id) =>
               if (abortOnReceive) {
                 abort(m, id, testsAbortReason)
@@ -50,9 +52,14 @@ object ActorSysSpec {
       }
     }
     
+    def simpleMessagefulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, _result: R, dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
+                                                          (implicit orchestrator: AbstractOrchestrator[_], tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
+      fulltask(description, dest, SimpleMessage(description, _), _result, dependencies, abortOnReceive)
+    }
+    
     def echoFulltask[DL <: HList, RL <: HList](description: String, dest: TestProbe, dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
                                               (implicit orchestrator: AbstractOrchestrator[_], tc: TaskComapped.Aux[DL, RL]): FullTask[String, DL] = {
-      fulltask(description, dest, "finished", dependencies, abortOnReceive)
+      simpleMessagefulltask(description, dest, "finished", dependencies, abortOnReceive)
     }
   
     override def persistenceId: String = this.getClass.getSimpleName

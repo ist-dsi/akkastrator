@@ -173,14 +173,15 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           def persistenceId: String = "Simple2"
       
           obtainLocation isDependencyOf ping
+          obtainLocation -> ping
         }
-        testNumberOfTasks(new Simple2Orchestrator())(3)
+        testNumberOfTasks(new Simple2Orchestrator())(4)
       }
       "AbstractTasks are added to a distinctIds orchestrator" in {
         class DistinctIds2Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with AbstractTasks {
           def persistenceId: String = "DistinctIds2"
   
-          (getHiggs, obtainLocation) areDependenciesOf post
+          (getHiggs, obtainLocation) -> post
         }
         testNumberOfTasks(new DistinctIds2Orchestrator())(3)
       }
