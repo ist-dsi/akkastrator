@@ -21,8 +21,6 @@ import java.text.MessageFormat
   */
 abstract class FullTask[R, DL <: HList](val description: String, val dependencies: DL, val timeout: Duration)
                                        (implicit val orchestrator: AbstractOrchestrator[_], val comapped: TaskComapped[DL]) {
-  import orchestrator.log
-  
   // These fields are vars but once they are computed, they become "immutable", that is, they will no longer be modified.
   // Dependents = tasks that depend on this task. Used to notify them that this task has finished.
   private[this] final var dependents = Seq.empty[FullTask[_, _]]
@@ -58,16 +56,12 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     dependenciesIndexes +:= dependency.index
   }
   //From here on the dependents and dependenciesIndexes are no longer changed. They are just iterated over.
-  addToInitialTaskList()
-  
-  private final def addToInitialTaskList(): Unit = {
-    // By adding the tasks directly to the right list, we ensure that when the StartOrchestrator message
-    // is received we do not need to iterate through all the tasks to compute which ones can start right away.
-    if (dependencies == HNil) {
-      orchestrator.waitingTasks += index -> innerCreateTask()
-    } else {
-      orchestrator.unstartedTasks += index -> this
-    }
+  // By adding the tasks directly to the right list, we ensure that when the StartOrchestrator message
+  // is received we do not need to iterate through all the tasks to compute which ones can start right away.
+  if (dependencies == HNil) {
+    orchestrator.waitingTasks += index -> innerCreateTask()
+  } else {
+    orchestrator.unstartedTasks += index -> this
   }
   
   def createTask(results: comapped.ResultsList): Task[R]
@@ -137,18 +131,6 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     * This is only called by Task.
     */
   private[akkastrator] final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
-  
-  /**
-    * INTERNAL API
-    * This is only called by AbstractOrchestrator.
-    */
-  private[akkastrator] final def restart(): Unit = {
-    // Reset the mutable state of this Task
-    finishedDependencies = 0
-    innerTask = None
-    // Re add this task to the correct list since the lists were cleared.
-    addToInitialTaskList()
-  }
   
   /** @return the current state of this task. */
   final def state: Task.State = innerTask.map(_.state).getOrElse(Unstarted)

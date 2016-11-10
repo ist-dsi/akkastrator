@@ -100,12 +100,11 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
                 "B" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
-              //Resend of A
-              pingPong("A")
+              handleResend("A")
     
               //In parallel why not
-              (1 to 5).par.foreach { i =>
-                pingPong(destinations(i)) // Destinations of B tasks
+              aResult.indices.par.foreach { i =>
+                pingPong(destinations(i + 1)) // Destinations of B tasks
               }
               
               expectInnerOrchestratorTermination("B")
@@ -118,8 +117,8 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
               // This is consistent with the orchestrator recovering since the task B (the task bundle) will
               // recover the MessageReceived, thus it will never send the SpawnAndStart message.
               // Which in turn means the inner orchestrator will never be created.
-              (1 to 5).par.foreach { i =>
-                destinations(i).expectNoMsg()
+              aResult.indices.par.foreach { i =>
+                destinations(i + 1).expectNoMsg()
               }
     
               fourthState

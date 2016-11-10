@@ -46,7 +46,7 @@ object TaskQuorum {
     waitingTasks.values.sliding(2).collectFirst {
       case Seq(t1, t2) if t1.destination == t2.destination =>
         (t2, InitializationError("TasksCreator must generate tasks with distinct destinations."))
-      case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) =>
+      case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) =>  //TODO: This equality check might very easily fail
         (t2, InitializationError("TasksCreator must generate tasks with the same message."))
     } foreach { case (task, cause) =>
       // Saying a TaskAborted is an abuse of language, in fact it was the orchestrator that aborted
@@ -71,6 +71,7 @@ object TaskQuorum {
       val newCount = currentCount + 1
       resultsCount(result) = newCount
       
+      // Update the winning result
       if (newCount > winningResultCount) {
         winningResult = result
         winningResultCount = newCount
@@ -88,10 +89,13 @@ object TaskQuorum {
             task.state = Aborted(QuorumAlreadyAchieved)
             waitingTasks -= task.task.index
             context become orchestrator.computeCurrentBehavior()
+  
+            //TODO: does invoking onFinish inside the persistHandler cause any problem?
+            if (waitingTasks.isEmpty) {
+              orchestrator.onFinish()
+            }
           }
         }
-        //Since we got the quorum we can finish the orchestrator
-        onFinish()
       }
     }
     
@@ -115,7 +119,7 @@ object TaskQuorum {
   *   Different destinations
   *   Fixed message
   */
-class TaskQuorum[R](task: FullTask[_, _])(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], minimumVotes: MinimumVotes = Majority)
+class TaskQuorum[R](task: FullTask[_, _], minimumVotes: MinimumVotes = Majority)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[Seq[R], InnerOrchestrator[R]](
     InnerOrchestrator.props(tasksCreator, minimumVotes, task), task
   )(classTag[InnerOrchestrator[R]])

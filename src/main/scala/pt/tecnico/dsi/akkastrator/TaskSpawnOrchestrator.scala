@@ -49,6 +49,7 @@ class Spawner extends Actor with ActorLogging {
   */
 class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]](props: Props, task: FullTask[_, _])
                                                             (implicit classtag: ClassTag[O]) extends Task[R](task) {
+  //TODO: does require cause a crash loop? Maybe we should move this check to spawner
   require(classtag.runtimeClass.isAssignableFrom(props.actorClass()),
     "Props.actorClass must comply with <: AbstractOrchestrator[R]")
   

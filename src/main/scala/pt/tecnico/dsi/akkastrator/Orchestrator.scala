@@ -214,35 +214,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     }
   }
   
-  /**
-    * Every task will become Unstarted and the tasks will start again.
-    *
-    * Restart can only be invoked if all tasks have finished or a task caused an abort. If there is a task
-    * that is still waiting invoking this method will throw an exception.
-    */
-  final def restart(): Unit = {
-    //TODO: since require throws an exception it might cause a crash cycle
-    
-    // When a task aborts it is removed from the waitingTasks list but it is neither added to
-    // the unstartedTasks nor is the finishedTasks counter increased. So if:
-    //   unstartedTasks.size + waitingTasks.size + finishedTasks < tasks.size
-    // then that means a task aborted
-    val aTaskAborted = unstartedTasks.size + waitingTasks.size + finishedTasks < tasks.size
-    require(finishedTasks == tasks.length || aTaskAborted,
-      "An orchestrator can only restart if all tasks have finished or a task caused an abort.")
-    
-    unstartedTasks = HashMap.empty[Int, FullTask[_, _]]
-    waitingTasks = HashMap.empty[Int, Task[_]]
-    finishedTasks = 0
-    //TODO: clean the distinct ids state:
-    //because restart can be invoked when a task aborted (most notably inside onAbort) there may exist tasks
-    //which were waiting when we restarted the orchestrator, so now the orchestrator might receive their responses.
-    //Handling their responses will most likely crash the orchestrator since we cleared the distinct ids state
-    //and the method getDeliveryIdFor will blow.
-    tasks.foreach(_.restart())
-    start()
-  }
-  
   final def computeCurrentBehavior(): Receive = {
     val baseCommands: Actor.Receive = alwaysAvailableCommands orElse {
       case StartTask(index) => tasks(index).start()
@@ -311,7 +282,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
         val tasksString = tasks.map(t ⇒ t.withLogPrefix(t.state.toString)).mkString("\n\t")
         log.debug(s"""${self.path.name} - recovery completed:
                      |\t$tasksString
-                     |\t#Unconfirmed: $numberOfUnconfirmed""".stripMargin)
+                     |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin)
       }
   }
 }

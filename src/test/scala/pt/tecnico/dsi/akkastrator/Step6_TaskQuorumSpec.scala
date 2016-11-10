@@ -54,21 +54,21 @@ object Step6_TaskQuorumSpec {
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"$fruit-B", destinations(i + 1), SimpleMessage(fruit, _), fruit)(o)
+          fulltask(s"$fruit-B", destinations(i + 1), SimpleMessage("B message", _), fruit.length)(o)
         }
       )
     }
     val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
-      new TaskQuorum(_)(o =>
+      new TaskQuorum(_, AtLeast(2))(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"$fruit-C", destinations(i + 1), SimpleMessage(fruit, _), fruit)(o)
+          fulltask(s"$fruit-C", destinations(i + 1), SimpleMessage("C message", _), fruit.length)(o)
         }
       )
     }
     FullTask("D", (b, c), Duration.Inf) createTaskWith { case fruitsB :: fruitsC :: HNil =>
       new TaskQuorum(_)(o =>
-        (fruitsB ++ fruitsC).zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"$fruit-D", destinations(i + 1), SimpleMessage(fruit, _), fruit)(o)
+        Seq(fruitsB, fruitsC).zipWithIndex.map { case (fruit, i) =>
+          fulltask(s"$fruit-D", destinations(i + 1), SimpleMessage(fruit.toString, _), fruit)(o)
         }
       )
     }
@@ -106,9 +106,8 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
     }
-    
     "behave according to the documentation" when {
-      "there is only a single task quorum: A -> N*B" in {
+      "there is only a single quorum: A -> N*B - one task doesn't answer" in {
         val testCase = new TestCase[SimpleTaskQuorumOrchestrator](6, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
@@ -119,11 +118,8 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
               )
             }, { thirdState =>
               // One of the tasks in the quorum wont give out an answer
-              val notAnsweringTask = new Random().nextInt(aResult.length)
-              val quorumDestinations = aResult.indices.toSet - notAnsweringTask
-              //In parallel why not
-              quorumDestinations.par.foreach { i =>
-                pingPong(destinations(i + 1))
+              Random.shuffle(1 to 5).toSeq.drop(1).par.foreach { i =>
+                pingPong(destinations(i))
               }
               
               handleResend("A")
@@ -139,62 +135,60 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
+      
       /*
       """there are two bundles:
         |     N*B
         | A →⟨   ⟩→ 2*N*D
         |     N*C
       """.stripMargin in {
-        val testCase = new TestCase[ComplexTaskQuorumOrchestrator](4, Set('A)) {
+        val testCase = new TestCase[ComplexTaskQuorumOrchestrator](6, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
-              pingPongDestinationOf('A)
+              pingPong("A")
               
               secondState.updatedExactStatuses(
-                'A -> Finished(aResult)
+                "A" -> Finished(aResult)
               ).updatedStatuses(
-                'B -> Set(Unstarted, Waiting),
-                'C -> Set(Unstarted, Waiting)
+                "B" -> Set(Unstarted, Waiting),
+                "C" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
-              //In parallel why not
-              aResult.par.foreach { _ =>
-                pingPong(destinations(1))
-                pingPong(destinations(2))
+              // One of the tasks in the quorum wont give out an answer
+              Random.shuffle(1 to 5).toSeq.drop(1).par.foreach { i =>
+                pingPong(destinations(i)) // For B tasks
+              }
+              // We specified the C Quorum must have AtLeast 2 votes, so  One of the tasks in the quorum wont give out an answer
+              Random.shuffle(1 to 5).toSeq.drop(1).par.foreach { i =>
+                pingPong(destinations(i)) // For C tasks
               }
               
-              //Re-send of A
-              pingPongDestinationOf('A)
+              handleResend("A")
               
-              //We cannot directly control the inner orchestrator here,
-              //so we need to give some time to finish
-              Thread.sleep(100)
+              expectInnerOrchestratorTermination("B")
+              expectInnerOrchestratorTermination("C")
               
               thirdState.updatedStatuses(
-                'B -> Set(Waiting, Finished(aResult)),
-                'C -> Set(Waiting, Finished(aResult)),
-                'D -> Set(Unstarted, Waiting)
+                "B" -> Set(Waiting, Finished(6)),
+                "C" -> Set(Waiting, Finished(6)),
+                "D" -> Set(Unstarted, Waiting)
               )
             }, { fourthState =>
-              //In parallel why not
-              (0 until aResult.length * 2).par.foreach { _ =>
-                pingPong(destinations(3))
-              }
-              
-              //We cannot directly control the inner orchestrator here,
-              //so we need to give some time to finish
-              Thread.sleep(100)
+              pingPong(destinations(1))
+              pingPong(destinations(2))
+    
+              expectInnerOrchestratorTermination("D")
               
               fourthState.updatedExactStatuses(
-                'B -> Finished(aResult),
-                'C -> Finished(aResult)
+                "B" -> Finished(6),
+                "C" -> Finished(6)
               ).updatedStatuses(
-                'D -> Set(Waiting, Finished(aResult ++ aResult))
+                "D" -> Set(Waiting, Finished(6))
               )
             }
           )
         }
-        testCase.testRecovery()
+        testCase.testExpectedStatusWithRecovery()
       }
       */
     }
