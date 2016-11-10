@@ -108,7 +108,7 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
     }
     "behave according to the documentation" when {
       "there is only a single quorum: A -> N*B - one task doesn't answer" in {
-        val testCase = new TestCase[SimpleTaskQuorumOrchestrator](6, Set("A")) {
+        val testCase = new TestCase[SimpleTaskQuorumOrchestrator](numberOfDestinations = 6, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
               pingPong("A")

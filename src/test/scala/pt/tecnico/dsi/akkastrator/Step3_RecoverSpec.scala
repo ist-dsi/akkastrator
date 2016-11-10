@@ -158,7 +158,7 @@ class RecoverSpec extends ActorSysSpec {
         testCase2.testExpectedStatusWithRecovery()
       }
       "there are two linear tasks: A → B" in {
-        val testCase3 = new TestCase[TwoLinearTasksOrchestrator](1, Set("A")) {
+        val testCase3 = new TestCase[TwoLinearTasksOrchestrator](numberOfDestinations = 1, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
               pingPong("A")
@@ -185,7 +185,7 @@ class RecoverSpec extends ActorSysSpec {
         |  A
         |   ⟩→ C
         |  B""".stripMargin in {
-        val testCase4 = new TestCase[TasksInTOrchestrator](3, Set("A", "B")) {
+        val testCase4 = new TestCase[TasksInTOrchestrator](numberOfDestinations = 3, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
               pingPong("B")
@@ -221,7 +221,7 @@ class RecoverSpec extends ActorSysSpec {
         | A → C
         |   ↘
         |     D""".stripMargin in {
-        val testCase5 = new TestCase[FanOutTasksOrchestrator](4, Set("A")) {
+        val testCase5 = new TestCase[FanOutTasksOrchestrator](numberOfDestinations = 4, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
               pingPong("A")
@@ -264,7 +264,7 @@ class RecoverSpec extends ActorSysSpec {
         |    B
         |   ↗ ↘
         |  A → C""".stripMargin in {
-        val testCase6 = new TestCase[TasksInTriangleOrchestrator](2, Set("A")) {
+        val testCase6 = new TestCase[TasksInTriangleOrchestrator](numberOfDestinations = 2, Set("A")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
               pingPong("A")
@@ -300,7 +300,7 @@ class RecoverSpec extends ActorSysSpec {
         |  A → C
         |    ↘  ⟩→ E
         |  B → D""".stripMargin in {
-        val testCase7 = new TestCase[FiveTasksNoDepsBOrchestrator](5, Set("A", "B")) {
+        val testCase7 = new TestCase[FiveTasksNoDepsBOrchestrator](numberOfDestinations = 5, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
               pingPong("A")
@@ -352,7 +352,7 @@ class RecoverSpec extends ActorSysSpec {
         |  A → B
         |    ↘  ⟩→ E
         |  C → D""".stripMargin in {
-        val testCase8 = new TestCase[FiveTasksNoDepsCOrchestrator](5, Set("A", "B")) {
+        val testCase8 = new TestCase[FiveTasksNoDepsCOrchestrator](numberOfDestinations = 5, Set("A", "B")) {
           val transformations: Seq[State ⇒ State] = Seq(
             { secondState ⇒
               pingPong("A")
