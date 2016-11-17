@@ -17,7 +17,7 @@ trait DistinctIds { self: State ⇒
     */
   def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State with DistinctIds
 
-  /** Get the SortedMap relation between CorrelationId and DeliveryId for the given `destination`. */
+  /** @return the relations between CorrelationId and DeliveryId for the given `destination`. */
   final def getIdsFor(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
     idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId])
   }
@@ -60,11 +60,9 @@ trait DistinctIds { self: State ⇒
 
 /**
   * The simplest implementation of a State with DistinctIds. The is the default state used by a DistinctIdsOrchestrator.
-  *
-  * It is not a case class so the user can extend it and implement more complex states.
   */
-class MinimalState(val idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State with DistinctIds {
+case class MinimalState(idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State with DistinctIds {
   def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): MinimalState = {
-    new MinimalState(newIdsPerDestination)
+    MinimalState(newIdsPerDestination)
   }
 }

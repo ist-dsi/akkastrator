@@ -1,5 +1,7 @@
 package pt.tecnico.dsi.akkastrator
 
+import scala.concurrent.duration.Duration
+
 import akka.actor.{ActorPath, ActorRef}
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted, testsAbortReason}
@@ -15,6 +17,7 @@ object Step5_TaskBundleSpec {
   // A -> N*B
   class SimpleTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     val a = simpleMessagefulltask("A", destinations(0), aResult)
+  
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>

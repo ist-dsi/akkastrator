@@ -4,7 +4,7 @@ import akka.actor.Actor.Receive
 import akka.actor.{Actor, ActorLogging, Props, Terminated}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, classTag}
 
 case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
 
@@ -47,10 +47,9 @@ class Spawner extends Actor with ActorLogging {
   * @tparam R the type the AbstractOrchestrator created in Props must have as its type parameter.
   * @tparam O the type of AbstractOrchestrator the Props must create.
   */
-class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]](props: Props, task: FullTask[_, _])
-                                                            (implicit classtag: ClassTag[O]) extends Task[R](task) {
+class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: FullTask[_, _])(props: Props) extends Task[R](task) {
   //TODO: does require cause a crash loop? Maybe we should move this check to spawner
-  require(classtag.runtimeClass.isAssignableFrom(props.actorClass()),
+  require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
     "Props.actorClass must comply with <: AbstractOrchestrator[R]")
   
   val innerOrchestratorId = task.orchestrator.nextInnerOrchestratorId()

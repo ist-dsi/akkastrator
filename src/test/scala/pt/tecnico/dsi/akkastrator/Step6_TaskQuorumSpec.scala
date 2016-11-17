@@ -54,21 +54,21 @@ object Step6_TaskQuorumSpec {
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"$fruit-B", destinations(i + 1), SimpleMessage("B message", _), fruit.length)(o)
+          fulltask(s"B-$fruit", destinations(i + 1), SimpleMessage("B message", _), fruit.length)(o)
         }
       )
     }
     val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_, AtLeast(2))(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"$fruit-C", destinations(i + 1), SimpleMessage("C message", _), fruit.length)(o)
+          fulltask(s"C-$fruit", destinations(i + 1), SimpleMessage("C message", _), fruit.length)(o)
         }
       )
     }
-    FullTask("D", (b, c), Duration.Inf) createTaskWith { case fruitsB :: fruitsC :: HNil =>
+    FullTask("D", (b, c), Duration.Inf) createTaskWith { case fruitsLengthB :: fruitsLengthC :: HNil =>
       new TaskQuorum(_)(o =>
-        Seq(fruitsB, fruitsC).zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"$fruit-D", destinations(i + 1), SimpleMessage(fruit.toString, _), fruit)(o)
+        Seq(fruitsLengthB, fruitsLengthC).zipWithIndex.map { case (fruit, i) =>
+          fulltask(s"D-$i", destinations(i + 1), SimpleMessage(fruit.toString, _), fruit)(o)
         }
       )
     }
@@ -136,8 +136,7 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
       
-      /*
-      """there are two bundles:
+      """there are a complex web of quorums:
         |     N*B
         | A →⟨   ⟩→ 2*N*D
         |     N*C
@@ -154,15 +153,13 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
                 "C" -> Set(Unstarted, Waiting)
               )
             }, { thirdState =>
-              // One of the tasks in the quorum wont give out an answer
               Random.shuffle(1 to 5).toSeq.drop(1).par.foreach { i =>
                 pingPong(destinations(i)) // For B tasks
               }
-              // We specified the C Quorum must have AtLeast 2 votes, so  One of the tasks in the quorum wont give out an answer
               Random.shuffle(1 to 5).toSeq.drop(1).par.foreach { i =>
                 pingPong(destinations(i)) // For C tasks
               }
-              
+                            
               handleResend("A")
               
               expectInnerOrchestratorTermination("B")
@@ -174,10 +171,12 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
                 "D" -> Set(Unstarted, Waiting)
               )
             }, { fourthState =>
+              // D Tasks
               pingPong(destinations(1))
               pingPong(destinations(2))
-    
-              expectInnerOrchestratorTermination("D")
+              
+              import scala.concurrent.duration.DurationInt
+              expectInnerOrchestratorTermination("D", 10.seconds)
               
               fourthState.updatedExactStatuses(
                 "B" -> Finished(6),
@@ -190,10 +189,9 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
-      */
     }
     
-    //TODO: test aborts
+    //TODO: test aborts, more specifically the tolerance
     //TODO: test timeouts
   }
 }

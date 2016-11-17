@@ -12,6 +12,9 @@ object HListConstraints {
   object TaskComapped {
     type Aux[DL <: HList, RL <: HList] = TaskComapped[DL] { type ResultsList = RL }
     
+    // Summoner
+    def apply[T <: HList](implicit tc: TaskComapped[T]): Aux[T, tc.ResultsList] = tc
+    
     implicit def nil: Aux[HNil, HNil] = new TaskComapped[HNil]{
       type ResultsList = HNil
       def buildResultsList(l: HNil): HNil = HNil

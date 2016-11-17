@@ -1,17 +1,7 @@
 organization := "pt.tecnico.dsi"
 name := "akkastrator"
 
-val javaVersion = "1.8"
-initialize := {
-  val current  = sys.props("java.specification.version")
-  assert(current == javaVersion, s"Unsupported JDK: expected JDK $javaVersion installed, but instead got JDK $current.")
-}
-javacOptions ++= Seq(
-  "-source", javaVersion,
-  "-target", javaVersion,
-  "-Xlint",
-  "-encoding", "UTF-8"
-)
+javacOptions ++= Seq("-Xlint", "-encoding", "UTF-8", "-Dfile.encoding=utf-8")
 
 scalaVersion := "2.12.0"
 scalacOptions ++= Seq(
@@ -74,18 +64,20 @@ pomExtra :=
     </developer>
   </developers>
 
+dependencyUpdatesFailBuild := true
 import ReleaseTransformations._
 releaseProcess := Seq[ReleaseStep](
+  releaseStepCommand("dependencyUpdates"),
   checkSnapshotDependencies,
   inquireVersions,
   runClean,
-  ReleaseStep(action = Command.process("doc", _)),
+  releaseStepCommand("doc"),
   runTest,
   setReleaseVersion,
   tagRelease,
-  ReleaseStep(action = Command.process("ghpagesPushSite", _)),
-  ReleaseStep(action = Command.process("publishSigned", _)),
-  ReleaseStep(action = Command.process("sonatypeRelease", _)),
+  releaseStepCommand("ghpagesPushSite"),
+  releaseStepCommand("publishSigned"),
+  releaseStepCommand("sonatypeRelease"),
   pushChanges,
   setNextVersion
 )

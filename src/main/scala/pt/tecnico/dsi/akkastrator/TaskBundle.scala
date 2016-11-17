@@ -1,8 +1,5 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.language.existentials
-import scala.reflect.classTag
-
 import akka.actor.Props
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator
@@ -10,8 +7,8 @@ import shapeless.HNil
 
 object TaskBundle {
   object InnerOrchestrator {
-    def props[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], task: FullTask[_, _]): Props = {
-      Props(classOf[InnerOrchestrator[R]], tasksCreator, task.orchestrator.persistenceId)
+    def props[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], outerOrchestratorPersistenceId: String): Props = {
+      Props(classOf[InnerOrchestrator[R]], tasksCreator, outerOrchestratorPersistenceId)
     }
   }
   class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
@@ -37,9 +34,12 @@ object TaskBundle {
   * TaskBundle:
   *   Variable number of tasks
   *   Task return type must be the same
+  *   Unrestrained message and destination
   *
   * @param tasksCreator
   * @tparam R the type the AbstractOrchestrator created in Props must have as its type parameter.
   */
 class TaskBundle[R](task: FullTask[_, _])(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
-  extends TaskSpawnOrchestrator[Seq[R], InnerOrchestrator[R]](InnerOrchestrator.props(tasksCreator, task), task)//(classTag[InnerOrchestrator[R]])
+  extends TaskSpawnOrchestrator[Seq[R], InnerOrchestrator[R]](task)(
+    InnerOrchestrator.props(tasksCreator, task.orchestrator.persistenceId)
+  )

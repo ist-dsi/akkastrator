@@ -7,7 +7,21 @@ import pt.tecnico.dsi.akkastrator.HListConstraints.{TaskComapped, taskHListOps}
 import pt.tecnico.dsi.akkastrator.Orchestrator.TaskReport
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{HList, HNil}
-import java.text.MessageFormat
+
+/*
+object Teste {
+  new FullTask[Int, FullTask[Seq[String], _] :: HNil]("B", a :: HNil, Duration.Inf)(orchestrator, TaskComapped.consExistential[Seq[String], HNil]) {
+    def createTask(results: comapped.ResultsList): Task[Int] = new Task[Int](this) {
+      val destination: ActorPath = destinations(1).ref.path
+      def createMessage(id: Long): Any = SimpleMessage("asd", id)
+      def behavior: Receive = {
+        case m @ SimpleMessage(_, id) if matchId(id) =>
+          finish(m, id, 5)
+      }
+    }
+  }
+}
+*/
 
 /**
   * @param description a text that describes this task in a human readable way, or a message key to be used in
@@ -87,11 +101,16 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   
   protected final def allDependenciesFinished = finishedDependencies == dependenciesIndexes.length
   
+  /** Computes the results HList from the dependencies HList.
+    * Every dependency must have finished, otherwise an exception will be thrown. */
   protected final def buildResults(): comapped.ResultsList = {
     require(allDependenciesFinished, "All dependencies must have finished to be able to build their results.")
     comapped.buildResultsList(dependencies)
   }
   
+  /**
+    * Creates the `innerTask` using the results obtained from `buildResults` and returns it.
+    */
   private final def innerCreateTask(): Task[R] = {
     val results = buildResults()
     val task = createTask(results)
@@ -99,6 +118,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     task
   }
   
+  /** When a dependency of this task finishes this method is invoked. */
   private final def dependencyFinished(): Unit = {
     finishedDependencies += 1
     if (allDependenciesFinished) {
@@ -125,12 +145,8 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     task.start()
   }
   
-  /**
-    * INTERNAL API
-    * Iterates through the dependents of this task and informs them that a task has finished.
-    * This is only called by Task.
-    */
-  private[akkastrator] final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
+  /** Iterates through the dependents of this task and informs them that this task has finished. */
+  final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
   
   /** @return the current state of this task. */
   final def state: Task.State = innerTask.map(_.state).getOrElse(Unstarted)
@@ -141,8 +157,11 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     * Nevertheless a check is made to ensure the task has in fact finished.
     */
   private[akkastrator] final def result: R = {
-    require(innerTask.flatMap(_.result).isDefined, "A task only has a result if it is already finished.")
-    innerTask.flatMap(_.result).get
+    // You cannot see a Option.get here. You cannot see a Option.get here. You cannot see a Option.get here.
+    innerTask.flatMap(_.result) match {
+      case Some(result) => result
+      case None => throw new IllegalStateException("A task only has a result if it is already finished.")
+    }
   }
   
   /** The immutable TaskReport of this task. */
