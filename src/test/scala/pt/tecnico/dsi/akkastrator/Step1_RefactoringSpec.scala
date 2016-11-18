@@ -17,7 +17,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         def createMessage(id: Long): Any = SimpleMessage("TheOneTask", id)
       
         def behavior: Receive = {
-          case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          case m @ SimpleMessage(s, id) if matchId(id) =>
             finish(m, id, ())
         }
       }
@@ -29,7 +29,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         def createMessage(id: Long): Any = SimpleMessage(s"DELETE $user", id)
   
         def behavior: Receive = {
-          case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          case m @ SimpleMessage(s, id) if matchId(id) =>
             finish(m, id, ())
         }
       }
@@ -43,7 +43,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         def createMessage(id: Long): Any = SimpleMessage("AnotherTask", id)
   
         def behavior: Receive = {
-          case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          case m @ SimpleMessage(s, id) if matchId(id) =>
             finish(m, id, "a non-zero constant value almost everywhere")
         }
       }
@@ -56,7 +56,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           def createMessage(id: Long): Any = SimpleMessage(s"post $what in $where", id)
       
           def behavior: Receive = {
-            case m @ SimpleMessage(s, id) if matchId(id) ⇒
+            case m @ SimpleMessage(s, id) if matchId(id) =>
               finish(m, id, ())
           }
         }
@@ -71,7 +71,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         def createMessage(id: Long): Any = SimpleMessage("SomeTask", id)
       
         def behavior: Receive = {
-          case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          case m @ SimpleMessage(s, id) if matchId(id) =>
             finish(m, id, "::1")
         }
       }
@@ -87,14 +87,14 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         def createMessage(id: Long): Any = SimpleMessage(s"Ping $ip", id)
     
         def behavior: Receive = {
-          case m @ SimpleMessage(s, id) if matchId(id) ⇒
+          case m @ SimpleMessage(s, id) if matchId(id) =>
             finish(m, id, ())
         }
       }
     }
   }
   
-  def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: ⇒ O, numberOfTasks: Int): Unit = {
+  def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: => O, numberOfTasks: Int): Unit = {
     val orchestrator = system.actorOf(Props(creator))
     orchestrator ! Status
   
@@ -135,7 +135,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
               def createMessage(id: Long): Any = SimpleMessage("Where", id)
       
               def behavior: Receive = {
-                case m @ SimpleMessage(s, id) if matchId(id) ⇒
+                case m @ SimpleMessage(s, id) if matchId(id) =>
                   finish(m, id, "http://example.com")
               }
             }
@@ -154,7 +154,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
                 def createMessage(id: Long): Any = SimpleMessage(s"demo", id)
         
                 def behavior: Receive = {
-                  case m @ SimpleMessage(s, id) if matchId(id) ⇒
+                  case m @ SimpleMessage(s, id) if matchId(id) =>
                     finish(m, id, "demo result")
                 }
               }

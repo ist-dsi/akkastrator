@@ -7,7 +7,7 @@ import scala.collection.immutable.SortedMap
 trait State
 case object EmptyState extends State
 
-trait DistinctIds { self: State ⇒
+trait DistinctIds { self: State =>
   //By using a SortedMap as opposed to a Map we can also extract the latest correlationId per sender
   //This must be a val to ensure the returned value is always the same.
   val idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]
@@ -42,8 +42,8 @@ trait DistinctIds { self: State ⇒
   private[akkastrator] def getDeliveryIdFor(destination: ActorPath, correlationId: CorrelationId): DeliveryId = {
     // You cannot see a Option.get here. You cannot see a Option.get here. You cannot see a Option.get here.
     idsPerDestination.get(destination).flatMap(_.get(correlationId)) match {
-      case Some(deliveryId) ⇒ deliveryId
-      case None ⇒ throw new IllegalArgumentException(
+      case Some(deliveryId) => deliveryId
+      case None => throw new IllegalArgumentException(
         s"""Could not obtain the delivery id for:
             |\tDestination: $destination
             |\tCorrelationId: $correlationId""".stripMargin)

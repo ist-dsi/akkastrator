@@ -9,7 +9,7 @@ import pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator
 import shapeless.HNil
 
 /** A function that calculates how many votes are needed to achieve a quorum, given the number of destinations (nodes). */
-trait MinimumVotes extends (Int ⇒ Int) {
+trait MinimumVotes extends (Int => Int) {
   def apply(numberOfDestinations: Int): Int
 }
 /** A MinimumVotes function where a majority (51%) of votes are needed to achieve a quorum. */

@@ -20,7 +20,7 @@ class Spawner extends Actor with ActorLogging {
       innerOrchestrator ! StartOrchestrator(startId)
       
       context become {
-        case Terminated(`innerOrchestrator`) ⇒
+        case Terminated(`innerOrchestrator`) =>
           //This ensures we also stop the spawner when the innerOrchestrator finishes (or aborts).
           context stop self
         case msg if sender() == innerOrchestrator =>

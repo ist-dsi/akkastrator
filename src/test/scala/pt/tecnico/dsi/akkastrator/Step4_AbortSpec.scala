@@ -38,8 +38,8 @@ class Step4_AbortSpec extends ActorSysSpec {
     "behave according to the documentation" when {
       "there is only a single task: A" in {
         val testCase = new TestCase[AbortSingleTaskOrchestrator](1, Set("A")) {
-          val transformations: Seq[State ⇒ State] = Seq(
-            { secondState ⇒
+          val transformations: Seq[State => State] = Seq(
+            { secondState =>
               pingPong("A")
 
               secondState.updatedExactStatuses(
@@ -51,9 +51,9 @@ class Step4_AbortSpec extends ActorSysSpec {
 
         import testCase._
         differentTestPerState(
-          { firstState ⇒ () }, // We don't want to test anything for this state
-          { secondState ⇒ () }, // We don't want to test anything for this state
-          { thirdState ⇒
+          { firstState => () }, // We don't want to test anything for this state
+          { secondState => () }, // We don't want to test anything for this state
+          { thirdState =>
             testStatus(thirdState)
             //Confirm we received the OrchestratorAborted
             terminationProbe.expectMsg(ActorSysSpec.OrchestratorAborted)
@@ -64,15 +64,15 @@ class Step4_AbortSpec extends ActorSysSpec {
       }
       "there are two independent tasks: A B" in {
         val testCase = new TestCase[AbortTwoIndependentTasksOrchestrator](2, Set("A", "B")) {
-          val transformations: Seq[State ⇒ State] = Seq(
-            { secondState ⇒
+          val transformations: Seq[State => State] = Seq(
+            { secondState =>
               pingPong("A")
 
               secondState.updatedExactStatuses(
                 "A" → Aborted(testsAbortReason),
                 "B" → Waiting
               )
-            }, { thirdState ⇒
+            }, { thirdState =>
               pingPong("B")
 
               thirdState.updatedExactStatuses(
@@ -84,15 +84,15 @@ class Step4_AbortSpec extends ActorSysSpec {
 
         import testCase._
         differentTestPerState(
-          { firstState ⇒ () }, // We don't want to test anything for this state
-          { secondState ⇒ () }, // We don't want to test anything for this state
-          { thirdState ⇒
+          { firstState => () }, // We don't want to test anything for this state
+          { secondState => () }, // We don't want to test anything for this state
+          { thirdState =>
             testStatus(thirdState)
             // Confirm we received the OrchestratorAborted
             terminationProbe.expectMsg(ActorSysSpec.OrchestratorAborted)
             // Confirm that onFinish was not invoked
             terminationProbe.expectNoMsg()
-          }, { fourthState ⇒
+          }, { fourthState =>
             // This confirms that when aborting, tasks that are waiting will remain untouched
             // and the orchestrator will still be prepared to handle their responses
             testStatus(fourthState)
@@ -105,8 +105,8 @@ class Step4_AbortSpec extends ActorSysSpec {
       }
       "there are two dependent tasks: A → B" in {
         val testCase = new TestCase[AbortTwoLinearTasksOrchestrator](2, Set("A")) {
-          val transformations: Seq[State ⇒ State] = Seq(
-            { secondState ⇒
+          val transformations: Seq[State => State] = Seq(
+            { secondState =>
               pingPong("A")
 
               secondState.updatedExactStatuses(
@@ -118,9 +118,9 @@ class Step4_AbortSpec extends ActorSysSpec {
 
         import testCase._
         differentTestPerState(
-          { firstState ⇒ () }, // We don't want to test anything for this state
-          { secondState ⇒ () }, // We don't want to test anything for this state
-          { thirdState ⇒
+          { firstState => () }, // We don't want to test anything for this state
+          { secondState => () }, // We don't want to test anything for this state
+          { thirdState =>
             testStatus(thirdState)
             // Confirm we received the OrchestratorAborted
             terminationProbe.expectMsg(ActorSysSpec.OrchestratorAborted)

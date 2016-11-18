@@ -279,7 +279,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
       task.behavior(message)
     case RecoveryCompleted =>
       if (tasks.nonEmpty) {
-        val tasksString = tasks.map(t ⇒ t.withLogPrefix(t.state.toString)).mkString("\n\t")
+        val tasksString = tasks.map(t => t.withLogPrefix(t.state.toString)).mkString("\n\t")
         log.debug(s"""${self.path.name} - recovery completed:
                      |\t$tasksString
                      |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin)
