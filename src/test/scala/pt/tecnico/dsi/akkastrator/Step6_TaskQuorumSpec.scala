@@ -12,15 +12,12 @@ import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{::, HNil}
 
 object Step6_TaskQuorumSpec {
-  // The length of each string is important. Do not change them. See SimpleTaskQuorumOrchestrator below.
-  val aResult = Seq("Farfalhi", "Kunami", "Funini", "Katuki", "Maraca")
-  
   class TasksWithSameDestinationQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A - error: tasks with same destination
     FullTask("A") createTaskWith { case HNil =>
       new TaskQuorum(_)(o => Seq(
-        simpleMessagefulltask("0", destinations(0), "0")(o),
-        simpleMessagefulltask("1", destinations(0), "1")(o)
+        simpleMessageFulltask("0", destinations(0), "0")(o),
+        simpleMessageFulltask("1", destinations(0), "1")(o)
       ))
     }
   }
@@ -29,15 +26,17 @@ object Step6_TaskQuorumSpec {
     
     FullTask("A") createTaskWith { case HNil =>
       new TaskQuorum(_)(o => Seq(
-        simpleMessagefulltask("0", destinations(0), "0")(o),
+        simpleMessageFulltask("0", destinations(0), "0")(o),
         fulltask("1", destinations(1), AnotherMessage("1", _), "1")(o)
       ))
     }
   }
   
+  // The length of each string is important. Do not change them. See SimpleTaskQuorumOrchestrator below.
+  val aResult = Seq("Farfalhi", "Kunami", "Funini", "Katuki", "Maraca")
   class SimpleTaskQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A -> N*B
-    val a = simpleMessagefulltask("A", destinations(0), aResult)
+    val a = simpleMessageFulltask("A", destinations(0), aResult)
     FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
@@ -50,7 +49,7 @@ object Step6_TaskQuorumSpec {
     //     N*B
     // A →⟨   ⟩→ 2*N*D
     //     N*C
-    val a = simpleMessagefulltask("A", destinations(0), aResult)
+    val a = simpleMessageFulltask("A", destinations(0), aResult)
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
@@ -65,10 +64,11 @@ object Step6_TaskQuorumSpec {
         }
       )
     }
-    FullTask("D", (b, c), Duration.Inf) createTaskWith { case fruitsLengthB :: fruitsLengthC :: HNil =>
+    // Using tuple syntax makes it prettier
+    FullTask("D", dependencies = (b, c), Duration.Inf) createTaskWith { case fruitsLengthB :: fruitsLengthC :: HNil =>
       new TaskQuorum(_)(o =>
         Seq(fruitsLengthB, fruitsLengthC).zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"D-$i", destinations(i + 1), SimpleMessage(fruit.toString, _), fruit)(o)
+          fulltask(s"D-$i", destinations(i + 6), SimpleMessage(fruit.toString, _), fruit)(o)
         }
       )
     }
@@ -124,7 +124,7 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
               
               handleResend("A")
               
-              // However because B is a quorum is should terminate
+              // However because B is a quorum it should terminate
               expectInnerOrchestratorTermination("B")
               
               thirdState.updatedStatuses(
@@ -135,13 +135,12 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
-      
       """there are a complex web of quorums:
         |     N*B
         | A →⟨   ⟩→ 2*N*D
         |     N*C
       """.stripMargin in {
-        val testCase = new TestCase[ComplexTaskQuorumOrchestrator](6, Set("A")) {
+        val testCase = new TestCase[ComplexTaskQuorumOrchestrator](8, Set("A")) {
           val transformations: Seq[State => State] = Seq(
             { secondState =>
               pingPong("A")
@@ -172,11 +171,11 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
               )
             }, { fourthState =>
               // D Tasks
-              pingPong(destinations(1))
-              pingPong(destinations(2))
+              pingPong(destinations(6))
+              pingPong(destinations(7))
               
               import scala.concurrent.duration.DurationInt
-              expectInnerOrchestratorTermination("D", 10.seconds)
+              expectInnerOrchestratorTermination("D", 30.seconds)
               
               fourthState.updatedExactStatuses(
                 "B" -> Finished(6),

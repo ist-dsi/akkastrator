@@ -2,7 +2,7 @@ package pt.tecnico.dsi.akkastrator
 
 import scala.concurrent.duration.FiniteDuration
 
-import akka.actor.{Actor, ActorPath}
+import akka.actor.{Actor, ActorPath, PossiblyHarmful}
 import pt.tecnico.dsi.akkastrator.Orchestrator.{SaveSnapshot, TaskReport}
 import pt.tecnico.dsi.akkastrator.Task._
 
@@ -14,10 +14,10 @@ object Task {
   // It would be nice to find a way to ensure the type parameter R of this class matches with the type parameter R of Task
   case class Finished[R](result: R) extends State
   
-  case object Timeout
+  case class Timeout(id: Long) extends PossiblyHarmful
 }
 
-//Maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
+// Maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
 
 
 /**
@@ -34,30 +34,28 @@ object Task {
   * The internal state of the orchestrator might be mutated inside `behavior`.
   *
   * This class is very tightly coupled with Orchestrator and the reverse is also true.
-  * Because of this you need to pass an instance of orchestrator.
-  * Because of this you can only create instances of Task inside an orchestrator.
   */
 abstract class Task[R](val task: FullTask[_, _]) {
   import IdImplicits._
-  import task.{index, timeout, orchestrator}
+  import task.index
   import task.orchestrator.log
-  
-  //This field exists to allow mutating the internal state of the orchestrator.
-  //val orchestrator = task.orchestrator
   
   private[akkastrator] var expectedDeliveryId: Option[DeliveryId] = None
   private[akkastrator] var state: Task.State = Unstarted
   
   /** The ActorPath to whom this task will send the message(s). */
   val destination: ActorPath //This must be a val because the destination cannot change.
-  /** The constructor of the message to be sent. It must always return the same message, only the id must be different. */
+  /** The constructor of the message to be sent. It must always return the same message, only the id must be different.
+    * If this Task is to be used inside a TaskQuorum then the created message should also implement `equals`. */
   def createMessage(id: Long): Any
   
   final protected[akkastrator] def start(): Unit = {
     require(state == Unstarted, "Start can only be invoked when this task is Unstarted.")
     log.info(withLogPrefix(s"Starting."))
     orchestrator.recoveryAwarePersist(MessageSent(task.index)) {
-      if (!orchestrator.recoveryRunning) log.debug(withLogPrefix(s"Persisted MessageSent."))
+      if (!orchestrator.recoveryRunning) {
+        log.debug(withLogPrefix(s"Persisted MessageSent."))
+      }
       
       orchestrator.deliver(destination) { deliveryId =>
         // First we make sure the orchestrator is ready to deal with the answers from destination.
@@ -67,58 +65,62 @@ abstract class Task[R](val task: FullTask[_, _]) {
         orchestrator.waitingTasks += index -> this
         orchestrator.context become orchestrator.computeCurrentBehavior()
   
+        // When we are recovering this method (the deliver handler) will be run
+        // but the message won't be delivered every time so we hide the println to cause less confusion
         if (!orchestrator.recoveryRunning) {
-          // When we are recovering this method (the deliver handler) will be run
-          // but the message won't be delivered every time so we hide the println to cause less confusion
-          log.debug(withLogPrefix("Delivering message"))
+          log.debug(withLogPrefix("(Possibly) delivering message."))
         }
   
+        val id = orchestrator.deliveryId2ID(destination, deliveryId).self
+        
         // Schedule the timeout
-        if (timeout.isFinite()) {
-          orchestrator.context.system.scheduler.scheduleOnce(FiniteDuration(timeout.length, timeout.unit)) {
-            if (state == Waiting) {
-              behavior.applyOrElse(Timeout, { _: Timeout.type =>
-                //behavior does not handle timeout. So we abort it.
-                //We know get will work because the task is waiting.
-                val id = orchestrator.deliveryId2ID(destination, expectedDeliveryId.get)
-                abort(receivedMessage = Timeout, cause = TimedOut, id = id.self)
-              })
-            }
-          }(orchestrator.context.system.dispatcher)
+        if (task.timeout.isFinite()) {
+          import orchestrator.context.system
+          system.scheduler.scheduleOnce(FiniteDuration(task.timeout.length, task.timeout.unit)) {
+            orchestrator.self ! orchestrator.TaskTimedOut(index, id)
+          }(system.dispatcher)
         }
         
-        val id = orchestrator.deliveryId2ID(destination, deliveryId)
-        createMessage(id.self)
+        createMessage(id)
       }
     }
   }
   
   final def matchId(id: Long): Boolean = orchestrator.matchId(this, id)
-
+  
+  //This field exists to allow mutating the internal state of the orchestrator easily from inside behavior.
+  val orchestrator: AbstractOrchestrator[_] = task.orchestrator
+  
   /**
     * The behavior of this task. This is akin to the receive method of an actor with the following exceptions:
     *  · An all catching pattern match is prohibited since it will cause the orchestrator to fail.
-    *  · Every case must have an if checking if matchId returns true.
+    *  · Every case must check if `matchId` returns true, except for the `Timeout` message.
     *    This ensures the received message was in fact destined to this task.
-    *    This choice of implementation allows the messages that are exchanged to have a free form, as its the user that
-    *    is responsible for extracting the id from the message.
-    *  · Either `finish` or `abort` must be invoked after handling each response.
+    *    This choice of implementation allows the messages to have a free form, as it is the user that
+    *    is responsible for extracting the `id` from the message.
+    *  · Either `finish`, `abort` or `timeout` must be invoked after handling each response.
+    *    Although `timeout` cannot be invoked when handling the `Timeout` message.
     *  · The internal state of the orchestrator might be changed while handling each response using
     *    `orchestrator.state = //Your new state`
     *
     * Example of a well formed behavior: {{{
     *   case m @ Success(result, id) if matchId(id) =>
+    *     orchestrator.state = //A new state
     *     finish(m, id, result = "This task result") // The result is the value that the tasks that depend on this one will see.
     *   case m @ SomethingWentWrong(why, id) if matchId(id) =>
     *     abort(m, id, why)
+    *   case m @ Timeout(id) =>
+    *     abort(m, id, anError)
     * }}}
     *
     */
   def behavior: Actor.Receive
   
-  protected[akkastrator] def persistAndConfirmDelivery(receivedMessage: Serializable, id: Long)(continuation: => Unit): Unit = {
+  private final def persistAndConfirmDelivery(receivedMessage: Serializable, id: Long)(continuation: => Unit): Unit = {
     orchestrator.recoveryAwarePersist(MessageReceived(task.index, receivedMessage)) {
-      if (!orchestrator.recoveryRunning) log.debug(withLogPrefix(s"Persisted MessageReceived."))
+      if (!orchestrator.recoveryRunning) {
+        log.debug(withLogPrefix(s"Persisted MessageReceived."))
+      }
       val deliveryId = orchestrator.ID2DeliveryId(destination, id).self
       orchestrator.confirmDelivery(deliveryId)
       continuation
@@ -129,7 +131,9 @@ abstract class Task[R](val task: FullTask[_, _]) {
     * Finishes this task, which implies:
     *
     *  1. Tasks that depend on this one will be started.
-    *  2. Messages that would be handled by this task will no longer be handled.
+    *  2. Re-sends from `destination` will no longer be handled by `behavior`.
+    *     The re-send message will be handled as an unhandled message, aka the `unhandled`
+    *     method will be invoked in the orchestrator.
     *
     *  Finishing an already finished task will throw an exception.
     *
@@ -175,11 +179,11 @@ abstract class Task[R](val task: FullTask[_, _]) {
     * Causes this task to abort. This will have the following effects:
     *  1. This task will change its state to `Aborted`.
     *  2. Every unstarted task that depends on this one will never be started. This will happen because a task can
-    *     only start if its dependencies have finished and this task did not finish.
-    *  3. Waiting tasks or tasks which do not have this task as a dependency will continue to be executed, unless
-    *     the orchestrator is stopped.
+    *     only start if its dependencies have finished and this task did not finish, it aborted.
+    *  3. Waiting tasks or tasks which do not have this task as a dependency will continue to be executed or be started,
+    *     unless the orchestrator is stopped, which can be performed in the `onAbort` callback of the orchestrator.
     *  4. The method `onFinish` will <b>never</b> be called. Similarly to the unstarted tasks, onFinish will only
-    *     be invoked if all tasks have finished and this task did not finish.
+    *     be invoked if all tasks have finished.
     *  5. The method `onAbort` will be invoked in the orchestrator.
     *
     * @param receivedMessage the message which prompted the abort.
@@ -187,15 +191,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
     * @param cause what caused the abort to be invoked.
     */
   final def abort(receivedMessage: Serializable, id: Long, cause: Exception): Unit = {
-    require(state == Waiting, "Abort can only be invoked when this task is Waiting.")
-    log.info(withLogPrefix(s"Aborting due to $cause."))
-    persistAndConfirmDelivery(receivedMessage, id) {
-      // First we make sure the orchestrator no longer deals with the answers from destination.
-      expectedDeliveryId = None
-      state = Aborted(cause)
-      orchestrator.waitingTasks -= index
-      orchestrator.context become orchestrator.computeCurrentBehavior()
-      
+    innerAbort(receivedMessage, id, cause) {
       orchestrator.onAbort(task, receivedMessage, cause, orchestrator.tasks.groupBy(_.state))
   
       // Unlike finish we do NOT invoke:
@@ -205,9 +201,26 @@ abstract class Task[R](val task: FullTask[_, _]) {
     }
   }
   
-  private[akkastrator] def result: Option[R] = state match {
-    case Finished(value) => Some(value.asInstanceOf[R])
-    case _ => None
+  private[akkastrator] final def innerAbort(receivedMessage: Serializable, id: Long, cause: Exception)(afterAbortContinuation: => Unit): Unit = {
+    require(state == Waiting, "Abort can only be invoked when this task is Waiting.")
+    log.info(withLogPrefix(s"Aborting due to $cause."))
+    persistAndConfirmDelivery(receivedMessage, id) {
+      expectedDeliveryId = None
+      state = Aborted(cause)
+      orchestrator.waitingTasks -= index
+      orchestrator.context become orchestrator.computeCurrentBehavior()
+      
+      afterAbortContinuation
+    }
+  }
+  
+  final def timeout(receivedMessage: Serializable, id: Long): Unit = {
+    require(Timeout(id) != receivedMessage, "Cannot invoke timeout when handling the timeout.")
+    require(state == Waiting, "innerTimeout can only be invoked when this task is Waiting.")
+    behavior.applyOrElse(Timeout(id), { timeout: Timeout =>
+      //behavior does not handle timeout. So we abort it.
+      abort(receivedMessage = timeout, id = id, cause = TimedOut)
+    })
   }
   
   // These are shorcuts

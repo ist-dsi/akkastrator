@@ -29,13 +29,13 @@ object ActorSysSpec {
   
   abstract class ControllableOrchestrator(terminationProbe: ActorRef, startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
-    private var destinations = Map.empty[String, TestProbe]
+    var destinationProbes = Map.empty[String, TestProbe]
   
     def fulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, message: Long => Any, _result: R,
                                               dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
                                              (implicit orchestrator: AbstractOrchestrator[_],
                                               tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
-      destinations += description -> dest
+      destinationProbes += description -> dest
       FullTask(description, dependencies) createTaskWith { _ =>
         new Task[R](_) {
           val destination: ActorPath = dest.ref.path
@@ -52,16 +52,11 @@ object ActorSysSpec {
       }
     }
     
-    def simpleMessagefulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, _result: R,
+    def simpleMessageFulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, _result: R = "finished",
                                                            dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
                                                           (implicit orchestrator: AbstractOrchestrator[_],
                                                            tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
       fulltask(description, dest, SimpleMessage(description, _), _result, dependencies, abortOnReceive)
-    }
-    
-    def echoFulltask[DL <: HList, RL <: HList](description: String, dest: TestProbe, dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
-                                              (implicit orchestrator: AbstractOrchestrator[_], tc: TaskComapped.Aux[DL, RL]): FullTask[String, DL] = {
-      simpleMessagefulltask(description, dest, "finished", dependencies, abortOnReceive)
     }
   
     override def persistenceId: String = this.getClass.getSimpleName
@@ -96,7 +91,7 @@ object ActorSysSpec {
     
     override def extraCommands: Receive = crashable orElse {
       case GetDestinations =>
-        sender() ! Destinations(destinations)
+        sender() ! Destinations(destinationProbes)
     }
   }
 }
@@ -246,10 +241,12 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
             // We know the inner orchestrator will terminate because that is what the TaskSpawnOrchestrator contract states.
             // In reality we will be watching the Spawner and not the innerOrchestrator directly, but since the spawner is
             // a proxy to the innerOrchestrator this works out to the same thing as watching the innerOrchestrator directly.
+            logger.error(s"Task $description destination ActorRef $ref")
             terminationProbe.watch(ref)
-            terminationProbe.expectTerminated(ref, max)
+            terminationProbe.expectTerminated(ref)
           case _ =>
             // The innerOrchestrator already finished, so we don't need to do anything
+            logger.error(s"Could not get an ActorRef for the destination of task $description")
         }
       }
     }

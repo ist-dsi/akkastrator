@@ -10,26 +10,26 @@ import shapeless.HNil
 object Step4_AbortSpec {
   class AbortSingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
-    echoFulltask("A", destinations(0), abortOnReceive = true)
+    simpleMessageFulltask("A", destinations(0), abortOnReceive = true)
   }
   class AbortTwoIndependentTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A
     // B
-    echoFulltask("A", destinations(0), abortOnReceive = true)
-    echoFulltask("B", destinations(1))
+    simpleMessageFulltask("A", destinations(0), abortOnReceive = true)
+    simpleMessageFulltask("B", destinations(1))
   }
   class AbortTwoLinearTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A → B
-    val a = echoFulltask("A", destinations(0), abortOnReceive = true)
-    echoFulltask("B", destinations(1), a :: HNil)
+    val a = simpleMessageFulltask("A", destinations(0), abortOnReceive = true)
+    simpleMessageFulltask("B", destinations(1), dependencies = a :: HNil)
   }
 }
 class Step4_AbortSpec extends ActorSysSpec {
   //Ensure the following happens:
-  //  · The task that instigated the early termination will change state to Aborted.
-  //  · Every unstarted task will be prevented from starting even if its dependencies have finished.
-  //  · Tasks that are waiting will remain untouched and the orchestrator will
-  //    still be prepared to handle their responses.
+  //  · The task that instigated the abort will change state to Aborted.
+  //  · Every unstarted task that depends on this one will never be started.
+  //  · Waiting tasks or tasks which do not have this task as a dependency will continue to be executed, unless
+  //    the orchestrator is stopped.
   //  · The method `onAbort` will be invoked in the orchestrator.
   //  · The method `onFinish` will NEVER be called even if the only tasks needed to finish
   //    the orchestrator are already waiting and the responses are received.
@@ -132,6 +132,8 @@ class Step4_AbortSpec extends ActorSysSpec {
           }
         )
       }
+      
+      // Tests for tasks aborting inside a Task{Bundle,Quorum} are performed in those test suites
     }
   }
 }

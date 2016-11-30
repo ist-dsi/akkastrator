@@ -4,7 +4,6 @@ import scala.collection.mutable
 
 import akka.actor.Props
 import pt.tecnico.dsi.akkastrator.Orchestrator._
-import pt.tecnico.dsi.akkastrator.Task.Aborted
 import pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator
 import shapeless.HNil
 
@@ -60,20 +59,21 @@ object TaskQuorum {
       context.parent ! TaskAborted(task.toTaskReport, cause, startId)
       context stop self
     }
-  
-    val votesToAchieveQuorum = minimumVotes(tasks.length)
     
-    private[this] val resultsCount = mutable.Map.empty[R, Int]
-    private[this] var winningResult: R = _ // The result which has most votes so far
-    private[this] var winningResultCount: Int = 0 // The number of votes of the winning result
+    val votesToAchieveQuorum: Int = minimumVotes(tasks.length)
+    
+    protected val resultsCount = mutable.Map.empty[R, Int]
+    protected var winningResult: R = _ // The result which has most votes so far
+    protected var winningResultCount: Int = 0 // The number of votes of the winning result
+    
     // Tolerance = how many votes the quorum can afford to not obtain/lose (due to an aborted task) such that
     // its not necessary to terminate the quorum inner orchestrator (this orchestrator)
     // For example: if the quorum has 5 tasks, and minimumVotes = Majority then at most 2 tasks can abort/not answer
     // if 3 tasks abort then we need to "abort" the orchestrator.
-    private[this] var tolerance = tasks.length - votesToAchieveQuorum
+    protected var tolerance = tasks.length - votesToAchieveQuorum
   
     override def onTaskFinish(finishedTask: FullTask[_, _]): Unit = {
-      val result = finishedTask.result.asInstanceOf[R]
+      val result = finishedTask.unsafeResult.asInstanceOf[R]
       val currentCount = resultsCount.getOrElse(result, 0)
       val newCount = currentCount + 1
       resultsCount(result) = newCount
@@ -86,9 +86,9 @@ object TaskQuorum {
     
       // Check whether we achieved the quorum
       if (winningResultCount >= votesToAchieveQuorum) {
-        abortWaitingTasks(QuorumAlreadyAchieved) {
-          orchestrator.onFinish()
-        }
+        abortWaitingTasks(QuorumAlreadyAchieved)(
+          afterAllAborts = orchestrator.onFinish()
+        )
       }
     }
   
@@ -101,26 +101,20 @@ object TaskQuorum {
     override def onAbort(instigator: FullTask[_, _], message: Any, cause: Exception, tasks: Map[Task.State, Seq[FullTask[_, _]]]): Unit = {
       tolerance -= 1
       if (tolerance < 0) {
-        abortWaitingTasks(QuorumImpossibleToAchieve) {
-          orchestrator.onAbort(instigator, message, cause, tasks)
-        }
+        abortWaitingTasks(QuorumImpossibleToAchieve)(
+          afterAllAborts = orchestrator.onAbort(instigator, message, cause, tasks)
+        )
       }
     }
   
     /** Aborts all tasks that are still waiting, but does not cause the orchestrator to abort. */
-    private def abortWaitingTasks(cause: Exception)(afterAllAbortsContinuation: => Unit): Unit = {
+    private def abortWaitingTasks(cause: Exception)(afterAllAborts: => Unit): Unit = {
       waitingTasks.foreach { case (_, task) =>
-        log.info(task.withLogPrefix(s"Aborting due to $cause"))
         //We know "get" will succeed because the task is waiting
         //receivedMessage is set to None to make it more obvious that we did not receive a message for this task
-        task.persistAndConfirmDelivery(receivedMessage = None, id = task.expectedDeliveryId.get.self) {
-          task.expectedDeliveryId = None
-          task.state = Aborted(cause)
-          waitingTasks -= task.task.index
-          context become orchestrator.computeCurrentBehavior()
-      
+        task.innerAbort(receivedMessage = None, id = task.expectedDeliveryId.get.self, cause) {
           if (waitingTasks.isEmpty) {
-            afterAllAbortsContinuation
+            afterAllAborts
           }
         }
       }

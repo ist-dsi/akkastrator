@@ -23,13 +23,13 @@ object HListConstraints {
     implicit def cons[H, T <: HList, DL <: HList](implicit tc: TaskComapped[T]): Aux[FullTask[H, DL] :: T, H :: tc.ResultsList] =
       new TaskComapped[FullTask[H, DL] :: T] {
         type ResultsList = H :: tc.ResultsList
-        def buildResultsList(l: FullTask[H, DL] :: T): ResultsList = l.head.result :: tc.buildResultsList(l.tail)
+        def buildResultsList(l: FullTask[H, DL] :: T): ResultsList = l.head.unsafeResult :: tc.buildResultsList(l.tail)
       }
     
     implicit def consExistential[H, T <: HList](implicit tc: TaskComapped[T]): Aux[FullTask[H, _] :: T, H :: tc.ResultsList] =
       new TaskComapped[FullTask[H, _] :: T] {
         type ResultsList = H :: tc.ResultsList
-        def buildResultsList(l: FullTask[H, _] :: T): ResultsList = l.head.result :: tc.buildResultsList(l.tail)
+        def buildResultsList(l: FullTask[H, _] :: T): ResultsList = l.head.unsafeResult :: tc.buildResultsList(l.tail)
       }
   }
   

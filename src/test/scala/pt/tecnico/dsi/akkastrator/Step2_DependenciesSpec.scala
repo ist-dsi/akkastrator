@@ -5,7 +5,7 @@ import scala.concurrent.duration.DurationInt
 import akka.actor._
 import akka.testkit.{TestDuration, TestProbe}
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
-import shapeless.{HList, HNil}
+import shapeless.{::, HList, HNil}
 
 class Step2_DependenciesSpec  extends ActorSysSpec {
   def NChainedTasksOrchestrator(numberOfTasks: Int): (Array[TestProbe], ActorRef) = {
@@ -16,11 +16,11 @@ class Step2_DependenciesSpec  extends ActorSysSpec {
     val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
       override def persistenceId: String = s"$numberOfTasks-chained-orchestrator"
       
-      var last: FullTask[String, _ <: HList] = echoFulltask(letters(0).toString, destinations(0))
+      var last: FullTask[String, _ <: HList] = simpleMessageFulltask(letters(0).toString, destinations(0))
   
       import scala.language.existentials
       for (i <- 1 until numberOfTasks) {
-        val current = echoFulltask(letters(i).toString, destinations(i), last :: HNil)
+        val current = simpleMessageFulltask(letters(i).toString, destinations(i), dependencies = last :: HNil)
         last = current
       }
     }))
@@ -55,7 +55,7 @@ class Step2_DependenciesSpec  extends ActorSysSpec {
       
       val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-single-task"
-        echoFulltask("A", destinationActor0)
+        simpleMessageFulltask("A", destinationActor0)
       }))
       
       withOrchestratorTermination(orchestrator) {
@@ -69,8 +69,8 @@ class Step2_DependenciesSpec  extends ActorSysSpec {
       val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-two-tasks"
         
-        echoFulltask("A", destinations(0))
-        echoFulltask("B", destinations(1))
+        simpleMessageFulltask("A", destinations(0))
+        simpleMessageFulltask("B", destinations(1))
       }))
       
       withOrchestratorTermination(orchestrator) {
@@ -96,9 +96,9 @@ class Step2_DependenciesSpec  extends ActorSysSpec {
 
       val orchestrator = system.actorOf(Props(new ControllableOrchestrator(TestProbe().ref, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-tasks-in-T"
-        val a = echoFulltask("A", destinations(0))
-        val b = echoFulltask("B", destinations(1))
-        echoFulltask("C", destinations(2), a :: b :: HNil)
+        val a = simpleMessageFulltask("A", destinations(0))
+        val b = simpleMessageFulltask("B", destinations(1))
+        simpleMessageFulltask("C", destinations(2), dependencies = a :: b :: HNil)
       }))
 
       withOrchestratorTermination(orchestrator) {

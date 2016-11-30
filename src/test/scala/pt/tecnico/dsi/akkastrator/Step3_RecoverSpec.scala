@@ -2,18 +2,18 @@ package pt.tecnico.dsi.akkastrator
 
 import akka.actor.ActorRef
 import akka.testkit.TestProbe
-import pt.tecnico.dsi.akkastrator.RecoverSpec._
+import pt.tecnico.dsi.akkastrator.Step3_RecoverSpec._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.HNil
 
-object RecoverSpec {
+object Step3_RecoverSpec {
   class NoTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe)
   /**
     * A
     */
   class SingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    echoFulltask("A", destinations(0))
+    simpleMessageFulltask("A", destinations(0))
   }
   /**
     * A
@@ -21,16 +21,16 @@ object RecoverSpec {
     * Both tasks have the same destination.
     */
   class TwoTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    echoFulltask("A", destinations(0))
-    echoFulltask("B", destinations(0))
+    simpleMessageFulltask("A", destinations(0))
+    simpleMessageFulltask("B", destinations(0))
   }
   /**
     * A → B
     * Both tasks have the same destination.
     */
   class TwoLinearTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = echoFulltask("A", destinations(0))
-    echoFulltask("B", destinations(0), a :: HNil)
+    val a = simpleMessageFulltask("A", destinations(0))
+    simpleMessageFulltask("B", destinations(0), a :: HNil)
   }
   /**
     * A
@@ -39,9 +39,9 @@ object RecoverSpec {
     * All tasks have distinct destinations.
     */
   class TasksInTOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = echoFulltask("A", destinations(0))
-    val b = echoFulltask("B", destinations(1))
-    echoFulltask("C", destinations(2), a :: b :: HNil)
+    val a = simpleMessageFulltask("A", destinations(0))
+    val b = simpleMessageFulltask("B", destinations(1))
+    simpleMessageFulltask("C", destinations(2), a :: b :: HNil)
   }
   /**
     *     B
@@ -52,10 +52,10 @@ object RecoverSpec {
     * All tasks have distinct destinations.
     */
   class FanOutTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = echoFulltask("A", destinations(0))
-    val b = echoFulltask("B", destinations(1), a :: HNil)
-    val c = echoFulltask("C", destinations(2), a :: HNil)
-    echoFulltask("D", destinations(3), a :: HNil)
+    val a = simpleMessageFulltask("A", destinations(0))
+    val b = simpleMessageFulltask("B", destinations(1), a :: HNil)
+    val c = simpleMessageFulltask("C", destinations(2), a :: HNil)
+    simpleMessageFulltask("D", destinations(3), a :: HNil)
   }
   /**
     *   B
@@ -64,9 +64,9 @@ object RecoverSpec {
     * A and B have the same destination.
     */
   class TasksInTriangleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = echoFulltask("A", destinations(0))
-    val b = echoFulltask("B", destinations(0), a :: HNil)
-    echoFulltask("C", destinations(1), a :: b :: HNil)
+    val a = simpleMessageFulltask("A", destinations(0))
+    val b = simpleMessageFulltask("B", destinations(0), a :: HNil)
+    simpleMessageFulltask("C", destinations(1), a :: b :: HNil)
   }
   /**
     * A → C
@@ -75,11 +75,11 @@ object RecoverSpec {
     * All tasks have distinct destinations.
     */
   class FiveTasksNoDepsBOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = echoFulltask("A", destinations(0))
-    val b = echoFulltask("B", destinations(1))
-    val c = echoFulltask("C", destinations(2), a :: HNil)
-    val d = echoFulltask("D", destinations(3), a :: b :: HNil)
-    echoFulltask("E", destinations(4), c :: d :: HNil)
+    val a = simpleMessageFulltask("A", destinations(0))
+    val b = simpleMessageFulltask("B", destinations(1))
+    val c = simpleMessageFulltask("C", destinations(2), a :: HNil)
+    val d = simpleMessageFulltask("D", destinations(3), a :: b :: HNil)
+    simpleMessageFulltask("E", destinations(4), c :: d :: HNil)
   }
   /**
     * A → B
@@ -88,14 +88,14 @@ object RecoverSpec {
     * All tasks have distinct destinations.
     */
   class FiveTasksNoDepsCOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = echoFulltask("A", destinations(0))
-    val b = echoFulltask("B", destinations(2), a :: HNil)
-    val c = echoFulltask("C", destinations(1))
-    val d = echoFulltask("D", destinations(3), a :: c :: HNil)
-    echoFulltask("E", destinations(4), b :: d :: HNil)
+    val a = simpleMessageFulltask("A", destinations(0))
+    val b = simpleMessageFulltask("B", destinations(2), a :: HNil)
+    val c = simpleMessageFulltask("C", destinations(1))
+    val d = simpleMessageFulltask("D", destinations(3), a :: c :: HNil)
+    simpleMessageFulltask("E", destinations(4), b :: d :: HNil)
   }
 }
-class RecoverSpec extends ActorSysSpec {
+class Step3_RecoverSpec extends ActorSysSpec {
   //Ensure that when the orchestrator crashes
   // · the correct state of the tasks is recovered
   // · the correct idsPerSender is recovered (actually computed), this is not directly tested

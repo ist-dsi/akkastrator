@@ -151,22 +151,21 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   /** @return the current state of this task. */
   final def state: Task.State = innerTask.map(_.state).getOrElse(Unstarted)
   
+  final def result: Option[R] = innerTask.map(_.state).collect { case Finished(result) => result.asInstanceOf[R] }
+  
   /**
     * INTERNAL API
     * This is only invoked when the task is already finished. So we have the guarantee the .get will not throw.
     * Nevertheless a check is made to ensure the task has in fact finished.
     */
-  private[akkastrator] final def result: R = {
-    // You cannot see a Option.get here. You cannot see a Option.get here. You cannot see a Option.get here.
-    innerTask.flatMap(_.result) match {
-      case Some(result) => result
-      case None => throw new IllegalStateException("A task only has a result if it is already finished.")
-    }
+  final def unsafeResult: R = result match {
+    case Some(result) => result
+    case None => throw new IllegalStateException("A task only has a result if it is already finished.")
   }
   
   /** The immutable TaskReport of this task. */
   final def toTaskReport: TaskReport[R] = TaskReport(description, dependenciesIndexes, state,
-    innerTask.map(_.destination), innerTask.flatMap(_.result))
+    innerTask.map(_.destination), result)
   
   override def toString: String =
     f"""Task [$index%03d - $description]:

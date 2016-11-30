@@ -1,10 +1,10 @@
 package pt.tecnico.dsi.akkastrator
 
-import akka.actor.Actor.Receive
-import akka.actor.{Actor, ActorLogging, Props, Terminated}
-import pt.tecnico.dsi.akkastrator.Orchestrator._
+import scala.reflect.ClassTag
 
-import scala.reflect.{ClassTag, classTag}
+import akka.actor.Actor.Receive
+import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef, Props, Terminated}
+import pt.tecnico.dsi.akkastrator.Orchestrator._
 
 case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
 
@@ -29,9 +29,6 @@ class Spawner extends Actor with ActorLogging {
           //would never match the senderPath because it would be expecting a message from this spawner but it would
           //be getting it from the innerOrchestrator
           context.parent ! msg
-        case msg =>
-          //Here we forward the message because we want to hide the existence of this spawner from the innerOrchestrator.
-          innerOrchestrator.forward(msg)
       }
   }
 }
@@ -44,18 +41,18 @@ class Spawner extends Actor with ActorLogging {
   *    aborts.
   *
   * @param props
-  * @tparam R the type the AbstractOrchestrator created in Props must have as its type parameter.
+  * @tparam R the type the to be created AbstractOrchestrator returns.
   * @tparam O the type of AbstractOrchestrator the Props must create.
   */
 class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: FullTask[_, _])(props: Props) extends Task[R](task) {
-  //TODO: does require cause a crash loop? Maybe we should move this check to spawner
-  require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
-    "Props.actorClass must comply with <: AbstractOrchestrator[R]")
+  //This is not necessary because R and O must be explicitly set.
+  /*require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
+    "Props.actorClass must comply with <: AbstractOrchestrator[R]")*/
   
-  val innerOrchestratorId = task.orchestrator.nextInnerOrchestratorId()
-  final val spawner = task.orchestrator.context.actorOf(Props[Spawner], s"spawner-$innerOrchestratorId")
+  final val innerOrchestratorId: Int = task.orchestrator.nextInnerOrchestratorId()
+  final val spawner: ActorRef = task.orchestrator.context.actorOf(Props[Spawner], s"spawner-$innerOrchestratorId")
   
-  final val destination = spawner.path
+  final val destination: ActorPath = spawner.path
   final def createMessage(id: Long): Any = SpawnAndStart(props, innerOrchestratorId, id)
   
   def behavior: Receive = {

@@ -1,14 +1,11 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.concurrent.duration.Duration
-
 import akka.actor.{ActorPath, ActorRef}
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted, testsAbortReason}
-import pt.tecnico.dsi.akkastrator.Task._
-import pt.tecnico.dsi.akkastrator.Step5_TaskBundleSpec._
 import pt.tecnico.dsi.akkastrator.DSL.FullTask
-import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
+import pt.tecnico.dsi.akkastrator.Step5_TaskBundleSpec._
+import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{::, HNil}
 
 object Step5_TaskBundleSpec {
@@ -16,7 +13,7 @@ object Step5_TaskBundleSpec {
   
   // A -> N*B
   class SimpleTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = simpleMessagefulltask("A", destinations(0), aResult)
+    val a = simpleMessageFulltask("A", destinations(0), aResult)
   
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
@@ -42,28 +39,28 @@ object Step5_TaskBundleSpec {
   // A →⟨   ⟩→ 2N*D
   //     N*C
   class ComplexTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = simpleMessagefulltask("A", destinations(0), aResult)
+    val a = simpleMessageFulltask("A", destinations(0), aResult)
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
           //Using a method that creates a full task.
           //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
           // We are using the default value for Taskcommaped.
-          simpleMessagefulltask(s"$fruit-B", destinations(1), fruit)(o)
+          simpleMessageFulltask(s"$fruit-B", destinations(1), fruit)(o)
         }
       )
     }
     val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
-          simpleMessagefulltask(s"$fruit-C", destinations(2), fruit)(o)
+          simpleMessageFulltask(s"$fruit-C", destinations(2), fruit)(o)
         }
       )
     }
     val d = FullTask("D", b :: c :: HNil) createTaskWith { case fruitsB :: fruitsC :: HNil =>
       new TaskBundle(_)(o =>
-        (fruitsB ++ fruitsC) map { fruit =>
-          simpleMessagefulltask(s"$fruit-D", destinations(3), fruit)(o)
+        (fruitsB ++ fruitsC).map { fruit =>
+          simpleMessageFulltask(s"$fruit-D", destinations(3), fruit)(o)
         }
       )
     }
@@ -73,15 +70,15 @@ object Step5_TaskBundleSpec {
   
   // A -> N*B (one of B aborts)
   class AbortingTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    val a = simpleMessagefulltask("A", destinations(0), aResult)
+    val a = simpleMessageFulltask("A", destinations(0), aResult)
     FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
         new TaskBundle(_)(o =>
           Seq(
-            simpleMessagefulltask("Farfalhi", destinations(1), "Farfalhi")(o),
-            simpleMessagefulltask("Kunami", destinations(2), "Kunami")(o),
-            simpleMessagefulltask("Funini", destinations(3), "Funini", abortOnReceive = true)(o),
-            simpleMessagefulltask("Katuki", destinations(4), "Katuki")(o),
-            simpleMessagefulltask("Maracaté", destinations(5), "Maracaté")(o)
+            simpleMessageFulltask("Farfalhi", destinations(1), "Farfalhi")(o),
+            simpleMessageFulltask("Kunami", destinations(2), "Kunami")(o),
+            simpleMessageFulltask("Funini", destinations(3), "Funini", abortOnReceive = true)(o),
+            simpleMessageFulltask("Katuki", destinations(4), "Katuki")(o),
+            simpleMessageFulltask("Maracaté", destinations(5), "Maracaté")(o)
           )
         )
     }
@@ -149,7 +146,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
             }, { thirdState =>
               handleResend("A")
               
-              //In parallel why not
               aResult.par.foreach { _ =>
                 pingPong(destinations(1)) // Destinations of B tasks
                 pingPong(destinations(2)) // Destinations of C tasks
@@ -165,7 +161,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
                 "D" -> Set(Unstarted, Waiting)
               )
             }, { fourthState =>
-              //In parallel why not
               (0 until aResult.length * 2).par.foreach { _ =>
                 pingPong(destinations(3)) // Destinations of D tasks
               }
@@ -195,7 +190,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
             }, { thirdState =>
               handleResend("A")
           
-              //In parallel why not
               aResult.par.foreach { _ =>
                 pingPong(destinations(1)) // Destination of B tasks
               }
@@ -210,7 +204,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
                 "D" -> Set(Unstarted, Waiting)
               )
             }, { fourthState =>
-              //In parallel why not
               aResult.par.foreach { _ =>
                 pingPong(destinations(2)) // Destination of C tasks
               }
@@ -233,11 +226,9 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
                 "D" -> Set(Unstarted, Waiting)
               )
             }, { fifthState =>
-              //In parallel why not
               (0 until aResult.length * 2).par.foreach { _ =>
                 pingPong(destinations(3)) // Destination of D tasks
               }
-              //In parallel why not
               (0 until aResult.length * 2).par.foreach { _ =>
                 pingPong(destinations(3)) // Destination of D tasks
               }
@@ -268,7 +259,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
             }, { thirdState =>
               handleResend("A")
               
-              //In parallel why not
               aResult.par.foreach { _ =>
                 pingPong(destinations(2)) // Destination of C tasks
               }
@@ -283,7 +273,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
                 "D" -> Set(Unstarted, Waiting)
               )
             }, { fourthState =>
-              //In parallel why not
               aResult.par.foreach { _ =>
                 pingPong(destinations(1)) // Destination of B tasks
               }
@@ -306,7 +295,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
                 "D" -> Set(Unstarted, Waiting)
               )
             }, { fifthState =>
-              //In parallel why not
               (0 until aResult.length * 2).par.foreach { _ =>
                 pingPong(destinations(3)) // Destination of D tasks
               }
@@ -341,7 +329,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
             }, { thirdState =>
               handleResend("A")
               
-              //In parallel why not
               aResult.indices.par.foreach { i =>
                 pingPong(destinations(i + 1))
               }
@@ -352,11 +339,6 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
                 "B" -> Aborted(testsAbortReason)
               )
             }, { fourthState =>
-              //Because the inner orchestrator of the bundle wont be started the destinations wont receive resends
-              /*aResult.indices.par.foreach { i =>
-                pingPong(destinations(i + 1))
-              }*/
-              
               terminationProbe.expectMsg(OrchestratorAborted)
               
               fourthState
@@ -366,6 +348,7 @@ class Step5_TaskBundleSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
     }
+  
     //TODO: test timeouts
   }
 }

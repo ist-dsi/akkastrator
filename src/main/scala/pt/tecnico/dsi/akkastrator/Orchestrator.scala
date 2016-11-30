@@ -4,6 +4,7 @@ import scala.collection.immutable.HashMap
 
 import akka.actor.{Actor, ActorLogging, ActorPath}
 import akka.persistence._
+import pt.tecnico.dsi.akkastrator.Task.Timeout
 
 object Orchestrator {
   case class StartOrchestrator(id: Long)
@@ -30,7 +31,6 @@ object Orchestrator {
   
   case object Status
   case class StatusResponse(tasks: IndexedSeq[TaskReport[_]])
-  //TODO: we could also respond with a OrchestratorWasntStarted
   
   case object ShutdownOrchestrator
 }
@@ -80,9 +80,10 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   type ID <: Id
   
   protected[akkastrator] case class StartTask(index: Int)
+  protected[akkastrator] case class TaskTimedOut(index: Int, id: Long)
   
   /** This exists to make the creation of tasks easier. */
-  final implicit val orchestrator = this
+  final implicit val orchestrator: AbstractOrchestrator[_] = this
   
   /**
     * All the tasks this orchestrator will have will be stored here, which allows them to have a stable index.
@@ -217,6 +218,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   final def computeCurrentBehavior(): Receive = {
     val baseCommands: Actor.Receive = alwaysAvailableCommands orElse {
       case StartTask(index) => tasks(index).start()
+      case TaskTimedOut(index, id) => waitingTasks.get(index).foreach(_.timeout(receivedMessage = None, id))
     }
     // baseCommands is the first receive to guarantee that ShutdownOrchestrator, SaveSnapshot, StartTask and Status
     // won't be taken first by one of the tasks behaviors or the extraCommands. Similarly extraCommands
@@ -267,7 +269,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   final def receiveCommand: Actor.Receive = unstarted orElse alwaysAvailableCommands orElse extraCommands
 
   def receiveRecover: Actor.Receive = unstarted orElse {
-    case SnapshotOffer(metadata, offeredSnapshot: State) =>
+    case SnapshotOffer(_, offeredSnapshot: State) =>
       state = offeredSnapshot.asInstanceOf[S]
     case MessageSent(taskIndex) =>
       val task = tasks(taskIndex)
@@ -276,7 +278,12 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     case MessageReceived(taskIndex, message) =>
       val task = waitingTasks(taskIndex)
       log.info(task.withLogPrefix("Recovering MessageReceived."))
-      task.behavior(message)
+      // We need to deal with the Timeout message explicitly because if behavior does not handle it invoking
+      // behavior would throw a MatchError.
+      message match {
+        case Timeout(id) => task.timeout(receivedMessage = None, id)
+        case _ => task.behavior(message)
+      }
     case RecoveryCompleted =>
       if (tasks.nonEmpty) {
         val tasksString = tasks.map(t => t.withLogPrefix(t.state.toString)).mkString("\n\t")
@@ -285,6 +292,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
                      |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin)
       }
   }
+  
+  
 }
 
 /**
@@ -334,7 +343,7 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
 abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) extends AbstractOrchestrator[R](settings) {
   /** This orchestrator requires that the state includes DistinctIds. */
   final type S = State with DistinctIds
-  state = new MinimalState()
+  state = MinimalState()
   
   /** This orchestrator uses CorrelationId for its ID.
     * This is needed to ensure every destination sees an independent sequence. */
@@ -352,9 +361,9 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
     state.getDeliveryIdFor(destination, id)
   }
   def matchId(task: Task[_], id: Long): Boolean = {
-    lazy val senderPath = sender().path
+    val senderPath = sender().path
     val correlationId: CorrelationId = id
-    lazy val deliveryId = state.getDeliveryIdFor(task.destination, correlationId)
+    val deliveryId = state.getDeliveryIdFor(task.destination, correlationId)
   
     val matches = (if (recoveryRunning) true else senderPath == task.destination) &&
       task.state == Task.Waiting && task.expectedDeliveryId.contains(deliveryId)
