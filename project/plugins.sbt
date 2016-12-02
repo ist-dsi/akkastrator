@@ -12,6 +12,3 @@ addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.2.0")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
 resolvers += Resolver.typesafeRepo("releases") //Needed for sbt-codacy-coverage
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.6")
-
-
-addSbtPlugin("me.penkov" % "sbt-notifications" % "0.0.2")
