@@ -9,29 +9,14 @@ import pt.tecnico.dsi.akkastrator.Task.Timeout
 object Orchestrator {
   case class StartOrchestrator(id: Long)
   
-  /**
-    * An immutable representation (a report) of a Task in a given moment of time.
-    *
-    * This is what is sent when someone queries the status of the orchestrator.
-    *
-    * @param description a text that describes the task in a human readable way. Or a message key to be used in internationalization.
-    * @param dependencies the tasks that must have finished in order for the task to be able to start.
-    * @param state the current state of the task.
-    * @param destination the destination of the task. If the task hasn't started this will be a None.
-    * @param result the result of the task. If the task hasn't finished this will be a None.
-    * @tparam R the type of the result.
-    */
-  case class TaskReport[R](description: String, dependencies: Seq[Int], state: Task.State, destination: Option[ActorPath], result: Option[R])
-  
   // It would be nice to find a way to ensure the type parameter R of this class matches with the type parameter R of orchestrator
   case class TasksFinished[R](result: R, id: Long)
-  case class TaskAborted[R](instigatorReport: TaskReport[R], cause: Exception, id: Long)
-  
-  case object SaveSnapshot
+  case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Exception, id: Long)
   
   case object Status
-  case class StatusResponse(tasks: IndexedSeq[TaskReport[_]])
+  case class StatusResponse(tasks: IndexedSeq[Task.Report[_]])
   
+  case object SaveSnapshot
   case object ShutdownOrchestrator
 }
 
@@ -43,7 +28,7 @@ object Orchestrator {
   * The Orchestrator together with the Task is able to:
   *
   *  - Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.
-  *  - Delivering messages with at-least-once delivery guarantee. The Orchestrator ensures each destination
+  *  - Delivering messages with at-least-once delivery guarantee. The `DistinctIdsOrchestrator` ensures each destination
   *    will see an independent strictly monotonically increasing sequence number without gaps.
   *  - Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
   *    status, the Orchestrator will respond with the status of each task.
@@ -69,6 +54,9 @@ object Orchestrator {
   *     }
   *   }
   * }}}
+  *
+  * @param settings
+  * @tparam R the type of result this orchestrator returns when it finishes.
   */
 sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends PersistentActor with AtLeastOnceDelivery
   with ActorLogging with IdImplicits {
@@ -157,9 +145,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     */
   def matchId(task: Task[_], id: Long): Boolean
   
-  
-  
-  
   /**
     * User overridable callback. Its called every time a task finishes.
     *
@@ -196,12 +181,12 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *       }}}
     *
     * @param instigator the task that instigated the abort.
-    * @param message the message that caused the abort.
+    * @param reply the reply from the task destination that caused the abort.
     * @param tasks Map with the tasks states at the moment of abort.
     */
-  def onAbort(instigator: FullTask[_, _], message: Any, cause: Exception, tasks: Map[Task.State, Seq[FullTask[_, _]]]): Unit = {
+  def onAbort(instigator: FullTask[_, _], reply: Any, cause: Exception, tasks: Map[Task.State, Seq[FullTask[_, _]]]): Unit = {
     log.info(s"${self.path.name} Aborted due to $cause!")
-    context.parent ! TaskAborted(instigator.toTaskReport, cause, startId)
+    context.parent ! TaskAborted(instigator.report, cause, startId)
     context stop self
   }
   
@@ -259,7 +244,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   }
   final def alwaysAvailableCommands: Actor.Receive = {
     case Status =>
-      sender() ! StatusResponse(tasks.map(_.toTaskReport))
+      sender() ! StatusResponse(tasks.map(_.report))
     case ShutdownOrchestrator =>
       context stop self
     case SaveSnapshot =>
@@ -292,8 +277,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
                      |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin)
       }
   }
-  
-  
 }
 
 /**
@@ -350,36 +333,36 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
   final type ID = CorrelationId
   
   def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
-    val correlationId = state.getNextCorrelationIdFor(destination)
+    val correlationId = state.nextCorrelationIdFor(destination)
     
     state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
-    log.debug(s"State for $destination is now:\n\t" + state.getIdsFor(destination).mkString("\n\t"))
+    log.debug(s"State for $destination is now:\n\t" + state.idsOf(destination).mkString("\n\t"))
     
     correlationId
   }
   def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = {
-    state.getDeliveryIdFor(destination, id)
+    state.deliveryIdFor(destination, id)
   }
   def matchId(task: Task[_], id: Long): Boolean = {
     val senderPath = sender().path
     val correlationId: CorrelationId = id
-    val deliveryId = state.getDeliveryIdFor(task.destination, correlationId)
-  
+    val deliveryId = state.deliveryIdFor(task.destination, correlationId)
+    
     val matches = (if (recoveryRunning) true else senderPath == task.destination) &&
       task.state == Task.Waiting && task.expectedDeliveryId.contains(deliveryId)
-  
+    
     log.debug(task.withLogPrefix{
       val senderPathString = senderPath.toStringWithoutAddress
       val destinationString = task.destination.toStringWithoutAddress
       val length = senderPathString.length max destinationString.length
       String.format(
         s"""MatchId:
-            |($destinationString, $correlationId) resolved to $deliveryId
-            |          │ %${length}s │ DeliveryId
-            |──────────┼─%${length}s─┼──────────────────────────────
-            |    VALUE │ %${length}s │ %s
-            | EXPECTED │ %${length}s │ %s
-            | Matches: %s""".stripMargin,
+           |($destinationString, $correlationId) resolved to $deliveryId
+           |          │ %${length}s │ DeliveryId
+           |──────────┼─%${length}s─┼──────────────────────────────
+           |    VALUE │ %${length}s │ %s
+           | EXPECTED │ %${length}s │ %s
+           | Matches: %s""".stripMargin,
         "SenderPath",
         "─" * length,
         senderPathString, Some(deliveryId),

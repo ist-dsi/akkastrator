@@ -31,7 +31,7 @@ object ActorSysSpec {
     extends DistinctIdsOrchestrator {
     var destinationProbes = Map.empty[String, TestProbe]
   
-    def fulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, message: Long => Any, _result: R,
+    def fulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, message: Long => Serializable, _result: R,
                                               dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
                                              (implicit orchestrator: AbstractOrchestrator[_],
                                               tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
@@ -39,7 +39,7 @@ object ActorSysSpec {
       FullTask(description, dependencies) createTaskWith { _ =>
         new Task[R](_) {
           val destination: ActorPath = dest.ref.path
-          def createMessage(id: Long): Any = message(id)
+          def createMessage(id: Long): Serializable = message(id)
           def behavior: Receive =  {
             case m @ SimpleMessage(_, id) if matchId(id) =>
               if (abortOnReceive) {

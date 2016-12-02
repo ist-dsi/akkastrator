@@ -53,7 +53,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   final val spawner: ActorRef = task.orchestrator.context.actorOf(Props[Spawner], s"spawner-$innerOrchestratorId")
   
   final val destination: ActorPath = spawner.path
-  final def createMessage(id: Long): Any = SpawnAndStart(props, innerOrchestratorId, id)
+  final def createMessage(id: Long): Serializable = SpawnAndStart(props, innerOrchestratorId, id)
   
   def behavior: Receive = {
     case m @ TasksFinished(result, id) if matchId(id) =>

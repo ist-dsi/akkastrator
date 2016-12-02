@@ -3,7 +3,7 @@ package pt.tecnico.dsi.akkastrator
 import scala.concurrent.duration.FiniteDuration
 
 import akka.actor.{Actor, ActorPath, PossiblyHarmful}
-import pt.tecnico.dsi.akkastrator.Orchestrator.{SaveSnapshot, TaskReport}
+import pt.tecnico.dsi.akkastrator.Orchestrator.SaveSnapshot
 import pt.tecnico.dsi.akkastrator.Task._
 
 object Task {
@@ -15,6 +15,18 @@ object Task {
   case class Finished[R](result: R) extends State
   
   case class Timeout(id: Long) extends PossiblyHarmful
+  
+  /**
+    * An immutable representation (a report) of a Task in a given moment of time.
+    *
+    * @param description a text that describes the task in a human readable way. Or a message key to be used in internationalization.
+    * @param dependencies the indexes of the tasks that must have finished in order for the task to be able to start.
+    * @param state the current state of the task.
+    * @param destination the destination of the task. If the task hasn't started this will be a None.
+    * @param result the result of the task. If the task hasn't finished this will be a None.
+    * @tparam R the type of the result.
+    */
+  case class Report[R](description: String, dependencies: Seq[Int], state: Task.State, destination: Option[ActorPath], result: Option[R])
 }
 
 // Maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
@@ -47,7 +59,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
   val destination: ActorPath //This must be a val because the destination cannot change.
   /** The constructor of the message to be sent. It must always return the same message, only the id must be different.
     * If this Task is to be used inside a TaskQuorum then the created message should also implement `equals`. */
-  def createMessage(id: Long): Any
+  def createMessage(id: Long): Serializable
   
   final protected[akkastrator] def start(): Unit = {
     require(state == Unstarted, "Start can only be invoked when this task is Unstarted.")
@@ -225,7 +237,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
   
   // These are shorcuts
   def withLogPrefix(message: => String): String = task.withLogPrefix(message)
-  def toTaskReport: TaskReport[R] = task.toTaskReport.asInstanceOf[TaskReport[R]]
+  def report: Report[R] = task.report.asInstanceOf[Report[R]]
   
   override def toString: String = s"Task($expectedDeliveryId, $state, $destination)"
 }

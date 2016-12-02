@@ -55,8 +55,8 @@ object TaskQuorum {
       case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) => //TODO: This equality check might very easily fail
         (t2, InitializationError("TasksCreator must generate tasks with the same message."))
     } foreach { case (task, cause) =>
-      // Saying a TaskAborted is an abuse of language, in fact it was the orchestrator that aborted
-      context.parent ! TaskAborted(task.toTaskReport, cause, startId)
+      // TODO: Saying a task aborted is an abuse of language, in fact it was the orchestrator that aborted
+      context.parent ! TaskAborted(task.report, cause, startId)
       context stop self
     }
     
@@ -89,6 +89,12 @@ object TaskQuorum {
         abortWaitingTasks(QuorumAlreadyAchieved)(
           afterAllAborts = orchestrator.onFinish()
         )
+      } else if (waitingTasks.isEmpty) {
+        // Every task has finished but we haven't achieved a quorum
+        // TODO: Saying a TaskAborted is an abuse of language, in fact it was the orchestrator that aborted
+        // Which TaskReport should we use here?
+        //context.parent ! TaskAborted(taskReport, QuorumNotAchieved, startId)
+        context stop self
       }
     }
   
@@ -102,7 +108,7 @@ object TaskQuorum {
       tolerance -= 1
       if (tolerance < 0) {
         abortWaitingTasks(QuorumImpossibleToAchieve)(
-          afterAllAborts = orchestrator.onAbort(instigator, message, cause, tasks)
+          afterAllAborts = super.onAbort(instigator, message, cause, tasks)
         )
       }
     }

@@ -15,7 +15,7 @@ object Step7_TimeoutSpec {
     FullTask("A", timeout = 500.millis) createTaskWith { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
-        def createMessage(id: Long): Any = SimpleMessage("A", id)
+        def createMessage(id: Long): Serializable = SimpleMessage("A", id)
         def behavior: Receive =  {
           case m @ SimpleMessage(_, id) if matchId(id) =>
             finish(m, id, "A Result")
@@ -30,7 +30,7 @@ object Step7_TimeoutSpec {
     FullTask("A", timeout = 500.millis) createTaskWith { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
-        def createMessage(id: Long): Any = SimpleMessage("A", id)
+        def createMessage(id: Long): Serializable = SimpleMessage("A", id)
         def behavior: Receive =  {
           case m @ SimpleMessage(_, id) if matchId(id) =>
             finish(m, id, "A Result")

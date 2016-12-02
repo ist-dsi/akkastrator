@@ -73,10 +73,39 @@ object Step6_TaskQuorumSpec {
       )
     }
   }
+  
+  class SurpassingToleranceOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+    FullTask("A") createTaskWith { case HNil =>
+      // Since minimumVotes = All the tolerance is 0.
+      // Given that one of the tasks aborts so should the Quorum
+      new TaskQuorum(_, minimumVotes = All)(o =>
+        Seq(
+          fulltask(s"0-B", destinations(0), SimpleMessage("B-InnerTask", _), 5)(o),
+          fulltask(s"1-B", destinations(1), SimpleMessage("B-InnerTask", _), 5)(o),
+          fulltask(s"2-B", destinations(2), SimpleMessage("B-InnerTask", _), 5, abortOnReceive = true)(o)
+        )
+      )
+    }
+  }
+  class NotReachingToleranceOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+    FullTask("A") createTaskWith { case HNil =>
+      // Since minimumVotes = Majority (the default) and there are 5 tasks the tolerance is 2.
+      // Given that only one task aborts the Quorum should succeed.
+      new TaskQuorum(_, minimumVotes = All)(o =>
+        Seq(
+          fulltask(s"0-B", destinations(0), SimpleMessage("B-InnerTask", _), 5)(o),
+          fulltask(s"1-B", destinations(1), SimpleMessage("B-InnerTask", _), 5)(o),
+          fulltask(s"2-B", destinations(2), SimpleMessage("B-InnerTask", _), 5, abortOnReceive = true)(o),
+          fulltask(s"3-B", destinations(2), SimpleMessage("B-InnerTask", _), 3)(o),
+          fulltask(s"4-B", destinations(2), SimpleMessage("B-InnerTask", _), 5)(o)
+        )
+      )
+    }
+  }
 }
 class Step6_TaskQuorumSpec extends ActorSysSpec {
   "An orchestrator with task quorum" should {
-    "must fail" when {
+    "fail" when {
       "the tasksCreator generates tasks with the same destination" in {
         val testCase = new TestCase[TasksWithSameDestinationQuorumOrchestrator](1, Set("A")) {
           val transformations: Seq[(State) => State] = Seq(
@@ -187,6 +216,14 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
           )
         }
         testCase.testExpectedStatusWithRecovery()
+      }
+      
+      "the tolerance is surpassed" in {
+        
+      }
+      
+      "the tolerance is not reached" in {
+        
       }
     }
     

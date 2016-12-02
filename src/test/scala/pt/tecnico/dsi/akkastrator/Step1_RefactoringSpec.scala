@@ -11,10 +11,10 @@ import shapeless.{::, HNil}
 
 class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSender {
   trait SimpleTasks { self: Orchestrator[_] =>
-    val theOneTask = FullTask("the One") createTaskWith { case HNil =>
+    val theOneTask: FullTask[Unit, HNil] = FullTask("the One") createTaskWith { case HNil =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-        def createMessage(id: Long): Any = SimpleMessage("TheOneTask", id)
+        def createMessage(id: Long): Serializable = SimpleMessage("TheOneTask", id)
       
         def behavior: Receive = {
           case m @ SimpleMessage(s, id) if matchId(id) =>
@@ -23,10 +23,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
   
-    def deleteUser(user: String) = FullTask(s"Delete user $user") createTaskWith { case HNil =>
+    def deleteUser(user: String): FullTask[Unit, HNil] = FullTask(s"Delete user $user") createTaskWith { case HNil =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-        def createMessage(id: Long): Any = SimpleMessage(s"DELETE $user", id)
+        def createMessage(id: Long): Serializable = SimpleMessage(s"DELETE $user", id)
   
         def behavior: Receive = {
           case m @ SimpleMessage(s, id) if matchId(id) =>
@@ -37,10 +37,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
   }
   
   trait DistinctIdsTasks { self: DistinctIdsOrchestrator[_] =>
-    val getHiggs = FullTask("find the higgs boson") createTaskWith { case HNil =>
+    val getHiggs: FullTask[String, HNil] = FullTask("find the higgs boson") createTaskWith { case HNil =>
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-        def createMessage(id: Long): Any = SimpleMessage("AnotherTask", id)
+        def createMessage(id: Long): Serializable = SimpleMessage("AnotherTask", id)
   
         def behavior: Receive = {
           case m @ SimpleMessage(s, id) if matchId(id) =>
@@ -49,11 +49,11 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
   
-    def post(dependencies: FullTask[String, HNil] :: FullTask[String, HNil] :: HNil) = {
+    def post(dependencies: FullTask[String, HNil] :: FullTask[String, HNil] :: HNil): FullTask[Unit, _] = {
       FullTask("posting", dependencies) createTaskWith { case what :: where :: HNil =>
         new Task[Unit](_){
           val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-          def createMessage(id: Long): Any = SimpleMessage(s"post $what in $where", id)
+          def createMessage(id: Long): Serializable = SimpleMessage(s"post $what in $where", id)
       
           def behavior: Receive = {
             case m @ SimpleMessage(s, id) if matchId(id) =>
@@ -65,10 +65,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
   }
   
   trait AbstractTasks { self: AbstractOrchestrator[_] =>
-    val obtainLocation = FullTask("obtain The location") createTaskWith { case HNil =>
+    val obtainLocation: FullTask[String, HNil] = FullTask("obtain The location") createTaskWith { case HNil =>
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-        def createMessage(id: Long): Any = SimpleMessage("SomeTask", id)
+        def createMessage(id: Long): Serializable = SimpleMessage("SomeTask", id)
       
         def behavior: Receive = {
           case m @ SimpleMessage(s, id) if matchId(id) =>
@@ -80,11 +80,11 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     // With this its not working, can't understand why
     //  def ping(location: FullTask[String, HNil, HNil] :: HNil)
     
-    def ping(location: FullTask[String, _] :: HNil) = FullTask("Ping", location) createTaskWith { case ip :: HNil =>
+    def ping(location: FullTask[String, _] :: HNil): FullTask[Unit, _] = FullTask("Ping", location) createTaskWith { case ip :: HNil =>
       new Task[Unit](_) {
         //Dummy destination
         val destination: ActorPath = ActorPath.fromString("akka://user/f")
-        def createMessage(id: Long): Any = SimpleMessage(s"Ping $ip", id)
+        def createMessage(id: Long): Serializable = SimpleMessage(s"Ping $ip", id)
     
         def behavior: Receive = {
           case m @ SimpleMessage(s, id) if matchId(id) =>
@@ -132,7 +132,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           val where = FullTask("get where") createTaskWith { case HNil =>
             new Task[String](_) {
               val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-              def createMessage(id: Long): Any = SimpleMessage("Where", id)
+              def createMessage(id: Long): Serializable = SimpleMessage("Where", id)
       
               def behavior: Receive = {
                 case m @ SimpleMessage(s, id) if matchId(id) =>
@@ -147,11 +147,11 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           // These two would NOT work
           //  def post2(dependencies: FullTask[Unit, HNil] :: FullTask[String, HNil] :: HNil)
           //  def post2(dependencies: FullTask[Unit, HNil] :: FullTask[String, _] :: HNil)
-          def post2(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil) = {
+          def post2(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
             FullTask("demo", dependencies) createTaskWith { case ta :: tb :: HNil =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-                def createMessage(id: Long): Any = SimpleMessage(s"demo", id)
+                def createMessage(id: Long): Serializable = SimpleMessage(s"demo", id)
         
                 def behavior: Receive = {
                   case m @ SimpleMessage(s, id) if matchId(id) =>

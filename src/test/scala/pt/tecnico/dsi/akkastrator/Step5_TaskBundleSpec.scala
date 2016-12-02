@@ -23,7 +23,7 @@ object Step5_TaskBundleSpec {
           FullTask(fruit).createTaskWith { case HNil =>
             new Task[Int](_) {
               val destination: ActorPath = destinations(i + 1).ref.path
-              def createMessage(id: Long): Any = SimpleMessage(fruit, id)
+              def createMessage(id: Long): Serializable = SimpleMessage(fruit, id)
               def behavior: Receive = {
                 case m @ SimpleMessage(_, id) if matchId(id) =>
                   finish(m, id, fruit.length)

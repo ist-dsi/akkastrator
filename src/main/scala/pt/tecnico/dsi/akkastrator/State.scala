@@ -18,7 +18,7 @@ trait DistinctIds { self: State =>
   def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State with DistinctIds
 
   /** @return the relations between CorrelationId and DeliveryId for the given `destination`. */
-  final def getIdsFor(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
+  final def idsOf(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
     idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId])
   }
   
@@ -26,9 +26,9 @@ trait DistinctIds { self: State =>
     * Compute the next correlationId for the given `destination`.
     * The computation is just the biggest correlationId + 1 or 0 if no correlationId exists.
     */
-  final def getNextCorrelationIdFor(destination: ActorPath): CorrelationId = {
+  final def nextCorrelationIdFor(destination: ActorPath): CorrelationId = {
     import pt.tecnico.dsi.akkastrator.IdImplicits._
-    getIdsFor(destination)
+    idsOf(destination)
       .keySet.lastOption
       .map[CorrelationId](_.self + 1L)
       .getOrElse(0L)
@@ -39,7 +39,7 @@ trait DistinctIds { self: State =>
     * If the translation is unsuccessful an exception will be thrown in order to crash the orchestrator
     * since this will be a fatal error.
     */
-  private[akkastrator] def getDeliveryIdFor(destination: ActorPath, correlationId: CorrelationId): DeliveryId = {
+  private[akkastrator] def deliveryIdFor(destination: ActorPath, correlationId: CorrelationId): DeliveryId = {
     // You cannot see a Option.get here. You cannot see a Option.get here. You cannot see a Option.get here.
     idsPerDestination.get(destination).flatMap(_.get(correlationId)) match {
       case Some(deliveryId) => deliveryId
@@ -54,7 +54,7 @@ trait DistinctIds { self: State =>
     * @return a new copy of State with the IdsPerDestination updated for `destination` using the `newIdRelation`.
     */
   final def updatedIdsPerDestination(destination: ActorPath, newIdRelation: (CorrelationId, DeliveryId)): State with DistinctIds = {
-    withIdsPerDestination(idsPerDestination.updated(destination, getIdsFor(destination) + newIdRelation))
+    withIdsPerDestination(idsPerDestination.updated(destination, idsOf(destination) + newIdRelation))
   }
 }
 

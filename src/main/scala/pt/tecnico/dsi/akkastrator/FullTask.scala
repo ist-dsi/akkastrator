@@ -4,24 +4,8 @@ import scala.concurrent.duration.Duration
 import scala.collection.immutable.Seq
 
 import pt.tecnico.dsi.akkastrator.HListConstraints.{TaskComapped, taskHListOps}
-import pt.tecnico.dsi.akkastrator.Orchestrator.TaskReport
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{HList, HNil}
-
-/*
-object Teste {
-  new FullTask[Int, FullTask[Seq[String], _] :: HNil]("B", a :: HNil, Duration.Inf)(orchestrator, TaskComapped.consExistential[Seq[String], HNil]) {
-    def createTask(results: comapped.ResultsList): Task[Int] = new Task[Int](this) {
-      val destination: ActorPath = destinations(1).ref.path
-      def createMessage(id: Long): Any = SimpleMessage("asd", id)
-      def behavior: Receive = {
-        case m @ SimpleMessage(_, id) if matchId(id) =>
-          finish(m, id, 5)
-      }
-    }
-  }
-}
-*/
 
 /**
   * @param description a text that describes this task in a human readable way, or a message key to be used in
@@ -164,7 +148,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   }
   
   /** The immutable TaskReport of this task. */
-  final def toTaskReport: TaskReport[R] = TaskReport(description, dependenciesIndexes, state,
+  final def report: Report[R] = Report(description, dependenciesIndexes, state,
     innerTask.map(_.destination), result)
   
   override def toString: String =

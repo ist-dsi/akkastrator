@@ -13,6 +13,7 @@ case class ExceptionThrown(throwable: Throwable) extends Exception(throwable) wi
 */
 
 case object TimedOut extends Exception
+case object QuorumNotAchieved extends Exception
 case object QuorumAlreadyAchieved extends Exception
 case object QuorumImpossibleToAchieve extends Exception
 case class InitializationError(message: String) extends Exception(message)
