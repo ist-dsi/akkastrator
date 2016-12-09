@@ -48,7 +48,7 @@ class Step7_TimeoutSpec extends ActorSysSpec {
   // Timeouts inside inner orchestrators is tested in their own suites.
   
   // The case where timeout = Duration.Inf cannot be tested since we can't wait forever.
-  // However all the other tests prove the timeout is not "throw" when it is set as Duration.Inf
+  // However all the other tests prove the timeout is not "thrown" when it is set as Duration.Inf
   
   "A orchestrator with timeouts" should {
     "execute the behavior" when {

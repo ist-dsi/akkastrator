@@ -3,7 +3,7 @@ name := "akkastrator"
 
 javacOptions ++= Seq("-Xlint", "-encoding", "UTF-8", "-Dfile.encoding=utf-8")
 
-scalaVersion := "2.12.0"
+scalaVersion := "2.12.1"
 scalacOptions ++= Seq(
   "-deprecation", //Emit warning and location for usages of deprecated APIs.
   "-encoding", "UTF-8",
@@ -16,7 +16,7 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code" //Warn when dead code is identified.
 )
 
-val akkaVersion = "2.4.12"
+val akkaVersion = "2.4.14"
 libraryDependencies ++= Seq(
   //Shapeless
   "com.chuusai" %% "shapeless" % "2.3.2",

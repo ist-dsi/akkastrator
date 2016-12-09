@@ -1,6 +1,6 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, classTag}
 
 import akka.actor.Actor.Receive
 import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef, Props, Terminated}
@@ -45,9 +45,10 @@ class Spawner extends Actor with ActorLogging {
   * @tparam O the type of AbstractOrchestrator the Props must create.
   */
 class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: FullTask[_, _])(props: Props) extends Task[R](task) {
-  //This is not necessary because R and O must be explicitly set.
-  /*require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
-    "Props.actorClass must comply with <: AbstractOrchestrator[R]")*/
+  // Props only imposes the restriction that the class it creates must be <: Actor.
+  // However we have a more refined restriction that the class it creates must be <: AbstractOrchestrator[R]
+  require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
+    "Props.actorClass must comply with <: AbstractOrchestrator[R]")
   
   final val innerOrchestratorId: Int = task.orchestrator.nextInnerOrchestratorId()
   final val spawner: ActorRef = task.orchestrator.context.actorOf(Props[Spawner], s"spawner-$innerOrchestratorId")
@@ -56,9 +57,9 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   final def createMessage(id: Long): Serializable = SpawnAndStart(props, innerOrchestratorId, id)
   
   def behavior: Receive = {
-    case m @ TasksFinished(result, id) if matchId(id) =>
-      finish(m, id, result.asInstanceOf[R])
-    case m @ TaskAborted(_, cause, id) if matchId(id) =>
-      abort(m, id, cause)
+    case m: Success[R] if matchId(m.id) =>
+      finish(m, m.id, m.result)
+    case m: Failure if matchId(m.id) =>
+      abort(m, m.id, m.cause)
   }
 }

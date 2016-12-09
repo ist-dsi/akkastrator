@@ -9,10 +9,19 @@ import pt.tecnico.dsi.akkastrator.Task.Timeout
 object Orchestrator {
   case class StartOrchestrator(id: Long)
   
-  // It would be nice to find a way to ensure the type parameter R of this class matches with the type parameter R of orchestrator
-  case class TasksFinished[R](result: R, id: Long)
-  case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Exception, id: Long)
+  trait Success[R] extends Serializable {
+    def id: Long
+    def result: R
+  }
+  case class Finished[R](result: R, id: Long) extends Success[R]
   
+  trait Failure extends Serializable {
+    def id: Long
+    def cause: Exception
+  }
+  case class Aborted(cause: Exception, id: Long) extends Failure
+  case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Exception, id: Long) extends Failure
+    
   case object Status
   case class StatusResponse(tasks: IndexedSeq[Task.Report[_]])
   
@@ -264,7 +273,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
       val task = waitingTasks(taskIndex)
       log.info(task.withLogPrefix("Recovering MessageReceived."))
       // We need to deal with the Timeout message explicitly because if behavior does not handle it invoking
-      // behavior would throw a MatchError.
+      // behavior would throw a MatchError. Unfortunately this is an overhead we cannot overcome.
       message match {
         case Timeout(id) => task.timeout(receivedMessage = None, id)
         case _ => task.behavior(message)

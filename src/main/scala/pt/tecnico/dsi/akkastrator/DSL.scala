@@ -34,7 +34,7 @@ object DSL {
                                           ev: <:<[T, FullTask[_, _] => Task[R]]): FullTask[R, DL] = {
         createTaskWith(fntp(builder) andThen ev)
       }
-      //TODO: does Predef.ArrowAssoc takes precedence over this one?
+      //TODO: does Predef.ArrowAssoc cause problems here?
       def ->[F, T, R](builder: F)(implicit orchestrator: AbstractOrchestrator[_], fntp: FnToProduct.Aux[F, RL => T],
                                   ev: <:<[T, FullTask[_, _] => Task[R]]): FullTask[R, DL] = {
         createTask(builder)
@@ -89,13 +89,20 @@ object DSL {
   
   
   // Allows dependency isDependencyOf otherTaskMethod
-  implicit class richFullTask[DR](val dependency: FullTask[DR, _ <: HList]) extends AnyVal {
-    def isDependencyOf[R](task: FullTask[DR, _] :: HNil => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = {
+  implicit class richFullTask[DR, DDL <: HList](val dependency: FullTask[DR, DDL]) extends AnyVal {
+    def isDependencyOf[R](task: FullTask[DR, DDL] :: HNil => FullTask[R, _]): FullTask[R, _] = {
       task(dependency :: HNil)
     }
-    def ->[R](task: FullTask[DR, _] :: HNil => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = {
+    def ->[R](task: FullTask[DR, DDL] :: HNil => FullTask[R, _]): FullTask[R, _] = {
       isDependencyOf(task)
     }
+  }
+    
+  // Allows task1 :: task2 :: HNil areDependenciesOf otherTaskMethod, where otherTaskMethod:
+  //  def otherTaskMethod(dependencies: FullTask[String, _] :: FullTask[Unit, _] :: HNil)
+  implicit class hlist2TaskWithDependencies[DL <: HList](dependencies: DL)(implicit ev: TaskComapped[DL], at: At[DL, _0]) {
+    def areDependenciesOf[R](task: DL => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = task(dependencies)
+    def ->[R](task: DL => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = areDependenciesOf(task)
   }
   
   // Allows (task1, task2) areDependenciesOf otherTaskMethod
@@ -104,12 +111,5 @@ object DSL {
                                                                       ev: TaskComapped[DL],
                                                                       at: At[DL, _0]): hlist2TaskWithDependencies[DL] = {
     new hlist2TaskWithDependencies[DL](gen.to(dependencies))
-  }
-  
-  // Allows task1 :: task2 :: HNil areDependenciesOf otherTaskMethod, where otherTaskMethod:
-  //  def otherTaskMethod(dependencies: FullTask[String, _] :: FullTask[Unit, _] :: HNil)
-  implicit class hlist2TaskWithDependencies[DL <: HList](dependencies: DL)(implicit ev: TaskComapped[DL], at: At[DL, _0]) {
-    def areDependenciesOf[R](task: DL => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = task(dependencies)
-    def ->[R](task: DL => FullTask[R, _ <: HList]): FullTask[R, _ <: HList] = areDependenciesOf(task)
   }
 }

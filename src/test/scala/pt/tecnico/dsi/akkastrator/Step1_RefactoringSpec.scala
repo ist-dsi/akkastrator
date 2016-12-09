@@ -7,7 +7,7 @@ import akka.testkit.ImplicitSender
 import org.scalatest.concurrent.ScalaFutures
 import pt.tecnico.dsi.akkastrator.DSL._
 import pt.tecnico.dsi.akkastrator.Orchestrator._
-import shapeless.{::, HNil}
+import shapeless.{::, HList, HNil}
 
 class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSender {
   trait SimpleTasks { self: Orchestrator[_] =>
@@ -49,7 +49,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
   
-    def post(dependencies: FullTask[String, HNil] :: FullTask[String, HNil] :: HNil): FullTask[Unit, _] = {
+    def post(dependencies: FullTask[String, HNil] :: FullTask[String, HNil] :: HNil) = {
       FullTask("posting", dependencies) createTaskWith { case what :: where :: HNil =>
         new Task[Unit](_){
           val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
@@ -77,9 +77,8 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
   
-    // With this its not working, can't understand why
-    //  def ping(location: FullTask[String, HNil, HNil] :: HNil)
-    
+    // Since we are always using ping where the location is a FullTask[String, HNil] this would also work:
+    //  def ping(location: FullTask[String, HNil] :: HNil)
     def ping(location: FullTask[String, _] :: HNil): FullTask[Unit, _] = FullTask("Ping", location) createTaskWith { case ip :: HNil =>
       new Task[Unit](_) {
         //Dummy destination
@@ -129,7 +128,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         class DistinctIds1Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks {
           def persistenceId: String = "DistinctIds1"
   
-          val where = FullTask("get where") createTaskWith { case HNil =>
+          val where: FullTask[String, HNil] = FullTask("get where") createTaskWith { case HNil =>
             new Task[String](_) {
               val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
               def createMessage(id: Long): Serializable = SimpleMessage("Where", id)
@@ -147,7 +146,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           // These two would NOT work
           //  def post2(dependencies: FullTask[Unit, HNil] :: FullTask[String, HNil] :: HNil)
           //  def post2(dependencies: FullTask[Unit, HNil] :: FullTask[String, _] :: HNil)
-          def post2(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
+          def post2(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil) = {
             FullTask("demo", dependencies) createTaskWith { case ta :: tb :: HNil =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
@@ -188,5 +187,5 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     }
   }
   
-  //TODO: we could also should how to refactor the creation of Tasks (as oposed to only showing refactoring of FullTasks)
+  //TODO: we could also should how to refactor the creation of Tasks (as opposed to only showing refactoring of FullTasks)
 }

@@ -51,12 +51,16 @@ object TaskQuorum {
     // Since we required the created tasks to have no dependencies we know they were added to the waitingTasks list.
     waitingTasks.values.sliding(2).collectFirst {
       case Seq(t1, t2) if t1.destination == t2.destination =>
-        (t2, InitializationError("TasksCreator must generate tasks with distinct destinations."))
+        InitializationError(s"""TasksCreator must generate tasks with distinct destinations.
+           |Tasks "${t1.task.description}" and "${t2.task.description}" have the same destination:
+           |\t${t1.destination}""".stripMargin)
       case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) => //TODO: This equality check might very easily fail
-        (t2, InitializationError("TasksCreator must generate tasks with the same message."))
-    } foreach { case (task, cause) =>
-      // TODO: Saying a task aborted is an abuse of language, in fact it was the orchestrator that aborted
-      context.parent ! TaskAborted(task.report, cause, startId)
+        InitializationError(s"""TasksCreator must generate tasks with the same message.
+           |Tasks "${t1.task.description}" and "${t2.task.description}" generate different messages:
+           |\t${t1.createMessage(1L)}
+           |\t${t2.createMessage(1L)}""".stripMargin)
+    } foreach { cause =>
+      context.parent ! Aborted(cause, startId)
       context stop self
     }
     
@@ -91,16 +95,14 @@ object TaskQuorum {
         )
       } else if (waitingTasks.isEmpty) {
         // Every task has finished but we haven't achieved a quorum
-        // TODO: Saying a TaskAborted is an abuse of language, in fact it was the orchestrator that aborted
-        // Which TaskReport should we use here?
-        //context.parent ! TaskAborted(taskReport, QuorumNotAchieved, startId)
+        context.parent ! Aborted(QuorumNotAchieved, startId)
         context stop self
       }
     }
   
     override def onFinish(): Unit = {
       log.info(s"${self.path.name} Finished!")
-      context.parent ! TasksFinished(winningResult, startId)
+      context.parent ! Finished(winningResult, startId)
       context stop self
     }
   

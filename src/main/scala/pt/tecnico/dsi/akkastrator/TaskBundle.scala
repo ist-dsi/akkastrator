@@ -22,7 +22,7 @@ object TaskBundle {
       log.info(s"${self.path.name} Finished!")
       //We know the cast will succeed because every task is a Task[R].
       val results = tasks.map(_.unsafeResult.asInstanceOf[R])
-      context.parent ! TasksFinished(results, startId)
+      context.parent ! Finished(results, startId)
       context stop self
     }
     

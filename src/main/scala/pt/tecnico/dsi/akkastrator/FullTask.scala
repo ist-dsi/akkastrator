@@ -144,7 +144,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     */
   final def unsafeResult: R = result match {
     case Some(result) => result
-    case None => throw new IllegalStateException("A task only has a result if it is already finished.")
+    case None => throw new IllegalStateException("A task only has a result if it finished.")
   }
   
   /** The immutable TaskReport of this task. */

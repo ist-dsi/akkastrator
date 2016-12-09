@@ -11,7 +11,6 @@ object Task {
   case object Unstarted extends State
   case object Waiting extends State
   case class Aborted(cause: Exception) extends State
-  // It would be nice to find a way to ensure the type parameter R of this class matches with the type parameter R of Task
   case class Finished[R](result: R) extends State
   
   case class Timeout(id: Long) extends PossiblyHarmful
