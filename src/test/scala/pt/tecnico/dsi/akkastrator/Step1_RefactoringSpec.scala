@@ -7,11 +7,11 @@ import akka.testkit.ImplicitSender
 import org.scalatest.concurrent.ScalaFutures
 import pt.tecnico.dsi.akkastrator.DSL._
 import pt.tecnico.dsi.akkastrator.Orchestrator._
-import shapeless.{::, HList, HNil}
+import shapeless.{::, HNil}
 
 class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSender {
   trait SimpleTasks { self: Orchestrator[_] =>
-    val theOneTask: FullTask[Unit, HNil] = FullTask("the One") createTaskWith { case HNil =>
+    val theOneTask: FullTask[Unit, HNil] = FullTask("the One") createTask { case HNil =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
         def createMessage(id: Long): Serializable = SimpleMessage("TheOneTask", id)
@@ -23,7 +23,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
   
-    def deleteUser(user: String): FullTask[Unit, HNil] = FullTask(s"Delete user $user") createTaskWith { case HNil =>
+    def deleteUser(user: String): FullTask[Unit, HNil] = FullTask(s"Delete user $user") createTask { case HNil =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
         def createMessage(id: Long): Serializable = SimpleMessage(s"DELETE $user", id)
@@ -36,10 +36,12 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     }
   }
   
-  trait DistinctIdsTasks { self: DistinctIdsOrchestrator[_] =>
-    val getHiggs: FullTask[String, HNil] = FullTask("find the higgs boson") createTaskWith { case HNil =>
+  trait DistinctIdsTasks {
+    self: DistinctIdsOrchestrator[_] =>
+    val getHiggs: FullTask[String, HNil] = FullTask("find the higgs boson") createTask { case HNil =>
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
+  
         def createMessage(id: Long): Serializable = SimpleMessage("AnotherTask", id)
   
         def behavior: Receive = {
@@ -50,11 +52,12 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     }
   
     def post(dependencies: FullTask[String, HNil] :: FullTask[String, HNil] :: HNil) = {
-      FullTask("posting", dependencies) createTaskWith { case what :: where :: HNil =>
-        new Task[Unit](_){
+      FullTask("posting", dependencies) createTask { case what :: where :: HNil =>
+        new Task[Unit](_) {
           val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
+  
           def createMessage(id: Long): Serializable = SimpleMessage(s"post $what in $where", id)
-      
+  
           def behavior: Receive = {
             case m @ SimpleMessage(s, id) if matchId(id) =>
               finish(m, id, ())
@@ -62,10 +65,23 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         }
       }
     }
+  
+    def post2() = FullTask("posting") createSimpleTask {
+      new Task[Unit](_) {
+        val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
+    
+        def createMessage(id: Long): Serializable = SimpleMessage(s"post", id)
+    
+        def behavior: Receive = {
+          case m @ SimpleMessage(s, id) if matchId(id) =>
+            finish(m, id, ())
+        }
+      }
+    }
   }
   
   trait AbstractTasks { self: AbstractOrchestrator[_] =>
-    val obtainLocation: FullTask[String, HNil] = FullTask("obtain The location") createTaskWith { case HNil =>
+    val obtainLocation: FullTask[String, HNil] = FullTask("obtain The location") createTask { case HNil =>
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
         def createMessage(id: Long): Serializable = SimpleMessage("SomeTask", id)
@@ -79,7 +95,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
   
     // Since we are always using ping where the location is a FullTask[String, HNil] this would also work:
     //  def ping(location: FullTask[String, HNil] :: HNil)
-    def ping(location: FullTask[String, _] :: HNil): FullTask[Unit, _] = FullTask("Ping", location) createTaskWith { case ip :: HNil =>
+    def ping(location: FullTask[String, _] :: HNil): FullTask[Unit, _] = FullTask("Ping", location) createTask { case ip :: HNil =>
       new Task[Unit](_) {
         //Dummy destination
         val destination: ActorPath = ActorPath.fromString("akka://user/f")
@@ -128,7 +144,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
         class DistinctIds1Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks {
           def persistenceId: String = "DistinctIds1"
   
-          val where: FullTask[String, HNil] = FullTask("get where") createTaskWith { case HNil =>
+          val where: FullTask[String, HNil] = FullTask("get where") createTask { case HNil =>
             new Task[String](_) {
               val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
               def createMessage(id: Long): Serializable = SimpleMessage("Where", id)
@@ -147,7 +163,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           //  def post2(dependencies: FullTask[Unit, HNil] :: FullTask[String, HNil] :: HNil)
           //  def post2(dependencies: FullTask[Unit, HNil] :: FullTask[String, _] :: HNil)
           def post2(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil) = {
-            FullTask("demo", dependencies) createTaskWith { case ta :: tb :: HNil =>
+            FullTask("demo", dependencies) createTask { case ta :: tb :: HNil =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
                 def createMessage(id: Long): Serializable = SimpleMessage(s"demo", id)

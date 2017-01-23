@@ -5,9 +5,15 @@ import scala.reflect.{ClassTag, classTag}
 import akka.actor.Actor.Receive
 import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef, Props, Terminated}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
+import pt.tecnico.dsi.akkastrator.Task.Timeout
 
 case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
 
+// This actor ensures:
+//  · The inner orchestrator is only created when the task is started.
+//  · The TaskSpawnOrchestrator destination has a stable path.
+//  · When the outer orchestrator is recovering the inner orchestrator is not created if it already
+//    had finished before the crash.
 class Spawner extends Actor with ActorLogging {
   def receive: Receive = {
     case SpawnAndStart(props, innerOrchestratorId, startId) =>
@@ -21,22 +27,25 @@ class Spawner extends Actor with ActorLogging {
       
       context become {
         case Terminated(`innerOrchestrator`) =>
-          //This ensures we also stop the spawner when the innerOrchestrator finishes (or aborts).
+          // This ensures we also stop the spawner when the innerOrchestrator finishes (or aborts).
           context stop self
+        case Timeout(_) if sender() == context.parent =>
+          // The outer task timed out so we need to invoke timeout for every task of the inner orchestrator
+          innerOrchestrator ! TimeoutTasks
         case msg if sender() == innerOrchestrator =>
-          //The TaskSpawnOrchestrator has this spawner path as its destination, if we forwarded the response from
-          //the innerOrchestrator to the parent (context.parent.forward(msg)) then the TaskSpawnOrchestrator
-          //would never match the senderPath because it would be expecting a message from this spawner but it would
-          //be getting it from the innerOrchestrator
+          // The TaskSpawnOrchestrator has this spawner path as its destination, if we forwarded the response from
+          // the innerOrchestrator to the parent (context.parent.forward(msg)) then the TaskSpawnOrchestrator
+          // would never match the senderPath because it would be expecting a message from this spawner but it would
+          // be getting it from the innerOrchestrator
           context.parent ! msg
       }
   }
 }
 
 /**
-  * In order for this task to work correctly one of two things must happen:
-  *  · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.
-  *    And must terminate afterwords of sending the message.
+  * In order for this task to work correctly either:
+  *  · The created orchestrator must send to its parent a Orchestrator.Success when it finishes and a Orchestrator.Failure
+  *    when it aborts. And terminate afterwords of sending the messages.
   *  · The method behavior must be overridden to handle the messages the inner orchestrator sends when it terminates or
   *    aborts.
   *
@@ -61,5 +70,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
       finish(m, m.id, m.result)
     case m: Failure if matchId(m.id) =>
       abort(m, m.id, m.cause)
+    case m @ Timeout(_) =>
+      spawner ! m
   }
 }

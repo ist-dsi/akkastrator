@@ -51,6 +51,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
   import task.index
   import task.orchestrator.log
   
+  private[akkastrator] var expectedId: Option[Id] = None
   private[akkastrator] var expectedDeliveryId: Option[DeliveryId] = None
   private[akkastrator] var state: Task.State = Unstarted
   
@@ -82,17 +83,18 @@ abstract class Task[R](val task: FullTask[_, _]) {
           log.debug(withLogPrefix("(Possibly) delivering message."))
         }
   
-        val id = orchestrator.deliveryId2ID(destination, deliveryId).self
+        val id = orchestrator.deliveryId2ID(destination, deliveryId)
+        expectedId = Some(id)
         
         // Schedule the timeout
         if (task.timeout.isFinite()) {
           import orchestrator.context.system
           system.scheduler.scheduleOnce(FiniteDuration(task.timeout.length, task.timeout.unit)) {
-            orchestrator.self ! orchestrator.TaskTimedOut(index, id)
+            orchestrator.self ! orchestrator.TaskTimedOut(index, id.self)
           }(system.dispatcher)
         }
         
-        createMessage(id)
+        createMessage(id.self)
       }
     }
   }
@@ -105,7 +107,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
   /**
     * The behavior of this task. This is akin to the receive method of an actor with the following exceptions:
     *  · An all catching pattern match is prohibited since it will cause the orchestrator to fail.
-    *  · Every case must check if `matchId` returns true, except for the `Timeout` message.
+    *  · Every case must check if `matchId` returns true.
     *    This ensures the received message was in fact destined to this task.
     *    This choice of implementation allows the messages to have a free form, as it is the user that
     *    is responsible for extracting the `id` from the message.
@@ -159,6 +161,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
       // First we make sure the orchestrator no longer deals with the answers from destination.
       // By removing this task behavior from the orchestrator we ensure re-sends do not cause the orchestrator to crash due to the
       // require at the top of this method. This means re-sends will cause a "unhandled message" log message.
+      expectedId = None
       expectedDeliveryId = None
       state = Finished(result)
       orchestrator.waitingTasks -= index
@@ -191,8 +194,8 @@ abstract class Task[R](val task: FullTask[_, _]) {
     *  1. This task will change its state to `Aborted`.
     *  2. Every unstarted task that depends on this one will never be started. This will happen because a task can
     *     only start if its dependencies have finished and this task did not finish, it aborted.
-    *  3. Waiting tasks or tasks which do not have this task as a dependency will continue to be executed or be started,
-    *     unless the orchestrator is stopped, which can be performed in the `onAbort` callback of the orchestrator.
+    *  3. Waiting tasks or tasks which do not have this task as a dependency will remain untouched,
+    *     unless the orchestrator is stopped or `context.become` is invoked in the `onAbort` callback of the orchestrator.
     *  4. The method `onFinish` will <b>never</b> be called. Similarly to the unstarted tasks, onFinish will only
     *     be invoked if all tasks have finished.
     *  5. The method `onAbort` will be invoked in the orchestrator.
@@ -216,6 +219,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
     require(state == Waiting, "Abort can only be invoked when this task is Waiting.")
     log.info(withLogPrefix(s"Aborting due to $cause."))
     persistAndConfirmDelivery(receivedMessage, id) {
+      expectedId = None
       expectedDeliveryId = None
       state = Aborted(cause)
       orchestrator.waitingTasks -= index

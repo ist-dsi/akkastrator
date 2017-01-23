@@ -88,21 +88,29 @@ object TaskQuorum {
         winningResultCount = newCount
       }
     
-      // Check whether we achieved the quorum
-      if (winningResultCount >= votesToAchieveQuorum) {
-        abortWaitingTasks(QuorumAlreadyAchieved)(
+      if (winningResultCount >= votesToAchieveQuorum && waitingTasks.nonEmpty) {
+        // We achieved the quorum but we still have waiting tasks.
+        // So we abort them and then manually invoke `onFinish` since it won't be automatically called.
+        abortWaitingTasks(cause = QuorumAlreadyAchieved)(
           afterAllAborts = orchestrator.onFinish()
         )
-      } else if (waitingTasks.isEmpty) {
-        // Every task has finished but we haven't achieved a quorum
-        context.parent ! Aborted(QuorumNotAchieved, startId)
-        context stop self
       }
+      // If the quorum has achieved in the last waiting task, aka waitingTasks.isEmpty then
+      // `onFinish` will be called automatically.
+      
+      // In either case it is always the onFinish that returns the Finished result.
     }
   
     override def onFinish(): Unit = {
       log.info(s"${self.path.name} Finished!")
-      context.parent ! Finished(winningResult, startId)
+      
+      if (winningResultCount >= votesToAchieveQuorum) {
+        context.parent ! Finished(winningResult, startId)
+      } else {
+        // Every task has finished but we haven't achieved a quorum
+        context.parent ! Aborted(QuorumNotAchieved, startId)
+      }
+      
       context stop self
     }
   
@@ -117,10 +125,10 @@ object TaskQuorum {
   
     /** Aborts all tasks that are still waiting, but does not cause the orchestrator to abort. */
     private def abortWaitingTasks(cause: Exception)(afterAllAborts: => Unit): Unit = {
-      waitingTasks.foreach { case (_, task) =>
-        //We know "get" will succeed because the task is waiting
-        //receivedMessage is set to None to make it more obvious that we did not receive a message for this task
-        task.innerAbort(receivedMessage = None, id = task.expectedDeliveryId.get.self, cause) {
+      waitingTasks.values.foreach { task =>
+        // receivedMessage is set to None to make it more obvious that we did not receive a message for this task
+        // task is waiting which ensures it has a expectedId aka .get will never throw
+        task.innerAbort(receivedMessage = None, id = task.expectedId.get.self, cause) {
           if (waitingTasks.isEmpty) {
             afterAllAborts
           }

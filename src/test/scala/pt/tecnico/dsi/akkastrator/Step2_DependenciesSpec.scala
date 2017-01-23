@@ -5,7 +5,7 @@ import scala.concurrent.duration.DurationInt
 import akka.actor._
 import akka.testkit.{TestDuration, TestProbe}
 import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
-import shapeless.{::, HList, HNil}
+import shapeless.{HList, HNil}
 
 class Step2_DependenciesSpec  extends ActorSysSpec {
   def NChainedTasksOrchestrator(numberOfTasks: Int): (Array[TestProbe], ActorRef) = {

@@ -54,6 +54,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     dependenciesIndexes +:= dependency.index
   }
   //From here on the dependents and dependenciesIndexes are no longer changed. They are just iterated over.
+  
   // By adding the tasks directly to the right list, we ensure that when the StartOrchestrator message
   // is received we do not need to iterate through all the tasks to compute which ones can start right away.
   if (dependencies == HNil) {
@@ -109,7 +110,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
       // This method is being invoked from inside the persist handler of innerTask.finish
       // By sending a message to the orchestrator (instead of starting the task right away) we break out of
       // the persist handler. This is advantageous since:
-      //  · While in the persist handler messages that are being sent to the orchestrator are being stashed,
+      //  · While in the persist handler messages that are sent to the orchestrator are being stashed,
       //    if we started the task directly we would never give a change for the orchestrator to handle
       //    status, shutdown, etc messages.
       //  · The persist handle will be executing during a much shorter period of time.

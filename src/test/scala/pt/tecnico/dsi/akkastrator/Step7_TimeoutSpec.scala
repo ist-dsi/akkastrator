@@ -12,14 +12,14 @@ import pt.tecnico.dsi.akkastrator.Task.{Aborted, Finished, Timeout}
 object Step7_TimeoutSpec {
   class ExplicitTimeoutHandlingOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     destinationProbes += "A" -> destinations(0)
-    FullTask("A", timeout = 500.millis) createTaskWith { _ =>
+    FullTask("A", timeout = 500.millis) createTask { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
         def createMessage(id: Long): Serializable = SimpleMessage("A", id)
         def behavior: Receive =  {
           case m @ SimpleMessage(_, id) if matchId(id) =>
             finish(m, id, "A Result")
-          case m @ Timeout(id) =>
+          case m @ Timeout(id) if matchId(id) =>
             finish(m, id, "A special error message")
         }
       }
@@ -27,7 +27,7 @@ object Step7_TimeoutSpec {
   }
   class AutomaticTimeoutHandlingOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     destinationProbes += "A" -> destinations(0)
-    FullTask("A", timeout = 500.millis) createTaskWith { _ =>
+    FullTask("A", timeout = 500.millis) createTask { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
         def createMessage(id: Long): Serializable = SimpleMessage("A", id)

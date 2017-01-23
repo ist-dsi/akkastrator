@@ -2,7 +2,7 @@ package pt.tecnico.dsi.akkastrator
 
 import scala.collection.immutable.HashMap
 
-import akka.actor.{Actor, ActorLogging, ActorPath}
+import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful}
 import akka.persistence._
 import pt.tecnico.dsi.akkastrator.Task.Timeout
 
@@ -26,7 +26,9 @@ object Orchestrator {
   case class StatusResponse(tasks: IndexedSeq[Task.Report[_]])
   
   case object SaveSnapshot
-  case object ShutdownOrchestrator
+  case object ShutdownOrchestrator extends PossiblyHarmful
+  // This is used by the TaskSpawnOrchestrator
+  case object TimeoutTasks extends PossiblyHarmful
 }
 
 /**
@@ -183,8 +185,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * You can use this to implement your termination strategy.
     *
     * Note: if you invoke become/unbecome inside this method, the contract that states
-    *       <cite>"Tasks that are waiting will remain untouched and the orchestrator will
-    *       still be prepared to handle their responses"</cite> will no longer be guaranteed.
+    *       <cite>"Waiting tasks or tasks which do not have this task as a dependency will
+    *       remain untouched"</cite> will no longer be guaranteed.
     *       If you wish to still have this guarantee you can do {{{
     *         context.become(computeCurrentBehavior() orElse yourBehavior)
     *       }}}
@@ -198,7 +200,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     context.parent ! TaskAborted(instigator.report, cause, startId)
     context stop self
   }
-  
   
   final def recoveryAwarePersist(event: Any)(handler: => Unit): Unit = {
     if (orchestrator.recoveryRunning) {
@@ -237,12 +238,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     }
   }
   
-  /**
-    * Override this method to add extra commands that are always handled by this orchestrator (except when recovering).
-    */
-  def extraCommands: Actor.Receive = PartialFunction.empty[Any, Unit]
-  
-  //TODO: find better names for these methods
   final def unstarted: Actor.Receive = {
     case m @ StartOrchestrator(id) =>
       recoveryAwarePersist(m) {
@@ -254,14 +249,24 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   final def alwaysAvailableCommands: Actor.Receive = {
     case Status =>
       sender() ! StatusResponse(tasks.map(_.report))
-    case ShutdownOrchestrator =>
-      context stop self
     case SaveSnapshot =>
       saveSnapshot(_state)
+    case ShutdownOrchestrator =>
+      context stop self
+    case TimeoutTasks =>
+      waitingTasks.values.foreach { task =>
+        // task is waiting which ensures it has a expectedId aka .get will never throw
+        task.timeout(receivedMessage = None, task.expectedId.get.self)
+      }
   }
   
   final def receiveCommand: Actor.Receive = unstarted orElse alwaysAvailableCommands orElse extraCommands
-
+  
+  /**
+    * Override this method to add extra commands that are always handled by this orchestrator (except when recovering).
+    */
+  def extraCommands: Actor.Receive = PartialFunction.empty[Any, Unit]
+  
   def receiveRecover: Actor.Receive = unstarted orElse {
     case SnapshotOffer(_, offeredSnapshot: State) =>
       state = offeredSnapshot.asInstanceOf[S]
@@ -302,9 +307,9 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
     * is used for all of its destinations. */
   final type ID = DeliveryId
   
-  def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
-  def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = id
-  def matchId(task: Task[_], id: Long): Boolean = {
+  final def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
+  final def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = id
+  final def matchId(task: Task[_], id: Long): Boolean = {
     val deliveryId: DeliveryId = id
     val matches = task.expectedDeliveryId.contains(deliveryId)
     
@@ -341,7 +346,7 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
     * This is needed to ensure every destination sees an independent sequence. */
   final type ID = CorrelationId
   
-  def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
+  final def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
     val correlationId = state.nextCorrelationIdFor(destination)
     
     state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
@@ -349,10 +354,10 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
     
     correlationId
   }
-  def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = {
+  final def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = {
     state.deliveryIdFor(destination, id)
   }
-  def matchId(task: Task[_], id: Long): Boolean = {
+  final def matchId(task: Task[_], id: Long): Boolean = {
     val senderPath = sender().path
     val correlationId: CorrelationId = id
     val deliveryId = state.deliveryIdFor(task.destination, correlationId)

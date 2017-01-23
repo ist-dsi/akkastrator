@@ -14,7 +14,7 @@ import shapeless.{::, HNil}
 object Step6_TaskQuorumSpec {
   class TasksWithSameDestinationQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A - error: tasks with same destination
-    FullTask("A") createTaskWith { case HNil =>
+    FullTask("A") createTask { case HNil =>
       new TaskQuorum(_)(o => Seq(
         simpleMessageFulltask("0", destinations(0), "0")(o),
         simpleMessageFulltask("1", destinations(0), "1")(o)
@@ -24,7 +24,7 @@ object Step6_TaskQuorumSpec {
   class TasksWithDifferentMessagesQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     case class AnotherMessage(s: String, id: Long)
     
-    FullTask("A") createTaskWith { case HNil =>
+    FullTask("A") createTask { case HNil =>
       new TaskQuorum(_)(o => Seq(
         simpleMessageFulltask("0", destinations(0), "0")(o),
         fulltask("1", destinations(1), AnotherMessage("1", _), "1")(o)
@@ -37,7 +37,7 @@ object Step6_TaskQuorumSpec {
   class SimpleTaskQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     // A -> N*B
     val a = simpleMessageFulltask("A", destinations(0), aResult)
-    FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+    FullTask("B", a :: HNil) createTask { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
           fulltask(s"$fruit-B", destinations(i + 1), SimpleMessage("B-InnerTask", _), fruit.length)(o)
@@ -50,14 +50,14 @@ object Step6_TaskQuorumSpec {
     // A →⟨   ⟩→ 2*N*D
     //     N*C
     val a = simpleMessageFulltask("A", destinations(0), aResult)
-    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+    val b = FullTask("B", a :: HNil) createTask { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
           fulltask(s"B-$fruit", destinations(i + 1), SimpleMessage("B message", _), fruit.length)(o)
         }
       )
     }
-    val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
+    val c = FullTask("C", a :: HNil) createTask { case fruits :: HNil =>
       new TaskQuorum(_, AtLeast(2))(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
           fulltask(s"C-$fruit", destinations(i + 1), SimpleMessage("C message", _), fruit.length)(o)
@@ -65,7 +65,7 @@ object Step6_TaskQuorumSpec {
       )
     }
     // Using tuple syntax makes it prettier
-    FullTask("D", dependencies = (b, c), Duration.Inf) createTaskWith { case fruitsLengthB :: fruitsLengthC :: HNil =>
+    FullTask("D", dependencies = (b, c), Duration.Inf) createTask { case fruitsLengthB :: fruitsLengthC :: HNil =>
       new TaskQuorum(_)(o =>
         Seq(fruitsLengthB, fruitsLengthC).zipWithIndex.map { case (fruit, i) =>
           fulltask(s"D-$i", destinations(i + 6), SimpleMessage(fruit.toString, _), fruit)(o)
@@ -75,7 +75,7 @@ object Step6_TaskQuorumSpec {
   }
   
   class SurpassingToleranceOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    FullTask("A") createTaskWith { case HNil =>
+    FullTask("A") createTask { case HNil =>
       // Since minimumVotes = All the tolerance is 0.
       // Given that one of the tasks aborts so should the Quorum
       new TaskQuorum(_, minimumVotes = All)(o =>
@@ -88,7 +88,7 @@ object Step6_TaskQuorumSpec {
     }
   }
   class NotReachingToleranceOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    FullTask("A") createTaskWith { case HNil =>
+    FullTask("A") createTask { case HNil =>
       // Since minimumVotes = Majority (the default) and there are 5 tasks the tolerance is 2.
       // Given that only one task aborts the Quorum should succeed.
       new TaskQuorum(_, minimumVotes = All)(o =>
@@ -225,6 +225,8 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
       "the tolerance is not reached" in {
         
       }
+      
+      // QuorumNotAchieved
     }
     
     //TODO: test aborts, more specifically the tolerance

@@ -36,7 +36,7 @@ object ActorSysSpec {
                                              (implicit orchestrator: AbstractOrchestrator[_],
                                               tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
       destinationProbes += description -> dest
-      FullTask(description, dependencies) createTaskWith { _ =>
+      FullTask(description, dependencies) createTask { _ =>
         new Task[R](_) {
           val destination: ActorPath = dest.ref.path
           def createMessage(id: Long): Serializable = message(id)

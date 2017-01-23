@@ -15,12 +15,12 @@ object Step5_TaskBundleSpec {
   class SimpleTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     val a = simpleMessageFulltask("A", destinations(0), aResult)
   
-    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+    val b = FullTask("B", a :: HNil) createTask { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
           //Declaring the inner task directly in the body of the task bundle.
           //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
-          FullTask(fruit).createTaskWith { case HNil =>
+          FullTask(fruit).createTask { case HNil =>
             new Task[Int](_) {
               val destination: ActorPath = destinations(i + 1).ref.path
               def createMessage(id: Long): Serializable = SimpleMessage(fruit, id)
@@ -40,7 +40,7 @@ object Step5_TaskBundleSpec {
   //     N*C
   class ComplexTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     val a = simpleMessageFulltask("A", destinations(0), aResult)
-    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+    val b = FullTask("B", a :: HNil) createTask { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
           //Using a method that creates a full task.
@@ -50,14 +50,14 @@ object Step5_TaskBundleSpec {
         }
       )
     }
-    val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
+    val c = FullTask("C", a :: HNil) createTask { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
           simpleMessageFulltask(s"$fruit-C", destinations(2), fruit)(o)
         }
       )
     }
-    val d = FullTask("D", b :: c :: HNil) createTaskWith { case fruitsB :: fruitsC :: HNil =>
+    val d = FullTask("D", b :: c :: HNil) createTask { case fruitsB :: fruitsC :: HNil =>
       new TaskBundle(_)(o =>
         (fruitsB ++ fruitsC).map { fruit =>
           simpleMessageFulltask(s"$fruit-D", destinations(3), fruit)(o)
@@ -71,7 +71,7 @@ object Step5_TaskBundleSpec {
   // A -> N*B (one of B aborts)
   class AbortingTaskBundleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
     val a = simpleMessageFulltask("A", destinations(0), aResult)
-    FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+    FullTask("B", a :: HNil) createTask { case fruits :: HNil =>
         new TaskBundle(_)(o =>
           Seq(
             simpleMessageFulltask("Farfalhi", destinations(1), "Farfalhi")(o),

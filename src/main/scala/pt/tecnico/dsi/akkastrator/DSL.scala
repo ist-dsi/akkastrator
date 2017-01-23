@@ -10,14 +10,13 @@ object DSL {
   object FullTask {
     class PartialTask[DL <: HList, RL <: HList] private[FullTask] (description: String, dependencies: DL, timeout: Duration)
                                                                   (implicit cm: TaskComapped.Aux[DL, RL]) {
-      /*
       // Because of type erasure we cannot declare this method :(
-      def createTaskWith[R](f: FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_], ev: RL =:= HNil): FullTask[R, DL] = {
+      def createSimpleTask[R](f: FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_], ev: RL =:= HNil): FullTask[R, DL] = {
         new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
           def createTask(results: comapped.ResultsList): Task[R] = f(this)
         }
-      }*/
-      def createTaskWith[R](f: RL => FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
+      }
+      def createTask[R](f: RL => FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
         new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
           def createTask(results: comapped.ResultsList): Task[R] = f(results.asInstanceOf[RL])(this)
         }
@@ -33,7 +32,8 @@ object DSL {
                                           fntp: FnToProduct.Aux[F, RL => T],
                                           ev: <:<[T, FullTask[_, _] => Task[R]]): FullTask[R, DL] = {
         createTaskWith(fntp(builder) andThen ev)
-      }
+      }*/
+      /*
       //TODO: does Predef.ArrowAssoc cause problems here?
       def ->[F, T, R](builder: F)(implicit orchestrator: AbstractOrchestrator[_], fntp: FnToProduct.Aux[F, RL => T],
                                   ev: <:<[T, FullTask[_, _] => Task[R]]): FullTask[R, DL] = {
