@@ -1,18 +1,17 @@
 package pt.tecnico.dsi.akkastrator
 
-import akka.actor.ActorRef
 import akka.testkit.TestProbe
+import pt.tecnico.dsi.akkastrator.ActorSysSpec._
 import pt.tecnico.dsi.akkastrator.Step3_RecoverSpec._
-import pt.tecnico.dsi.akkastrator.ActorSysSpec.ControllableOrchestrator
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.HNil
 
 object Step3_RecoverSpec {
-  class NoTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe)
+  class NoTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator()
   /**
     * A
     */
-  class SingleTaskOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class SingleTask(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     simpleMessageFulltask("A", destinations(0))
   }
   /**
@@ -20,7 +19,7 @@ object Step3_RecoverSpec {
     * B
     * Both tasks have the same destination.
     */
-  class TwoTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TwoTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     simpleMessageFulltask("A", destinations(0))
     simpleMessageFulltask("B", destinations(0))
   }
@@ -28,9 +27,9 @@ object Step3_RecoverSpec {
     * A → B
     * Both tasks have the same destination.
     */
-  class TwoLinearTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TwoLinearTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     val a = simpleMessageFulltask("A", destinations(0))
-    simpleMessageFulltask("B", destinations(0), a :: HNil)
+    simpleMessageFulltask("B", destinations(0), dependencies = a :: HNil)
   }
   /**
     * A
@@ -38,10 +37,10 @@ object Step3_RecoverSpec {
     * B
     * All tasks have distinct destinations.
     */
-  class TasksInTOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TasksInT(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     val a = simpleMessageFulltask("A", destinations(0))
     val b = simpleMessageFulltask("B", destinations(1))
-    simpleMessageFulltask("C", destinations(2), a :: b :: HNil)
+    simpleMessageFulltask("C", destinations(2), dependencies = a :: b :: HNil)
   }
   /**
     *     B
@@ -51,11 +50,11 @@ object Step3_RecoverSpec {
     *     D
     * All tasks have distinct destinations.
     */
-  class FanOutTasksOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class FanOutTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(1), a :: HNil)
-    val c = simpleMessageFulltask("C", destinations(2), a :: HNil)
-    simpleMessageFulltask("D", destinations(3), a :: HNil)
+    val b = simpleMessageFulltask("B", destinations(1), dependencies = a :: HNil)
+    val c = simpleMessageFulltask("C", destinations(2), dependencies = a :: HNil)
+    simpleMessageFulltask("D", destinations(3), dependencies = a :: HNil)
   }
   /**
     *   B
@@ -63,10 +62,10 @@ object Step3_RecoverSpec {
     * A → C
     * A and B have the same destination.
     */
-  class TasksInTriangleOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TasksInTriangle(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(0), a :: HNil)
-    simpleMessageFulltask("C", destinations(1), a :: b :: HNil)
+    val b = simpleMessageFulltask("B", destinations(0), dependencies = a :: HNil)
+    simpleMessageFulltask("C", destinations(1), dependencies = a :: b :: HNil)
   }
   /**
     * A → C
@@ -74,12 +73,12 @@ object Step3_RecoverSpec {
     * B → D
     * All tasks have distinct destinations.
     */
-  class FiveTasksNoDepsBOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class FiveTasksNoDepsB(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     val a = simpleMessageFulltask("A", destinations(0))
     val b = simpleMessageFulltask("B", destinations(1))
-    val c = simpleMessageFulltask("C", destinations(2), a :: HNil)
-    val d = simpleMessageFulltask("D", destinations(3), a :: b :: HNil)
-    simpleMessageFulltask("E", destinations(4), c :: d :: HNil)
+    val c = simpleMessageFulltask("C", destinations(2), dependencies = a :: HNil)
+    val d = simpleMessageFulltask("D", destinations(3), dependencies = a :: b :: HNil)
+    simpleMessageFulltask("E", destinations(4), dependencies = c :: d :: HNil)
   }
   /**
     * A → B
@@ -87,12 +86,12 @@ object Step3_RecoverSpec {
     * C → D
     * All tasks have distinct destinations.
     */
-  class FiveTasksNoDepsCOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class FiveTasksNoDepsC(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(2), a :: HNil)
+    val b = simpleMessageFulltask("B", destinations(2), dependencies = a :: HNil)
     val c = simpleMessageFulltask("C", destinations(1))
-    val d = simpleMessageFulltask("D", destinations(3), a :: c :: HNil)
-    simpleMessageFulltask("E", destinations(4), b :: d :: HNil)
+    val d = simpleMessageFulltask("D", destinations(3), dependencies = a :: c :: HNil)
+    simpleMessageFulltask("E", destinations(4), dependencies = b :: d :: HNil)
   }
 }
 class Step3_RecoverSpec extends ActorSysSpec {
@@ -104,14 +103,15 @@ class Step3_RecoverSpec extends ActorSysSpec {
   "A crashing orchestrator" should {
     "recover the correct state" when {
       "there is no tasks" in {
-        val testCase0 = new TestCase[NoTasksOrchestrator](0, Set.empty) {
-          val transformations = Seq.empty[State => State]
+        val testCase0 = new TestCase[NoTasks](0, Set.empty) {
+          // Purposefully left with any additional transformation
+          val transformations = withStartAndFinishTransformations()
         }
         testCase0.testExpectedStatusWithRecovery()
       }
       "there is only a single task: A" in {
-        val testCase1 = new TestCase[SingleTaskOrchestrator](1, Set("A")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase1 = new TestCase[SingleTask](1, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
               /**
@@ -119,61 +119,57 @@ class Step3_RecoverSpec extends ActorSysSpec {
                 * This will cause Task A to start and therefor to send a message to the destination(0).
                 * Before task A receives the response we crash the orchestrator, which will cause it to restart and recover.
                 * In the recover the task A will resend the message again since the delivery hasn't been confirmed yet.
-                * So destination(0) gets a resend. And that is why we have 2 pingPongs here.
+                * So destination(0) gets a resend. And that is why we have an handleResend here.
                 */
               handleResend("A")
-        
-              secondState.updatedExactStatuses(
+    
+              secondState.updatedStatuses(
                 "A" -> Finished("finished")
               )
             }
           )
         }
-        
         testCase1.testExpectedStatusWithRecovery()
       }
       """there are two independent tasks:
         |  A
         |  B""".stripMargin in {
-        val testCase2 = new TestCase[TwoTasksOrchestrator](numberOfDestinations = 1, Set("A", "B")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase2 = new TestCase[TwoTasks](numberOfDestinations = 1, Set("A", "B")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
-              //The message of B will arrive before of the resend of A, so we can't deal with it right away.
-        
-              secondState.updatedExactStatuses(
-                "A" -> Finished("finished")
-              )
-            }, { thirdState =>
               pingPong("B")
-              handleResend("A")
-              handleResend("B")
-        
-              thirdState.updatedExactStatuses(
+    
+              secondState.updatedStatuses(
+                "A" -> Finished("finished"),
                 "B" -> Finished("finished")
               )
+            }, { thirdState =>
+              handleResend("A")
+              handleResend("B")
+    
+              thirdState
             }
           )
         }
         testCase2.testExpectedStatusWithRecovery()
       }
       "there are two linear tasks: A → B" in {
-        val testCase3 = new TestCase[TwoLinearTasksOrchestrator](numberOfDestinations = 1, Set("A")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase3 = new TestCase[TwoLinearTasks](numberOfDestinations = 1, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
               handleResend("A")
         
-              secondState.updatedExactStatuses(
-                "A" -> Finished("finished")
-              ).updatedStatuses(
-                "B" -> Set(Unstarted, Waiting)
+              secondState.updatedStatuses(
+                "A" -> Finished("finished"),
+                "B" -> Unstarted or Waiting
               )
             }, { thirdState =>
               pingPong("B")
               handleResend("B")
         
-              thirdState.updatedExactStatuses(
+              thirdState.updatedStatuses(
                 "B" -> Finished("finished")
               )
             }
@@ -185,29 +181,28 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |  A
         |   ⟩→ C
         |  B""".stripMargin in {
-        val testCase4 = new TestCase[TasksInTOrchestrator](numberOfDestinations = 3, Set("A", "B")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase4 = new TestCase[TasksInT](numberOfDestinations = 3, Set("A", "B")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("B")
         
-              secondState.updatedExactStatuses(
+              secondState.updatedStatuses(
                 "B" -> Finished("finished")
               )
             }, { thirdState =>
               pingPong("A")
               handleResend("B")
         
-              thirdState.updatedExactStatuses(
-                "A" -> Finished("finished")
-              ).updatedStatuses(
-                "C" -> Set(Unstarted, Waiting)
+              thirdState.updatedStatuses(
+                "A" -> Finished("finished"),
+                "C" -> Unstarted or Waiting
               )
             }, { fourthState =>
               pingPong("C")
               handleResend("C")
               handleResend("A")
         
-              fourthState.updatedExactStatuses(
+              fourthState.updatedStatuses(
                 "C" -> Finished("finished")
               )
             }
@@ -221,28 +216,26 @@ class Step3_RecoverSpec extends ActorSysSpec {
         | A → C
         |   ↘
         |     D""".stripMargin in {
-        val testCase5 = new TestCase[FanOutTasksOrchestrator](numberOfDestinations = 4, Set("A")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase5 = new TestCase[FanOutTasks](numberOfDestinations = 4, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
           
-              secondState.updatedExactStatuses(
-                "A" → Finished("finished")
-              ).updatedStatuses(
-                "B" → Set(Unstarted, Waiting),
-                "C" → Set(Unstarted, Waiting),
-                "D" → Set(Unstarted, Waiting)
+              secondState.updatedStatuses(
+                "A" -> Finished("finished"),
+                "B" -> Unstarted or Waiting,
+                "C" -> Unstarted or Waiting,
+                "D" -> Unstarted or Waiting
               )
             }, { thirdState =>
               handleResend("A")
               
               pingPong("B")
           
-              thirdState.updatedExactStatuses(
-                "B" → Finished("finished")
-              ).updatedStatuses(
-                "C" → Set(Waiting, Finished("finished")),
-                "D" → Set(Waiting, Finished("finished"))
+              thirdState.updatedStatuses(
+                "B" -> Finished("finished"),
+                "C" -> Waiting or Finished("finished"),
+                "D" -> Waiting or Finished("finished")
               )
             }, { fourthState =>
               pingPong("C")
@@ -251,9 +244,9 @@ class Step3_RecoverSpec extends ActorSysSpec {
               pingPong("D")
               handleResend("D")
           
-              fourthState.updatedExactStatuses(
-                "C" → Finished("finished"),
-                "D" → Finished("finished")
+              fourthState.updatedStatuses(
+                "C" -> Finished("finished"),
+                "D" -> Finished("finished")
               )
             }
           )
@@ -264,32 +257,30 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |    B
         |   ↗ ↘
         |  A → C""".stripMargin in {
-        val testCase6 = new TestCase[TasksInTriangleOrchestrator](numberOfDestinations = 2, Set("A")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase6 = new TestCase[TasksInTriangle](numberOfDestinations = 2, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
               handleResend("A")
         
-              secondState.updatedExactStatuses(
-                "A" → Finished("finished")
-              ).updatedStatuses(
-                "B" → Set(Unstarted, Waiting)
+              secondState.updatedStatuses(
+                "A" -> Finished("finished"),
+                "B" -> Unstarted or Waiting
               )
             }, { thirdState =>
               pingPong("B")
         
-              thirdState.updatedExactStatuses(
-                "B" → Finished("finished")
-              ).updatedStatuses(
-                "C" → Set(Unstarted, Waiting)
+              thirdState.updatedStatuses(
+                "B" -> Finished("finished"),
+                "C" -> Unstarted or Waiting
               )
             }, { fourthState =>
               pingPong("C")
               handleResend("B")
               handleResend("C")
         
-              fourthState.updatedExactStatuses(
-                "C" → Finished("finished")
+              fourthState.updatedStatuses(
+                "C" -> Finished("finished")
               )
             }
           )
@@ -300,39 +291,36 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |  A → C
         |    ↘  ⟩→ E
         |  B → D""".stripMargin in {
-        val testCase7 = new TestCase[FiveTasksNoDepsBOrchestrator](numberOfDestinations = 5, Set("A", "B")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase7 = new TestCase[FiveTasksNoDepsB](numberOfDestinations = 5, Set("A", "B")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
         
-              secondState.updatedExactStatuses(
-                "A" -> Finished("finished")
-              ).updatedStatuses(
-                "C" -> Set(Unstarted, Waiting)
+              secondState.updatedStatuses(
+                "A" -> Finished("finished"),
+                "C" -> Unstarted or Waiting
               )
             }, { thirdState =>
               pingPong("C")
               handleResend("A")
         
-              thirdState.updatedExactStatuses(
+              thirdState.updatedStatuses(
                 "C" -> Finished("finished")
               )
             }, { fourthState =>
               pingPong("B")
         
-              fourthState.updatedExactStatuses(
-                "B" -> Finished("finished")
-              ).updatedStatuses(
-                "D" -> Set(Unstarted, Waiting)
+              fourthState.updatedStatuses(
+                "B" -> Finished("finished"),
+                "D" -> Unstarted or Waiting
               )
             }, { fifthState =>
               pingPong("D")
               handleResend("B")
         
-              fifthState.updatedExactStatuses(
-                "D" -> Finished("finished")
-              ).updatedStatuses(
-                "E" -> Set(Unstarted, Waiting)
+              fifthState.updatedStatuses(
+                "D" -> Finished("finished"),
+                "E" -> Unstarted or Waiting
               )
             }, { sixthState =>
               pingPong("E")
@@ -340,7 +328,7 @@ class Step3_RecoverSpec extends ActorSysSpec {
               handleResend("D")
               handleResend("E")
         
-              sixthState.updatedExactStatuses(
+              sixthState.updatedStatuses(
                 "E" -> Finished("finished")
               )
             }
@@ -352,39 +340,36 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |  A → B
         |    ↘  ⟩→ E
         |  C → D""".stripMargin in {
-        val testCase8 = new TestCase[FiveTasksNoDepsCOrchestrator](numberOfDestinations = 5, Set("A", "B")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase8 = new TestCase[FiveTasksNoDepsC](numberOfDestinations = 5, Set("A", "B")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
           
-              secondState.updatedExactStatuses(
-                "A" -> Finished("finished")
-              ).updatedStatuses(
-                "B" -> Set(Unstarted, Waiting)
+              secondState.updatedStatuses(
+                "A" -> Finished("finished"),
+                "B" -> Unstarted or Waiting
               )
             }, { thirdState =>
               pingPong("C")
           
-              thirdState.updatedExactStatuses(
-                "C" -> Finished("finished")
-              ).updatedStatuses(
-                "D" -> Set(Unstarted, Waiting)
+              thirdState.updatedStatuses(
+                "C" -> Finished("finished"),
+                "D" -> Unstarted or Waiting
               )
             }, { fourthState =>
               pingPong("B")
               handleResend("A")
           
-              fourthState.updatedExactStatuses(
+              fourthState.updatedStatuses(
                 "B" -> Finished("finished")
               )
             }, { fifthState =>
               pingPong("D")
               handleResend("C")
           
-              fifthState.updatedExactStatuses(
-                "D" -> Finished("finished")
-              ).updatedStatuses(
-                "E" -> Set(Unstarted, Waiting)
+              fifthState.updatedStatuses(
+                "D" -> Finished("finished"),
+                "E" -> Unstarted or Waiting
               )
             }, { sixthState =>
               pingPong("E")
@@ -392,7 +377,7 @@ class Step3_RecoverSpec extends ActorSysSpec {
               handleResend("D")
               handleResend("E")
           
-              sixthState.updatedExactStatuses(
+              sixthState.updatedStatuses(
                 "E" -> Finished("finished")
               )
             }

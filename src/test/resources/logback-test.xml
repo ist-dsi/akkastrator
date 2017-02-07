@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-         <file>${user.dir}/../logs/application.log</file>
-        <encoder>
-            <pattern>[%date][%logger][%-5level] %message %n%xException</pattern>
-        </encoder>
-    </appender>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- With Colors -->
-            <pattern>%highlight([%-5level]) %message%n</pattern>
+            <pattern>%highlight([%-5level]) %message%n%nopex</pattern>
             <!--<pattern>[%date][%logger{1}]%n %highlight([%-5level]) %message%n%xException</pattern>-->
             <!-- Without Colors -->
             <!--<pattern>[%date][%logger{1}]%n [%-5level]%message%n%xException</pattern>-->

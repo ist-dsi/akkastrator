@@ -95,6 +95,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   
   /**
     * Creates the `innerTask` using the results obtained from `buildResults` and returns it.
+    * Also saves it in the innerTask field.
     */
   private final def innerCreateTask(): Task[R] = {
     val results = buildResults()
@@ -120,15 +121,12 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
       }
       // When the orchestrator is recovering we do not send the StartTask for the following reasons:
       //  · The MessageSent would always be handled before the StartTask in the receiveRecover of the orchestrator.
-      //  · The recover of MessageSent already invokes fulltask.start, which is the side-effect of StartTask
+      //  · The recover of MessageSent already invokes fulltask.start, which is the side-effect of handling the StartTask message
       //    So if we also sent the StartTask then the task would be started again at a later time when it was already waiting.
     }
   }
   
-  private[akkastrator] final def start(): Unit = {
-    val task = innerCreateTask()
-    task.start()
-  }
+  private[akkastrator] final def start(): Unit = innerCreateTask().start()
   
   /** Iterates through the dependents of this task and informs them that this task has finished. */
   final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
@@ -139,9 +137,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   final def result: Option[R] = innerTask.map(_.state).collect { case Finished(result) => result.asInstanceOf[R] }
   
   /**
-    * INTERNAL API
-    * This is only invoked when the task is already finished. So we have the guarantee the .get will not throw.
-    * Nevertheless a check is made to ensure the task has in fact finished.
+    * Returns this task result if it already finished. Otherwise throws an exception.
     */
   final def unsafeResult: R = result match {
     case Some(result) => result

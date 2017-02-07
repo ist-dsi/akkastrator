@@ -2,7 +2,7 @@ package pt.tecnico.dsi.akkastrator
 
 import scala.collection.immutable.HashMap
 
-import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful}
+import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful, Props}
 import akka.persistence._
 import pt.tecnico.dsi.akkastrator.Task.Timeout
 
@@ -21,14 +21,12 @@ object Orchestrator {
   }
   case class Aborted(cause: Exception, id: Long) extends Failure
   case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Exception, id: Long) extends Failure
-    
+  
   case object Status
   case class StatusResponse(tasks: IndexedSeq[Task.Report[_]])
   
   case object SaveSnapshot
   case object ShutdownOrchestrator extends PossiblyHarmful
-  // This is used by the TaskSpawnOrchestrator
-  case object TimeoutTasks extends PossiblyHarmful
 }
 
 /**
@@ -79,7 +77,13 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   type ID <: Id
   
   protected[akkastrator] case class StartTask(index: Int)
-  protected[akkastrator] case class TaskTimedOut(index: Int, id: Long)
+  protected[akkastrator] case class TaskTimedOut(index: Int, id: Long) extends PossiblyHarmful
+  
+  /** This actor is only used to check whether we are handling a timeout inside matchId.
+    * Since we will only be matching against its path we can instantiate the actor every time. */
+  private[akkastrator] val timeouterActorRef = context.actorOf(Props(new Actor {
+    def receive = Actor.ignoringBehavior
+  }), name = "timeouter")
   
   /** This exists to make the creation of tasks easier. */
   final implicit val orchestrator: AbstractOrchestrator[_] = this
@@ -122,10 +126,11 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   protected def startId: Long = _startId
   
   //Used to ensure inner orchestrators have different names and persistent ids
-  private[this] final var _innerOrchestratorsLastId: Int = 0
+  // TODO: should this be @volatile or an AtomicInt?
+  private[this] final var _innerOrchestratorsNextId: Int = 0
   protected[akkastrator] final def nextInnerOrchestratorId(): Int = {
-    val id = _innerOrchestratorsLastId
-    _innerOrchestratorsLastId += 1
+    val id = _innerOrchestratorsNextId
+    _innerOrchestratorsNextId += 1
     id
   }
   
@@ -161,12 +166,15 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *
     * You can use this to implement very refined termination strategies.
     *
-    * This method is not invoked when a task aborts.
+    * By default does nothing.
+    *
+    * { @see onTaskAbort} for a callback when a task aborts.
     */
   def onTaskFinish(finishedTask: FullTask[_, _]): Unit = ()
-  
   /**
-    * User overridable callback. Its called once every task finishes.
+    * User overridable callback. Its called after every task finishes.
+    * If a task aborts then it will prevent this method from being invoked.
+    *
     * By default logs that the Orchestrator has finished then stops it.
     *
     * You can use this to implement your termination strategy.
@@ -175,14 +183,16 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     */
   def onFinish(): Unit = {
     log.info(s"${self.path.name} Finished!")
+    // TODO: it would be nice to have a default Success case to send to the parent
     context stop self
   }
   
   /**
-    * User overridable callback. Its called when a task instigates an abort.
-    * By default logs that the Orchestrator has aborted then stops it.
+    * User overridable callback. Its called every time a task aborts.
     *
-    * You can use this to implement your termination strategy.
+    * You can use this to implement very refined termination strategies.
+    *
+    * By default aborts the orchestrator via `onAbort` with a `TaskAborted` failure.
     *
     * Note: if you invoke become/unbecome inside this method, the contract that states
     *       <cite>"Waiting tasks or tasks which do not have this task as a dependency will
@@ -191,31 +201,46 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *         context.become(computeCurrentBehavior() orElse yourBehavior)
     *       }}}
     *
-    * @param instigator the task that instigated the abort.
-    * @param reply the reply from the task destination that caused the abort.
-    * @param tasks Map with the tasks states at the moment of abort.
+    * { @see onTaskFinish } for a callback when a task finishes.
+    *
+    * @param abortedTask the task that aborted.
+    * @param message the message from the task destination that caused the abort.
     */
-  def onAbort(instigator: FullTask[_, _], reply: Any, cause: Exception, tasks: Map[Task.State, Seq[FullTask[_, _]]]): Unit = {
-    log.info(s"${self.path.name} Aborted due to $cause!")
-    context.parent ! TaskAborted(instigator.report, cause, startId)
+  def onTaskAbort(abortedTask: FullTask[_, _], message: Any, cause: Exception): Unit = {
+    onAbort(TaskAborted(abortedTask.report, cause, startId))
+  }
+  /**
+    * User overridable callback. Its called when the orchestrator is aborted. By default an orchestrator
+    * aborts as soon as a task aborts. However this functionality can be changed by overriding `onTaskAbort`.
+    *
+    * By default logs that the orchestrator has aborted, sends a message to its parent explaining why the
+    * orchestrator aborted then stops it.
+    *
+    * You can use this to implement your termination strategy.
+    */
+  def onAbort(failure: Failure): Unit = {
+    log.info(s"${self.path.name} Aborted due to exception: ${failure.cause}!")
+    context.parent ! failure
     context stop self
   }
   
   final def recoveryAwarePersist(event: Any)(handler: => Unit): Unit = {
-    if (orchestrator.recoveryRunning) {
+    if (recoveryRunning) {
       // When recovering the event is already persisted no need to persist it again.
       handler
     } else {
-      orchestrator.persist(event)(_ => handler)
+      persist(event)(_ => handler)
     }
   }
   
   final def computeCurrentBehavior(): Receive = {
     val baseCommands: Actor.Receive = alwaysAvailableCommands orElse {
-      case StartTask(index) => tasks(index).start()
-      case TaskTimedOut(index, id) => waitingTasks.get(index).foreach(_.timeout(receivedMessage = None, id))
+      case TaskTimedOut(index, id) =>
+        waitingTasks.get(index).foreach(_.timeout(receivedMessage = None, id))
+      case StartTask(index) =>
+        tasks(index).start()
     }
-    // baseCommands is the first receive to guarantee that ShutdownOrchestrator, SaveSnapshot, StartTask and Status
+    // baseCommands is the first receive to guarantee the messages vital to the correct working of the orchestrator
     // won't be taken first by one of the tasks behaviors or the extraCommands. Similarly extraCommands
     // is the last receive to ensure it doesn't take one of the messages of the waiting task behaviors.
     waitingTasks.values.map(_.behavior).fold(baseCommands)(_ orElse _) orElse extraCommands
@@ -229,10 +254,9 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
       // · waitingTasks, if its dependencies == HNil
       // · unstartedTasks, otherwise.
       // So in order to start the orchestrator we only need to start the tasks in the waitingTasks map.
-      waitingTasks.foreach { case (_, task) =>
-        // The start will eventually invoke context become computeCurrentBehavior()
-        task.start()
-      }
+      // This ruse ensures we do not have to iterate through every task in order to compute which ones are ready to start.
+      // Subsequent tasks will be started because computeCurrentBehavior (which is called inside start) handles the StartTask message.
+      waitingTasks.values.foreach(_.start())
       // If recovery is running we don't need to start the tasks because we will eventually handle a MessageSent
       // which will start the task(s).
     }
@@ -253,11 +277,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
       saveSnapshot(_state)
     case ShutdownOrchestrator =>
       context stop self
-    case TimeoutTasks =>
-      waitingTasks.values.foreach { task =>
-        // task is waiting which ensures it has a expectedId aka .get will never throw
-        task.timeout(receivedMessage = None, task.expectedId.get.self)
-      }
   }
   
   final def receiveCommand: Actor.Receive = unstarted orElse alwaysAvailableCommands orElse extraCommands
@@ -288,7 +307,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
         val tasksString = tasks.map(t => t.withLogPrefix(t.state.toString)).mkString("\n\t")
         log.debug(s"""${self.path.name} - recovery completed:
                      |\t$tasksString
-                     |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin)
+                     |\tNumber of unconfirmed messages: $numberOfUnconfirmed
+                     |\tInner orchestrator next ID: ${_innerOrchestratorsNextId}""".stripMargin)
       }
   }
 }
@@ -358,30 +378,30 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
     state.deliveryIdFor(destination, id)
   }
   final def matchId(task: Task[_], id: Long): Boolean = {
-    val senderPath = sender().path
-    val correlationId: CorrelationId = id
-    val deliveryId = state.deliveryIdFor(task.destination, correlationId)
+    lazy val deliveryId = state.deliveryIdFor(task.destination, id)
+    lazy val (matchesSender, reason) = sender().path match {
+      case _ if recoveryRunning => (true, " because recovery is running.")
+      case s if s == timeouterActorRef.path => (true, " because we are handling a timeout.")
+      case s => (s == task.destination, "")
+    }
     
-    val matches = (if (recoveryRunning) true else senderPath == task.destination) &&
-      task.state == Task.Waiting && task.expectedDeliveryId.contains(deliveryId)
-    
+    val matches = task.state == Task.Waiting && task.expectedDeliveryId.contains(deliveryId) && matchesSender
     log.debug(task.withLogPrefix{
-      val senderPathString = senderPath.toStringWithoutAddress
+      val senderPathString = sender().path.toStringWithoutAddress
       val destinationString = task.destination.toStringWithoutAddress
       val length = senderPathString.length max destinationString.length
       String.format(
         s"""MatchId:
-           |($destinationString, $correlationId) resolved to $deliveryId
+           |($destinationString, CorrelationId($id)) resolved to $deliveryId
            |          │ %${length}s │ DeliveryId
            |──────────┼─%${length}s─┼──────────────────────────────
            |    VALUE │ %${length}s │ %s
            | EXPECTED │ %${length}s │ %s
            | Matches: %s""".stripMargin,
-        "SenderPath",
-        "─" * length,
+        "SenderPath", "─" * length,
         senderPathString, Some(deliveryId),
         destinationString, task.expectedDeliveryId,
-        matches.toString.toUpperCase + (if (recoveryRunning) " because recovery is running." else "")
+        matches.toString.toUpperCase + reason
       )
     })
     matches

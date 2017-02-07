@@ -1,5 +1,7 @@
 package pt.tecnico.dsi.akkastrator
 
+import java.util.concurrent.TimeoutException
+
 import scala.concurrent.duration.FiniteDuration
 
 import akka.actor.{Actor, ActorPath, PossiblyHarmful}
@@ -87,10 +89,14 @@ abstract class Task[R](val task: FullTask[_, _]) {
         expectedId = Some(id)
         
         // Schedule the timeout
-        if (task.timeout.isFinite()) {
+        if (task.timeout.isFinite) {
           import orchestrator.context.system
           system.scheduler.scheduleOnce(FiniteDuration(task.timeout.length, task.timeout.unit)) {
-            orchestrator.self ! orchestrator.TaskTimedOut(index, id.self)
+            orchestrator.self.tell(orchestrator.TaskTimedOut(index, id.self), orchestrator.timeouterActorRef)
+            // Ideally we would use orchestrator.self.tell(TaskTimedOut, destination) however for this to work
+            // we would need the destination ActorRef and not just its ActorPath. So we are forced to make
+            // an exception inside matchId to ensure Timeout in the task behavior is correctly matched.
+            // This exception is achieved via the orchestrator.timeouterActorRef.
           }(system.dispatcher)
         }
         
@@ -132,7 +138,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
   private final def persistAndConfirmDelivery(receivedMessage: Serializable, id: Long)(continuation: => Unit): Unit = {
     orchestrator.recoveryAwarePersist(MessageReceived(task.index, receivedMessage)) {
       if (!orchestrator.recoveryRunning) {
-        log.debug(withLogPrefix(s"Persisted MessageReceived."))
+        log.debug(withLogPrefix("Persisted MessageReceived."))
       }
       val deliveryId = orchestrator.ID2DeliveryId(destination, id).self
       orchestrator.confirmDelivery(deliveryId)
@@ -143,10 +149,11 @@ abstract class Task[R](val task: FullTask[_, _]) {
   /**
     * Finishes this task, which implies:
     *
-    *  1. Tasks that depend on this one will be started.
-    *  2. Re-sends from `destination` will no longer be handled by `behavior`.
-    *     The re-send message will be handled as an unhandled message, aka the `unhandled`
-    *     method will be invoked in the orchestrator.
+    *  1. This task will change its state to `Finished`.
+    *  2. Tasks that depend on this one will be started.
+    *  3. Re-sends from `destination` will no longer be handled by `behavior`. If destinations re-sends its answer
+    *     it will be logged as an unhandled message.
+    *  4. The method `onTaskFinish` will be invoked on the orchestrator.
     *
     *  Finishing an already finished task will throw an exception.
     *
@@ -190,15 +197,16 @@ abstract class Task[R](val task: FullTask[_, _]) {
   }
 
   /**
-    * Causes this task to abort. This will have the following effects:
+    * Aborts this task, which implies:
+    *
     *  1. This task will change its state to `Aborted`.
     *  2. Every unstarted task that depends on this one will never be started. This will happen because a task can
-    *     only start if its dependencies have finished and this task did not finish, it aborted.
+    *     only start if its dependencies have finished.
     *  3. Waiting tasks or tasks which do not have this task as a dependency will remain untouched,
-    *     unless the orchestrator is stopped or `context.become` is invoked in the `onAbort` callback of the orchestrator.
-    *  4. The method `onFinish` will <b>never</b> be called. Similarly to the unstarted tasks, onFinish will only
-    *     be invoked if all tasks have finished.
-    *  5. The method `onAbort` will be invoked in the orchestrator.
+    *     unless the orchestrator is stopped or `context.become` is invoked in the `onTaskAbort`/`onAbort`
+    *     callbacks of the orchestrator.
+    *  4. The method `onTaskAbort` will be invoked in the orchestrator.
+    *  5. The method `onFinish` in the orchestrator will never be invoked since this task did not finish.
     *
     * @param receivedMessage the message which prompted the abort.
     * @param id the id obtained from the message.
@@ -206,18 +214,13 @@ abstract class Task[R](val task: FullTask[_, _]) {
     */
   final def abort(receivedMessage: Serializable, id: Long, cause: Exception): Unit = {
     innerAbort(receivedMessage, id, cause) {
-      orchestrator.onAbort(task, receivedMessage, cause, orchestrator.tasks.groupBy(_.state))
-  
-      // Unlike finish we do NOT invoke:
-      // · orchestrator.onTaskFinish(this) - thus ensuring onTaskFinish is not invoked for aborted tasks.
-      // · task.notifyDependents() - thus keeping good on the promise that unstarted tasks that depend on this one will never be started.
-      // . orchestrator.onFinish - thus ensuring onFinish is never called when a task aborts.
+      orchestrator.onTaskAbort(task, receivedMessage, cause)
     }
   }
   
   private[akkastrator] final def innerAbort(receivedMessage: Serializable, id: Long, cause: Exception)(afterAbortContinuation: => Unit): Unit = {
     require(state == Waiting, "Abort can only be invoked when this task is Waiting.")
-    log.info(withLogPrefix(s"Aborting due to $cause."))
+    log.info(withLogPrefix(s"Aborting due to exception: $cause."))
     persistAndConfirmDelivery(receivedMessage, id) {
       expectedId = None
       expectedDeliveryId = None
@@ -234,7 +237,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
     require(state == Waiting, "innerTimeout can only be invoked when this task is Waiting.")
     behavior.applyOrElse(Timeout(id), { timeout: Timeout =>
       //behavior does not handle timeout. So we abort it.
-      abort(receivedMessage = timeout, id = id, cause = TimedOut)
+      abort(receivedMessage = timeout, id = id, cause = new TimeoutException())
     })
   }
   

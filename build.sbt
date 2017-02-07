@@ -52,7 +52,7 @@ libraryDependencies ++= Seq(
 )
 // Good advice for Scala compiler errors: tells you when you need to provide implicit instances
 //addSbtPlugin("com.softwaremill.clippy" % "plugin-sbt" % "0.3.5")
-addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.4.1" classifier "bundle")
+addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.0" classifier "bundle")
 // Removes some of the redundancy of the compiler output and prints additional info for implicit resolution errors.
 resolvers += Resolver.bintrayRepo("tek", "maven")
 addCompilerPlugin("tryp" %% "splain" % "0.1.20")

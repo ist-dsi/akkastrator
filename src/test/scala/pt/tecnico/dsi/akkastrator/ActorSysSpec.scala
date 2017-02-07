@@ -3,11 +3,11 @@ package pt.tecnico.dsi.akkastrator
 import java.io.File
 
 import scala.collection.immutable.SortedMap
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.reflect.ClassTag
 import scala.util.control.NoStackTrace
 
-import akka.actor.{ActorIdentity, ActorPath, ActorRef, ActorSystem, Identify, Props}
+import akka.actor.{Actor, ActorIdentity, ActorPath, ActorSystem, Identify, Props, Terminated}
 import akka.testkit.{TestKit, TestProbe}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
@@ -17,26 +17,28 @@ import pt.tecnico.dsi.akkastrator.DSL.FullTask
 import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting}
-import shapeless.{HList, HNil}
+import shapeless.ops.hlist.Tupler
+import shapeless.{Generic, HList, HNil}
 
 object ActorSysSpec {
   case object FinishOrchestrator
+  case object OrchestratorFinished
   case object OrchestratorAborted
   case object GetDestinations
-  case class Destinations(d: Map[String, TestProbe])
+  case class Destinations(destinations: Map[String, TestProbe])
   
   val testsAbortReason = new Exception()
   
-  abstract class ControllableOrchestrator(terminationProbe: ActorRef, startAndTerminateImmediately: Boolean = false)
+  abstract class ControllableOrchestrator(startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
     var destinationProbes = Map.empty[String, TestProbe]
   
-    def fulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, message: Long => Serializable, _result: R,
-                                              dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
-                                             (implicit orchestrator: AbstractOrchestrator[_],
-                                              tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
+    def fulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable, _result: R,
+                                                  dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
+                                                 (implicit orchestrator: AbstractOrchestrator[_],
+                                                  cm: TaskComapped.Aux[DL, RL] = TaskComapped.nil, tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
       destinationProbes += description -> dest
-      FullTask(description, dependencies) createTask { _ =>
+      FullTask(description, dependencies) createTaskWith { _ =>
         new Task[R](_) {
           val destination: ActorPath = dest.ref.path
           def createMessage(id: Long): Serializable = message(id)
@@ -51,11 +53,20 @@ object ActorSysSpec {
         }
       }
     }
+  
+    def fulltask[R, DP, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable,
+                                                      _result: R, dependencies: DP, abortOnReceive: Boolean)
+                                                     (implicit orchestrator: AbstractOrchestrator[_],
+                                                      gen: Generic.Aux[DP, DL], cm: TaskComapped.Aux[DL, RL],
+                                                      tupler: Tupler.Aux[RL, RP]): FullTask[R, DL] = {
+      fulltask(description, dest, message, _result, gen.to(dependencies))
+    }
     
-    def simpleMessageFulltask[R, DL <: HList, RL <: HList](description: String, dest: TestProbe, _result: R = "finished",
-                                                           dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
-                                                          (implicit orchestrator: AbstractOrchestrator[_],
-                                                           tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil): FullTask[R, DL] = {
+    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, _result: R = "finished",
+                                                               dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
+                                                              (implicit orchestrator: AbstractOrchestrator[_],
+                                                               tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
+                                                               tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
       fulltask(description, dest, SimpleMessage(description, _), _result, dependencies, abortOnReceive)
     }
   
@@ -67,34 +78,44 @@ object ActorSysSpec {
     if (startAndTerminateImmediately) {
       self ! StartOrchestrator(1L)
     }
-    
+  
     override def onFinish(): Unit = {
+      context.parent ! OrchestratorFinished
+      terminate(super.onFinish())
+    }
+  
+    override def onAbort(failure: Failure): Unit = {
+      context.parent ! OrchestratorAborted
+      terminate(super.onAbort(failure))
+    }
+    
+    def terminate(terminate: => Unit): Unit = {
       if (startAndTerminateImmediately) {
-        super.onFinish()
+        terminate
       } else {
-        context become (alwaysAvailableCommands orElse crashable orElse finishable(super.onFinish()))
+        // Having an extra last step to terminate the orchestrator allows us to test if the orchestrator
+        // recovers to a good state if it crashes just before terminating.
+        context become (computeCurrentBehavior() orElse crashable orElse {
+          case FinishOrchestrator => terminate
+        })
       }
     }
   
-    override def onAbort(instigator: FullTask[_, _], message: Any, cause: Exception, tasks: Map[Task.State, Seq[FullTask[_, _]]]): Unit = {
-      terminationProbe ! OrchestratorAborted
-      
-      if (startAndTerminateImmediately) {
-        super.onAbort(instigator, message, cause, tasks)
-      } else {
-        context become (computeCurrentBehavior() orElse finishable(super.onAbort(instigator, message, cause, tasks)))
-      }
-    }
-  
-    def finishable(afterFinish: => Unit): Receive = { case FinishOrchestrator => afterFinish }
-    def crashable: Receive = { case "boom" => throw new IllegalArgumentException("BOOM") with NoStackTrace }
+    def crashable: Receive = { case "boom" => throw new IllegalArgumentException("BOOM\n") with NoStackTrace }
     
     override def extraCommands: Receive = crashable orElse {
       case GetDestinations =>
         sender() ! Destinations(destinationProbes)
     }
   }
+  
+  // Quite ugly but makes the tests prettier
+  implicit def state2SetOfState[S <: Task.State](s: S): Set[Task.State] = Set(s)
+  implicit class RichTaskState(val tuple: (String, Task.State)) extends AnyVal {
+    def or(other: Task.State): (String, Set[Task.State]) = (tuple._1, Set(tuple._2, other))
+  }
 }
+
 abstract class ActorSysSpec extends TestKit(ActorSystem())
   with WordSpecLike
   with Matchers
@@ -115,8 +136,8 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     storageLocations.foreach(FileUtils.deleteDirectory)
     shutdown(verifySystemShutdown = true)
   }
-
-  case class State(expectedStatus: SortedMap[String, Set[Task.State]]) {
+  
+  case class State(expectedStatus: Map[String, Set[Task.State]]) {
     def updatedStatuses(newStatuses: (String, Set[Task.State])*): State = {
       val newExpectedStatus = newStatuses.foldLeft(expectedStatus) {
         case (statuses, (taskDescription, possibleStatus)) =>
@@ -124,130 +145,137 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       }
       this.copy(expectedStatus = newExpectedStatus)
     }
-    def updatedExactStatuses(newStatuses: (String, Task.State)*): State = {
-      val n = newStatuses.map { case (s, state) =>
-        (s, Set(state))
-      }
-      updatedStatuses(n:_*)
-    }
   }
   abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int, startingTasks: Set[String]) {
-    val terminationProbe = TestProbe("termination-probe")
-    val statusProbe = TestProbe("status-probe")
+    private val probe = TestProbe()
+    
+    val parentProbe = TestProbe("parent-probe")
     val destinations = Array.fill(numberOfDestinations)(TestProbe("dest"))
     
-    private val orchestratorClass = implicitly[ClassTag[O]].runtimeClass
-    val orchestratorActor = system.actorOf(
-      Props(orchestratorClass, destinations, terminationProbe.ref),
-      orchestratorClass.getSimpleName
+    val orchestratorActor = system.actorOf(Props(new Actor {
+      val orchestratorClass = implicitly[ClassTag[O]].runtimeClass
+      val child = context.actorOf(Props(orchestratorClass, destinations), orchestratorClass.getSimpleName)
+  
+      context watch child
+  
+      def receive: Actor.Receive = {
+        case Terminated(`child`) => context stop self
+        case m if sender == child => parentProbe.ref forward m
+        case m => child forward m
+      }
+    }))
+    
+    orchestratorActor.tell(GetDestinations, probe.ref)
+    val testProbeOfTask = probe.expectMsgClass(classOf[Destinations]).destinations
+    
+    probe watch orchestratorActor
+    
+    val firstState: State = State(SortedMap.empty).updatedStatuses (
+      startingTasks.toSeq.map(startingTask => (startingTask, Set[Task.State](Unstarted))):_*
     )
     
-    orchestratorActor.tell(GetDestinations, statusProbe.ref)
-    val testProbeOfTask = statusProbe.expectMsgClass(classOf[Destinations]).d
-    
-    terminationProbe.watch(orchestratorActor)
-    
-    val firstState: State = State(SortedMap.empty).updatedExactStatuses (
-      startingTasks.toSeq.map(startingTask => (startingTask, Unstarted)):_*
-    )
-    
-    val firstTransformation: State => State = { s =>
+    val startTransformation: State => State = { firstState =>
       logger.info(s"Starting the Orchestrator")
       orchestratorActor ! StartOrchestrator(1L)
-      val s = startingTasks.toSeq.map { s =>
-        (s, Set[Task.State](Unstarted, Waiting))
-      }
-      firstState.updatedStatuses(s:_*)
+      firstState.copy(expectedStatus = firstState.expectedStatus.mapValues(_ => Waiting))
     }
-    val transformations: Seq[State => State]
-    val lastTransformation: State => State = { s =>
+    val finishTransformation: State => State = { s =>
       logger.info("Sending FinishOrchestrator")
       orchestratorActor ! FinishOrchestrator
       s
     }
+    val transformations: Seq[State => State]
+    def withStartAndFinishTransformations(transformations: (State => State)*): Seq[State => State] = {
+      startTransformation +: transformations :+ finishTransformation
+    }
     
-    private lazy val allTransformations = firstTransformation +: transformations :+ lastTransformation
-    
-    def pingPong(destination: TestProbe): Unit = {
-      val m = destination expectMsgClass classOf[SimpleMessage]
-      logger.info(s"$m: ${destination.sender().path} <-> ${destination.ref}")
-      destination reply m
-      /*logger.info(s"${destination.ref} received $m from ${destination.lastSender}")
-      system.actorSelection(destination.lastSender.path).tell(m, destination.ref)
-      logger.info(s"${destination.ref} sent $m to ${destination.sender().path}")*/
+    def pingPong(destination: TestProbe, ignoreTimeoutError: Boolean = false): Unit = {
+      try {
+        val m = destination expectMsgClass classOf[SimpleMessage]
+        logger.info(s"$m: ${destination.sender()} <-> ${destination.ref}")
+        //system.actorSelection(destination.sender().path).tell(m, destination.ref)
+        destination reply m
+      } catch {
+        case e: AssertionError if e.getMessage.contains("timeout") && ignoreTimeoutError =>
+          // Purposefully ignored
+      }
     }
     def pingPong(taskDescription: String): Unit = pingPong(testProbeOfTask(taskDescription))
+    /** Alias to pingPong. But makes it obvious that we are handling a resend. */
+    def handleResend(destination: TestProbe, ignoreTimeoutError: Boolean = false): Unit = pingPong(destination, ignoreTimeoutError)
     def handleResend(taskDescription: String): Unit = pingPong(taskDescription)
     
     def sameTestPerState(test: State => Unit): Unit = {
-      var i = 1
-      allTransformations.foldLeft(firstState) {
-        case (lastState, transformationFunction) =>
-          val expectedStateString = lastState.expectedStatus.mapValues(_.mkString(" | ")).mkString("\n\t", "\n\t", "\n\t")
-          logger.info(s"""=== STATE $i =============================
-                          |EXPECTING:$expectedStateString""".stripMargin)
-          test(lastState)
-          i += 1
-          logger.info("=== Computing next state ===========================")
-          val newState = transformationFunction(lastState)
-          logger.info("\n\n\n\n")
-          newState
-      }
-      //terminationProbe.expectTerminated(orchestratorActor)
+      val sameTestRepeated = Seq.fill(transformations.size)(test)
+      differentTestPerState(sameTestRepeated:_*)
     }
-    
     def differentTestPerState(tests: (State => Unit)*): Unit = {
-      val testsAndTransformations: Seq[(State => Unit, State => State)] = tests.zip(allTransformations)
-      testsAndTransformations.foldLeft(firstState) {
-        case (lastState, (test, transformation)) =>
-          //Perform the test for lastState
-          test(lastState)
-
-          transformation(lastState)
+      var i = 1
+      val testsAndTransformations: Seq[(State => Unit, State => State)] = tests zip transformations
+      testsAndTransformations.foldLeft(firstState) { case (lastState, (test, transformation)) =>
+        val expectedStateString = lastState.expectedStatus.mapValues(_.mkString(" or ")).mkString("\n\t", "\n\t", "\n\t")
+        logger.info(s"""=== STATE $i =============================
+                       |EXPECTING:$expectedStateString""".stripMargin)
+        test(lastState)
+        i += 1
+        
+        logger.info("=== Computing next state ===========================")
+        val newState = transformation(lastState)
+        logger.info("\n\n\n\n")
+        newState
       }
     }
     
     def testStatus(state: State, max: FiniteDuration = remainingOrDefault): Unit = {
-      orchestratorActor.tell(Status, statusProbe.ref)
-      val taskState = statusProbe.expectMsgClass(max, classOf[StatusResponse])
+      orchestratorActor.tell(Status, probe.ref)
+      val taskState = probe.expectMsgClass(max, classOf[StatusResponse])
         .tasks
         .map(t => (t.description, t.state))
         .toMap
-      for((description, expected: Set[Task.State]) <- state.expectedStatus) {
-        //Cant understand why but using expected should contain (taskState(description))
-        //and having an Aborted(new Exception) make this line fail when it shouldn't
+      for((description, expected) <- state.expectedStatus) {
+        // expected should contain (taskState(description))
+        // does not work for the Aborted state because Exception does not implement its own equals.
         expected.contains(taskState(description))
       }
+      logger.info("Status matched!")
     }
     
-    def testExpectedStatusWithRecovery(max: FiniteDuration = 30.seconds): Unit = sameTestPerState { state =>
-      // Test if the orchestrator is in the expected state (aka the status is what we expect)
-      testStatus(state)
-      // Crash the orchestrator
-      orchestratorActor ! "boom"
-      // Test that the orchestrator recovered to the expected state
-      testStatus(state)
+    def testExpectedStatusWithRecovery(): Unit = {
+      sameTestPerState { state =>
+        // Test if the orchestrator is in the expected state (aka the status is what we expect)
+        testStatus(state)
+        // Crash the orchestrator
+        orchestratorActor ! "boom"
+        // Test that the orchestrator recovered to the expected state
+        testStatus(state)
+      }
+  
+      probe.expectTerminated(orchestratorActor)
     }
     
     def expectInnerOrchestratorTermination(description: String, max: Duration = Duration.Undefined): Unit = {
-      orchestratorActor.tell(Status, statusProbe.ref)
-      val dests = statusProbe.expectMsgClass(classOf[StatusResponse]).tasks.map(t => (t.description, t.destination)).toMap
-      
-      dests.get(description).flatten.foreach { dest =>
-        // To be able to watch an actor we need its ActorRef first
-        system.actorSelection(dest).tell(Identify(1L), terminationProbe.ref)
-        terminationProbe.expectMsgClass(classOf[ActorIdentity]) match {
-          case ActorIdentity(_, Some(ref)) =>
-            // We know the inner orchestrator will terminate because that is what the TaskSpawnOrchestrator contract states.
-            // In reality we will be watching the Spawner and not the innerOrchestrator directly, but since the spawner is
-            // a proxy to the innerOrchestrator this works out to the same thing as watching the innerOrchestrator directly.
-            logger.error(s"Task $description destination ActorRef $ref")
-            terminationProbe.watch(ref)
-            terminationProbe.expectTerminated(ref)
-          case _ =>
-            // The innerOrchestrator already finished, so we don't need to do anything
-            logger.error(s"Could not get an ActorRef for the destination of task $description")
-        }
+      // We do not create Task{Quorum|Bundle}s via the fullTask of controllable orchestrator
+      // so we cannot use the testProbeOfTask map to get the destination of the task
+      orchestratorActor.tell(Status, probe.ref)
+      val tasks = probe.expectMsgClass(classOf[StatusResponse]).tasks
+      tasks.foreach {
+        case Task.Report(`description`, _, Task.Waiting, Some(destination), _) =>
+          // To be able to watch an actor we need its ActorRef first
+          system.actorSelection(destination).tell(Identify(1L), probe.ref)
+          probe.expectMsgClass(classOf[ActorIdentity]) match {
+            case ActorIdentity(_, Some(ref)) =>
+              // We know that when an orchestrator finishes or aborts it stops it self.
+              // So we just need to expect for its termination.
+              logger.info(s"Task $description destination ActorRef $ref")
+              probe watch ref
+              probe.expectTerminated(ref, max)
+            case _ =>
+              // The innerOrchestrator already finished, so we don't need to do anything
+          }
+        case Task.Report(`description`, _, Task.Unstarted, _, _) =>
+          throw new IllegalStateException("Cannot expect for inner orchestrator termination if the inner orchestrator hasn't started.")
+        case _ =>
+          // The task already finished
       }
     }
   }

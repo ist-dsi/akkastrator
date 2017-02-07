@@ -4,134 +4,114 @@ import scala.collection.mutable
 
 import akka.actor.Props
 import pt.tecnico.dsi.akkastrator.Orchestrator._
-import pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator
 import shapeless.HNil
 
-/** A function that calculates how many votes are needed to achieve a quorum, given the number of destinations (nodes). */
-trait MinimumVotes extends (Int => Int) {
-  def apply(numberOfDestinations: Int): Int
-}
-/** A MinimumVotes function where a majority (51%) of votes are needed to achieve a quorum. */
-object Majority extends MinimumVotes {
-  def apply(numberOfDestinations: Int): Int = 1 + numberOfDestinations / 2
-}
-/**
-  * A MinimumVotes function where at least `x` votes are needed to achieve a quorum.
-  * If `x` is bigger than the number of destinations this function will behave like the `All` function.
-  */
-case class AtLeast(x: Int) extends MinimumVotes {
-  def apply(numberOfDestinations: Int): Int = Math.min(x, numberOfDestinations)
-}
-/** A MinimumVotes function where every destination must answer in order for the quorum to be achieved. */
-object All extends MinimumVotes {
-  def apply(numberOfDestinations: Int): Int = numberOfDestinations
-}
+/** Signals that every task in the Quorum has finished but a quorum has not achieved. */
+case object QuorumNotAchieved extends Exception
+/** Signals that the quorum is impossible to achieve since enough tasks have aborted that prevent the orchestrator
+  * from achieving enough votes to satisfy the minimumVotes function. */
+case object QuorumImpossibleToAchieve extends Exception
 
-//TODO: create a flag that maintains the quorum running when the quorum as been achieved but not every task has answered
-// In this case would we crash the orchestrator as soon as a task aborts?
-// this might imply removing the spawner from the implementation of TaskSpawnOrchestrator
+/** The quorum has already achieved however some tasks were still waiting. In this case the waiting tasks
+  * are aborted with this cause.*/
+case object QuorumAlreadyAchieved extends Exception
 
-object TaskQuorum {
-  object InnerOrchestrator {
-    def props[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
-                 minimumVotes: MinimumVotes, outerOrchestratorPersistenceId: String): Props = {
-      Props(classOf[InnerOrchestrator[R]], tasksCreator, minimumVotes, outerOrchestratorPersistenceId)
+class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], minimumVotes: MinimumVotes,
+                outerOrchestratorPersistenceId: String) extends Orchestrator[R] {
+  def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
+  
+  // Create the tasks and add them to this orchestrator
+  tasksCreator(this)
+  
+  // Check that every created task:
+  // · Has a distinct destination
+  // · Generates the same message
+  // Since we required the created tasks to have no dependencies we know they were added to the waitingTasks list.
+  waitingTasks.values.sliding(2).collectFirst {
+    case Seq(t1, t2) if t1.destination == t2.destination =>
+      new IllegalArgumentException(s"""TasksCreator must generate tasks with distinct destinations.
+                                      |Tasks "${t1.task.description}" and "${t2.task.description}" have the same destination:
+                                      |\t${t1.destination}""".stripMargin)
+    case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) => //TODO: This equality check might very easily fail
+      new IllegalArgumentException(s"""TasksCreator must generate tasks with the same message.
+                                      |Tasks "${t1.task.description}" and "${t2.task.description}" generate different messages:
+                                      |\t${t1.createMessage(1L)}
+                                      |\t${t2.createMessage(1L)}""".stripMargin)
+  } foreach { cause =>
+    onAbort(Aborted(cause, startId))
+  }
+  
+  val votesToAchieveQuorum: Int = minimumVotes(tasks.length)
+  
+  protected val resultsCount = mutable.Map.empty[R, Int]
+  protected var winningResult: R = _ // The result which has most votes so far
+  protected var winningResultCount: Int = 0 // The number of votes of the winning result
+  
+  override def onTaskFinish(finishedTask: FullTask[_, _]): Unit = {
+    val result = finishedTask.unsafeResult.asInstanceOf[R]
+    val currentCount = resultsCount.getOrElse(result, 0)
+    val newCount = currentCount + 1
+    resultsCount(result) = newCount
+    
+    // Update the winning result
+    if (newCount > winningResultCount) {
+      winningResult = result
+      winningResultCount = newCount
+    }
+    
+    if (winningResultCount >= votesToAchieveQuorum && waitingTasks.nonEmpty) {
+      // We achieved the quorum but we still have waiting tasks.
+      // So we abort them and then manually invoke `onFinish` since it won't be automatically called.
+      abortWaitingTasks(cause = QuorumAlreadyAchieved)(
+        afterAllAborts = orchestrator.onFinish()
+      )
+      // Review: instead of aborting the waiting tasks we could have keep them running. And allow the users to
+      // choose which way to go via a flag. However the later case complicates how a crash is handled/recovered.
+    }
+    // If the quorum has achieved in the last waiting task, aka waitingTasks.isEmpty then
+    // `onFinish` will be called automatically.
+    
+    // In either case it is always the onFinish that returns the Finished result.
+  }
+  
+  override def onFinish(): Unit = {
+    log.info(s"${self.path.name} Finished!")
+    
+    if (winningResultCount >= votesToAchieveQuorum) {
+      context.parent ! Finished(winningResult, startId)
+    } else {
+      // Every task has finished but we haven't achieved a quorum
+      context.parent ! Aborted(QuorumNotAchieved, startId)
+    }
+    
+    context stop self
+  }
+  
+  // Tolerance = how many votes the quorum can afford to not obtain/lose (due to an aborted task) such that
+  // its not necessary to terminate the quorum.
+  // For example: if the quorum has 5 tasks and minimumVotes = Majority then at most 2 tasks can abort/not answer
+  // if 3 tasks abort then we need to abort the orchestrator.
+  protected var tolerance: Int = tasks.length - votesToAchieveQuorum
+  
+  override def onTaskAbort(instigator: FullTask[_, _], message: Any, cause: Exception): Unit = {
+    tolerance -= 1
+    if (tolerance < 0) {
+      // We abort every waiting task to ensure that if this orchestrator crashes and is restarted
+      // then it will correctly be restored to the correct state.
+      abortWaitingTasks(QuorumImpossibleToAchieve)(
+        afterAllAborts = super.onAbort(Aborted(QuorumImpossibleToAchieve, startId))
+      )
     }
   }
-  class InnerOrchestrator[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], minimumVotes: MinimumVotes,
-                             outerOrchestratorPersistenceId: String) extends Orchestrator[R] {
-    def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
   
-    // Create the tasks and add them to this orchestrator
-    tasksCreator(this)
-  
-    // Check that every created task:
-    // · Has a distinct destination
-    // · Generates the same message
-    // Since we required the created tasks to have no dependencies we know they were added to the waitingTasks list.
-    waitingTasks.values.sliding(2).collectFirst {
-      case Seq(t1, t2) if t1.destination == t2.destination =>
-        InitializationError(s"""TasksCreator must generate tasks with distinct destinations.
-           |Tasks "${t1.task.description}" and "${t2.task.description}" have the same destination:
-           |\t${t1.destination}""".stripMargin)
-      case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) => //TODO: This equality check might very easily fail
-        InitializationError(s"""TasksCreator must generate tasks with the same message.
-           |Tasks "${t1.task.description}" and "${t2.task.description}" generate different messages:
-           |\t${t1.createMessage(1L)}
-           |\t${t2.createMessage(1L)}""".stripMargin)
-    } foreach { cause =>
-      context.parent ! Aborted(cause, startId)
-      context stop self
-    }
-    
-    val votesToAchieveQuorum: Int = minimumVotes(tasks.length)
-    
-    protected val resultsCount = mutable.Map.empty[R, Int]
-    protected var winningResult: R = _ // The result which has most votes so far
-    protected var winningResultCount: Int = 0 // The number of votes of the winning result
-    
-    // Tolerance = how many votes the quorum can afford to not obtain/lose (due to an aborted task) such that
-    // its not necessary to terminate the quorum inner orchestrator (this orchestrator)
-    // For example: if the quorum has 5 tasks, and minimumVotes = Majority then at most 2 tasks can abort/not answer
-    // if 3 tasks abort then we need to "abort" the orchestrator.
-    protected var tolerance = tasks.length - votesToAchieveQuorum
-  
-    override def onTaskFinish(finishedTask: FullTask[_, _]): Unit = {
-      val result = finishedTask.unsafeResult.asInstanceOf[R]
-      val currentCount = resultsCount.getOrElse(result, 0)
-      val newCount = currentCount + 1
-      resultsCount(result) = newCount
-    
-      // Update the winning result
-      if (newCount > winningResultCount) {
-        winningResult = result
-        winningResultCount = newCount
-      }
-    
-      if (winningResultCount >= votesToAchieveQuorum && waitingTasks.nonEmpty) {
-        // We achieved the quorum but we still have waiting tasks.
-        // So we abort them and then manually invoke `onFinish` since it won't be automatically called.
-        abortWaitingTasks(cause = QuorumAlreadyAchieved)(
-          afterAllAborts = orchestrator.onFinish()
-        )
-      }
-      // If the quorum has achieved in the last waiting task, aka waitingTasks.isEmpty then
-      // `onFinish` will be called automatically.
-      
-      // In either case it is always the onFinish that returns the Finished result.
-    }
-  
-    override def onFinish(): Unit = {
-      log.info(s"${self.path.name} Finished!")
-      
-      if (winningResultCount >= votesToAchieveQuorum) {
-        context.parent ! Finished(winningResult, startId)
-      } else {
-        // Every task has finished but we haven't achieved a quorum
-        context.parent ! Aborted(QuorumNotAchieved, startId)
-      }
-      
-      context stop self
-    }
-  
-    override def onAbort(instigator: FullTask[_, _], message: Any, cause: Exception, tasks: Map[Task.State, Seq[FullTask[_, _]]]): Unit = {
-      tolerance -= 1
-      if (tolerance < 0) {
-        abortWaitingTasks(QuorumImpossibleToAchieve)(
-          afterAllAborts = super.onAbort(instigator, message, cause, tasks)
-        )
-      }
-    }
-  
-    /** Aborts all tasks that are still waiting, but does not cause the orchestrator to abort. */
-    private def abortWaitingTasks(cause: Exception)(afterAllAborts: => Unit): Unit = {
-      waitingTasks.values.foreach { task =>
-        // receivedMessage is set to None to make it more obvious that we did not receive a message for this task
-        // task is waiting which ensures it has a expectedId aka .get will never throw
-        task.innerAbort(receivedMessage = None, id = task.expectedId.get.self, cause) {
-          if (waitingTasks.isEmpty) {
-            afterAllAborts
-          }
+  /** Aborts all tasks that are still waiting, but does not cause the orchestrator to abort. */
+  private def abortWaitingTasks(cause: Exception)(afterAllAborts: => Unit): Unit = {
+    waitingTasks.values.foreach { task =>
+      // receivedMessage is set to None to make it more obvious that we did not receive a message for this task
+      // task is waiting which ensures it has a expectedId aka .get will never throw
+      task.innerAbort(receivedMessage = None, id = task.expectedId.get.self, cause) {
+        if (waitingTasks.isEmpty) {
+          afterAllAborts
         }
       }
     }
@@ -148,6 +128,6 @@ object TaskQuorum {
   *   Fixed message
   */
 class TaskQuorum[R](task: FullTask[_, _], minimumVotes: MinimumVotes = Majority)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
-  extends TaskSpawnOrchestrator[R, InnerOrchestrator[R]](task)(
-    InnerOrchestrator.props(tasksCreator, minimumVotes, task.orchestrator.persistenceId)
+  extends TaskSpawnOrchestrator[R, Quorum[R]](task)(
+    Props(classOf[Quorum[R]], tasksCreator, minimumVotes, task.orchestrator.persistenceId)
   )

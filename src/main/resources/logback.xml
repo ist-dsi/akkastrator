@@ -3,15 +3,15 @@
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>${user.dir}/../logs/application.log</file>
         <encoder>
-            <pattern>[%date][%logger][%-5level] %message %n%xException</pattern>
+            <pattern>[%date][%logger][%-5level] %message %n%ex</pattern>
         </encoder>
     </appender>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- With Colors -->
-            <pattern>[%date][%logger{1}]%n %highlight([%-5level]){}%message%n%xException</pattern>
+            <pattern>[%date][%logger{1}]%n %highlight([%-5level]){}%message%n%ex</pattern>
             <!-- Without Colors -->
-            <!--<pattern>[%date][%logger{1}]%n [%-5level]%message%n%xException</pattern>-->
+            <!--<pattern>[%date][%logger{1}]%n [%-5level]%message%n%ex</pattern>-->
         </encoder>
     </appender>
 

@@ -3,28 +3,27 @@ package pt.tecnico.dsi.akkastrator
 import scala.concurrent.duration.Duration
 import scala.util.Random
 
-import akka.actor.ActorRef
 import akka.testkit.TestProbe
-import pt.tecnico.dsi.akkastrator.ActorSysSpec.{ControllableOrchestrator, OrchestratorAborted}
+import pt.tecnico.dsi.akkastrator.ActorSysSpec._
 import pt.tecnico.dsi.akkastrator.DSL._
-import pt.tecnico.dsi.akkastrator.Step6_TaskQuorumSpec._
+import pt.tecnico.dsi.akkastrator.Step7_TaskQuorumSpec._
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{::, HNil}
 
-object Step6_TaskQuorumSpec {
-  class TasksWithSameDestinationQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+object Step7_TaskQuorumSpec {
+  class TasksWithSameDestinationQuorum(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     // A - error: tasks with same destination
-    FullTask("A") createTask { case HNil =>
+    FullTask("A") createTaskWith { case HNil =>
       new TaskQuorum(_)(o => Seq(
         simpleMessageFulltask("0", destinations(0), "0")(o),
         simpleMessageFulltask("1", destinations(0), "1")(o)
       ))
     }
   }
-  class TasksWithDifferentMessagesQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class TasksWithDifferentMessagesQuorum(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     case class AnotherMessage(s: String, id: Long)
     
-    FullTask("A") createTask { case HNil =>
+    FullTask("A") createTaskWith { case HNil =>
       new TaskQuorum(_)(o => Seq(
         simpleMessageFulltask("0", destinations(0), "0")(o),
         fulltask("1", destinations(1), AnotherMessage("1", _), "1")(o)
@@ -34,10 +33,10 @@ object Step6_TaskQuorumSpec {
   
   // The length of each string is important. Do not change them. See SimpleTaskQuorumOrchestrator below.
   val aResult = Seq("Farfalhi", "Kunami", "Funini", "Katuki", "Maraca")
-  class SimpleTaskQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class SimpleTaskQuorum(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     // A -> N*B
     val a = simpleMessageFulltask("A", destinations(0), aResult)
-    FullTask("B", a :: HNil) createTask { case fruits :: HNil =>
+    FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
           fulltask(s"$fruit-B", destinations(i + 1), SimpleMessage("B-InnerTask", _), fruit.length)(o)
@@ -45,19 +44,19 @@ object Step6_TaskQuorumSpec {
       )
     }
   }
-  class ComplexTaskQuorumOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
+  class ComplexTaskQuorum(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
     //     N*B
     // A →⟨   ⟩→ 2*N*D
     //     N*C
     val a = simpleMessageFulltask("A", destinations(0), aResult)
-    val b = FullTask("B", a :: HNil) createTask { case fruits :: HNil =>
+    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"B-$fruit", destinations(i + 1), SimpleMessage("B message", _), fruit.length)(o)
+          fulltask(s"B-$fruit", destinations(i + 6), SimpleMessage("B message", _), fruit.length)(o)
         }
       )
     }
-    val c = FullTask("C", a :: HNil) createTask { case fruits :: HNil =>
+    val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_, AtLeast(2))(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
           fulltask(s"C-$fruit", destinations(i + 1), SimpleMessage("C message", _), fruit.length)(o)
@@ -65,17 +64,16 @@ object Step6_TaskQuorumSpec {
       )
     }
     // Using tuple syntax makes it prettier
-    FullTask("D", dependencies = (b, c), Duration.Inf) createTask { case fruitsLengthB :: fruitsLengthC :: HNil =>
-      new TaskQuorum(_)(o =>
-        Seq(fruitsLengthB, fruitsLengthC).zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"D-$i", destinations(i + 6), SimpleMessage(fruit.toString, _), fruit)(o)
-        }
-      )
+    FullTask("D", (b, c), Duration.Inf) createTask { case (fruitsLengthB, fruitsLengthC) =>
+      new TaskQuorum(_, All)(o => Seq(
+        fulltask("D-B", destinations(11), SimpleMessage("D message", _), fruitsLengthB)(o),
+        fulltask("D-C", destinations(12), SimpleMessage("D message", _), fruitsLengthC)(o)
+      ))
     }
   }
   
-  class SurpassingToleranceOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    FullTask("A") createTask { case HNil =>
+  class SurpassingTolerance(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+    FullTask("A") createTaskWith { case HNil =>
       // Since minimumVotes = All the tolerance is 0.
       // Given that one of the tasks aborts so should the Quorum
       new TaskQuorum(_, minimumVotes = All)(o =>
@@ -87,8 +85,8 @@ object Step6_TaskQuorumSpec {
       )
     }
   }
-  class NotReachingToleranceOrchestrator(destinations: Array[TestProbe], probe: ActorRef) extends ControllableOrchestrator(probe) {
-    FullTask("A") createTask { case HNil =>
+  class NotReachingTolerance(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+    FullTask("A") createTaskWith { case HNil =>
       // Since minimumVotes = Majority (the default) and there are 5 tasks the tolerance is 2.
       // Given that only one task aborts the Quorum should succeed.
       new TaskQuorum(_, minimumVotes = All)(o =>
@@ -103,17 +101,17 @@ object Step6_TaskQuorumSpec {
     }
   }
 }
-class Step6_TaskQuorumSpec extends ActorSysSpec {
+class Step7_TaskQuorumSpec extends ActorSysSpec {
   "An orchestrator with task quorum" should {
     "fail" when {
       "the tasksCreator generates tasks with the same destination" in {
-        val testCase = new TestCase[TasksWithSameDestinationQuorumOrchestrator](1, Set("A")) {
-          val transformations: Seq[(State) => State] = Seq(
+        val testCase = new TestCase[TasksWithSameDestinationQuorum](1, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
-              terminationProbe.expectMsg(OrchestratorAborted)
+              parentProbe expectMsg OrchestratorAborted
               
-              secondState.updatedExactStatuses(
-                "A" -> Aborted(InitializationError("TasksCreator must generate tasks with distinct destinations."))
+              secondState.updatedStatuses(
+                "A" -> Aborted(new IllegalArgumentException("TasksCreator must generate tasks with distinct destinations."))
               )
             }
           )
@@ -121,13 +119,13 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
       "the tasksCreator generates tasks with different messages" in {
-        val testCase = new TestCase[TasksWithDifferentMessagesQuorumOrchestrator](2, Set("A")) {
-          val transformations: Seq[(State) => State] = Seq(
+        val testCase = new TestCase[TasksWithDifferentMessagesQuorum](2, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
-              terminationProbe.expectMsg(OrchestratorAborted)
+              parentProbe expectMsg OrchestratorAborted
           
-              secondState.updatedExactStatuses(
-                "A" -> Aborted(InitializationError("TasksCreator must generate tasks with the same message."))
+              secondState.updatedStatuses(
+                "A" -> Aborted(new IllegalArgumentException("TasksCreator must generate tasks with the same message."))
               )
             }
           )
@@ -137,12 +135,12 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
     }
     "behave according to the documentation" when {
       "there is only a single quorum: A -> N*B - one task doesn't answer" in {
-        val testCase = new TestCase[SimpleTaskQuorumOrchestrator](numberOfDestinations = 6, Set("A")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase = new TestCase[SimpleTaskQuorum](numberOfDestinations = 6, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
               
-              secondState.updatedExactStatuses(
+              secondState.updatedStatuses(
                 "A" -> Finished(aResult)
               )
             }, { thirdState =>
@@ -164,39 +162,41 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
+      
       """there are a complex web of quorums:
         |     N*B
         | A →⟨   ⟩→ 2*N*D
         |     N*C
       """.stripMargin in {
-        val testCase = new TestCase[ComplexTaskQuorumOrchestrator](8, Set("A")) {
-          val transformations: Seq[State => State] = Seq(
+        val testCase = new TestCase[ComplexTaskQuorum](numberOfDestinations = 13, Set("A")) {
+          val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
               
-              secondState.updatedExactStatuses(
-                "A" -> Finished(aResult)
-              ).updatedStatuses(
-                "B" -> Set(Unstarted, Waiting),
-                "C" -> Set(Unstarted, Waiting)
+              secondState.updatedStatuses(
+                "A" -> Finished(aResult),
+                "B" -> Unstarted or Waiting,
+                "C" -> Unstarted or Waiting
               )
             }, { thirdState =>
-              Random.shuffle(1 to 5).toSeq.drop(1).par.foreach { i =>
-                pingPong(destinations(i)) // For B tasks
+              // For B tasks
+              Random.shuffle(1 to 5).drop(1).foreach { i =>
+                pingPong(destinations(i + 5))
               }
-              Random.shuffle(1 to 5).toSeq.drop(1).par.foreach { i =>
-                pingPong(destinations(i)) // For C tasks
+              // For C tasks
+              Random.shuffle(1 to 5).drop(1).foreach { i =>
+                pingPong(destinations(i))
               }
                             
               handleResend("A")
               
-              expectInnerOrchestratorTermination("B")
               expectInnerOrchestratorTermination("C")
+              expectInnerOrchestratorTermination("B")
               
               thirdState.updatedStatuses(
-                "B" -> Set(Waiting, Finished(6)),
-                "C" -> Set(Waiting, Finished(6)),
-                "D" -> Set(Unstarted, Waiting)
+                "B" -> Finished(6),
+                "C" -> Finished(6),
+                "D" -> Unstarted or Waiting
               )
             }, { fourthState =>
               // D Tasks
@@ -204,32 +204,22 @@ class Step6_TaskQuorumSpec extends ActorSysSpec {
               pingPong(destinations(7))
               
               import scala.concurrent.duration.DurationInt
-              expectInnerOrchestratorTermination("D", 30.seconds)
+              expectInnerOrchestratorTermination("D", 20.seconds)
               
-              fourthState.updatedExactStatuses(
-                "B" -> Finished(6),
-                "C" -> Finished(6)
-              ).updatedStatuses(
-                "D" -> Set(Waiting, Finished(6))
+              fourthState.updatedStatuses(
+                "D" -> Finished(6)
               )
             }
           )
         }
         testCase.testExpectedStatusWithRecovery()
       }
-      
-      "the tolerance is surpassed" in {
-        
-      }
-      
-      "the tolerance is not reached" in {
-        
-      }
-      
-      // QuorumNotAchieved
     }
+  
+    //TODO: test aborts, tolerance is surpassed
+    //TODO: test aborts, tolerance is not reached
+    //TODO: test QuorumNotAchieved
     
-    //TODO: test aborts, more specifically the tolerance
     //TODO: test timeouts
   }
 }
