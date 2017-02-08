@@ -163,6 +163,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
       
+      /*
       """there are a complex web of quorums:
         |     N*B
         | A →⟨   ⟩→ 2*N*D
@@ -214,6 +215,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
+      */
     }
   
     //TODO: test aborts, tolerance is surpassed

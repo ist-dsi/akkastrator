@@ -7,7 +7,7 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.reflect.ClassTag
 import scala.util.control.NoStackTrace
 
-import akka.actor.{Actor, ActorIdentity, ActorPath, ActorSystem, Identify, Props, Terminated}
+import akka.actor.{Status => _, _}
 import akka.testkit.{TestKit, TestProbe}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
@@ -36,7 +36,8 @@ object ActorSysSpec {
     def fulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable, _result: R,
                                                   dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
                                                  (implicit orchestrator: AbstractOrchestrator[_],
-                                                  cm: TaskComapped.Aux[DL, RL] = TaskComapped.nil, tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
+                                                  cm: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
+                                                  tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
       destinationProbes += description -> dest
       FullTask(description, dependencies) createTaskWith { _ =>
         new Task[R](_) {

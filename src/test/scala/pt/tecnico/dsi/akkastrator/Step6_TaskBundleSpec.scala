@@ -2,8 +2,7 @@ package pt.tecnico.dsi.akkastrator
 
 import java.util.concurrent.TimeoutException
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.Random
 
 import akka.actor.ActorPath
@@ -311,7 +310,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
             }, { fifthState =>
               // D tasks
               (0 until aResult.length * 2).par.foreach { _ =>
-                pingPong(destinations(3))
+                pingPong(destinations(3), ignoreTimeoutError = true)
                 handleResend(destinations(3), ignoreTimeoutError = true)
               }
           
@@ -433,15 +432,15 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
     }
-    
     "terminate" when {
       "the outer task (the bundle) times out" in {
         // N*A (A timeouts)
         val testCase = new TestCase[OuterTaskAbortingTaskBundle](numberOfDestinations = 5, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
+              // We don't answer to ensure that the orchestrator timeouts
               aResult.indices.par.foreach { i =>
-                pingPong(destinations(i))
+                destinations(i) expectMsgClass classOf[SimpleMessage]
               }
   
               // Ensure the timeout is triggered

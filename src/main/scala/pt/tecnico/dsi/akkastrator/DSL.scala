@@ -36,7 +36,8 @@ object DSL {
       *   }
       * }}}
       */
-    def apply[DR, DDL <: HList](description: String, dependency: FullTask[DR, DDL], timeout: Duration): PartialTask[FullTask[DR, DDL] :: HNil, DR :: HNil, Tuple1[DR]] = {
+    def apply[DR, DDL <: HList](description: String, dependency: FullTask[DR, DDL],
+                                timeout: Duration): PartialTask[FullTask[DR, DDL] :: HNil, DR :: HNil, Tuple1[DR]] = {
       new PartialTask(description, dependency :: HNil, timeout)
     }
     /**
