@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   //Logging
   "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0" % Test,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
-  "ch.qos.logback" % "logback-classic" % "1.1.9" % Test,
+  "ch.qos.logback" % "logback-classic" % "1.1.10" % Test,
   //Testing
   "org.scalatest" %% "scalatest" % "3.0.1" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,

@@ -100,7 +100,6 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
   def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: => O, numberOfTasks: Int): Unit = {
     val orchestrator = system.actorOf(Props(creator))
     orchestrator ! Status
-  
     val tasks = expectMsgClass(classOf[StatusResponse]).tasks
     tasks.length shouldBe numberOfTasks
   }
