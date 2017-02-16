@@ -107,7 +107,11 @@ object ActorSysSpec {
   // Quite ugly but makes the tests prettier
   implicit def state2SetOfState[S <: Task.State](s: S): Set[Task.State] = Set(s)
   implicit class RichTaskState(val tuple: (String, Task.State)) extends AnyVal {
-    def or(other: Task.State): (String, Set[Task.State]) = (tuple._1, Set(tuple._2, other))
+    def or(other: Task.State): (String, Set[Task.State]) = {
+      tuple match {
+        case (taskDescription, firstState) => (taskDescription, Set(firstState, other))
+      }
+    }
   }
 }
 
