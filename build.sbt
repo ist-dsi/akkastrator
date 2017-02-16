@@ -30,7 +30,7 @@ scalacOptions ++= Seq(
 //======================================================================================================================
 //==== Dependencies ====================================================================================================
 //======================================================================================================================
-val akkaVersion = "2.4.16"
+val akkaVersion = "2.4.17"
 libraryDependencies ++= Seq(
   //Shapeless
   "com.chuusai" %% "shapeless" % "2.3.2",
@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   //Logging
   "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0" % Test,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
-  "ch.qos.logback" % "logback-classic" % "1.1.10" % Test,
+  "ch.qos.logback" % "logback-classic" % "1.2.1" % Test,
   //Testing
   "org.scalatest" %% "scalatest" % "3.0.1" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
@@ -52,7 +52,7 @@ libraryDependencies ++= Seq(
 )
 // Good advice for Scala compiler errors: tells you when you need to provide implicit instances
 //addSbtPlugin("com.softwaremill.clippy" % "plugin-sbt" % "0.3.5")
-addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.0" classifier "bundle")
+addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.1" classifier "bundle")
 // Removes some of the redundancy of the compiler output and prints additional info for implicit resolution errors.
 resolvers += Resolver.bintrayRepo("tek", "maven")
 addCompilerPlugin("tryp" %% "splain" % "0.1.20")
