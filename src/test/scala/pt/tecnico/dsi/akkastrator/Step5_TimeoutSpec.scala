@@ -88,6 +88,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         import testCase2._
         differentTestPerState(
           { testStatus(_) }, // 1st state: startingTasks -> Unstarted.
+          // StartOrchestrator is sent
           { testStatus(_) }, // 2nd state: startingTasks -> Unstarted | Waiting.
           { thirdState =>
             // Ensure task A aborted
@@ -96,6 +97,10 @@ class Step5_TimeoutSpec extends ActorSysSpec {
             // The default implementation of onTaskAborted calls onAbort, which in the controllable orchestrator
             // sends the message OrchestratorAborted to its parent.
             parentProbe expectMsg OrchestratorAborted
+            
+            // Ensure it still works when recovering
+            orchestratorActor ! "boom"
+            testStatus(thirdState)
           }, { _ =>
             // Confirm that the orchestrator has indeed aborted
             parentProbe.expectMsgPF() {

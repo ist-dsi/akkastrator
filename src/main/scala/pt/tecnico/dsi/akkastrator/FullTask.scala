@@ -84,7 +84,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   }
   */
   
-  protected final def allDependenciesFinished = finishedDependencies == dependenciesIndexes.length
+  protected final def allDependenciesFinished: Boolean = finishedDependencies == dependenciesIndexes.length
   
   /** Computes the results HList from the dependencies HList.
     * Every dependency must have finished, otherwise an exception will be thrown. */

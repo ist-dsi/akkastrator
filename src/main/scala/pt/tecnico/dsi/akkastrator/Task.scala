@@ -32,6 +32,8 @@ object Task {
 
 // Maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
 
+// TODO: the requires inside Task.{start, finish, innerAbort} and TaskSpawnOrchestrator might be troublesome since
+// they will crash the orchestrator.
 
 /**
   * A task corresponds to sending a message to an actor, handling its response and possibly
@@ -46,7 +48,8 @@ object Task {
   *
   * The internal state of the orchestrator might be mutated inside `behavior`.
   *
-  * This class is very tightly coupled with Orchestrator and the reverse is also true.
+  * This class is very tightly coupled with Orchestrator and the reverse is also true. See [[AbstractOrchestrator]] for
+  * more details on why that is the case.
   */
 abstract class Task[R](val task: FullTask[_, _]) {
   import IdImplicits._
@@ -57,8 +60,11 @@ abstract class Task[R](val task: FullTask[_, _]) {
   private[akkastrator] var expectedDeliveryId: Option[DeliveryId] = None
   private[akkastrator] var state: Task.State = Unstarted
   
-  /** The ActorPath to whom this task will send the message(s). */
-  val destination: ActorPath //This must be a val because the destination cannot change.
+  /**
+    * The ActorPath to whom this task will send the message(s).
+    * This must be a val because the destination cannot change.
+    * */
+  val destination: ActorPath
   /** The constructor of the message to be sent. It must always return the same message, only the id must be different.
     * If this Task is to be used inside a TaskQuorum then the created message should also implement `equals`. */
   def createMessage(id: Long): Serializable
@@ -73,6 +79,8 @@ abstract class Task[R](val task: FullTask[_, _]) {
       
       orchestrator.deliver(destination) { deliveryId =>
         // First we make sure the orchestrator is ready to deal with the answers from destination.
+        val id = orchestrator.deliveryId2ID(destination, deliveryId)
+        expectedId = Some(id)
         expectedDeliveryId = Some(deliveryId)
         state = Waiting
         orchestrator.unstartedTasks -= index
@@ -85,18 +93,16 @@ abstract class Task[R](val task: FullTask[_, _]) {
           log.debug(withLogPrefix("(Possibly) delivering message."))
         }
   
-        val id = orchestrator.deliveryId2ID(destination, deliveryId)
-        expectedId = Some(id)
-        
         // Schedule the timeout
         if (task.timeout.isFinite) {
           import orchestrator.context.system
           system.scheduler.scheduleOnce(FiniteDuration(task.timeout.length, task.timeout.unit)) {
-            orchestrator.self.tell(orchestrator.TaskTimedOut(index, id.self), orchestrator.timeouterActorRef)
-            // Ideally we would use orchestrator.self.tell(TaskTimedOut, destination) however for this to work
-            // we would need the destination ActorRef and not just its ActorPath. So we are forced to make
-            // an exception inside matchId to ensure Timeout in the task behavior is correctly matched.
-            // This exception is achieved via the orchestrator.timeouterActorRef.
+            // We would like to do `orchestrator.self.tell(Timeout(id.self), destination)` however
+            // we don't have the destination ActorRef. And since we want make handling a Timeout uniform with the
+            // rest of the messages, that is, inside behavior invoking matchId, we are forced to make an exception
+            // inside matchId to detect when we are handling a Timeout and not match the destination.
+            // Instead we match against the `orchestrator.timeouterActorRef` which signals we are handling a timeout.
+            orchestrator.self.tell(Timeout(id.self), orchestrator.timeouterActorRef)
           }(system.dispatcher)
         }
         
@@ -134,6 +140,11 @@ abstract class Task[R](val task: FullTask[_, _]) {
     *
     */
   def behavior: Actor.Receive
+  
+  final def behaviorHandlingTimeout: Actor.Receive = behavior orElse {
+    // If the user specified behavior does not handle Timeout this is the default timeout handling logic.
+    case m @ Timeout(id) => abort(receivedMessage = m, id, cause = new TimeoutException())
+  }
   
   private final def persistAndConfirmDelivery(receivedMessage: Serializable, id: Long)(continuation: => Unit): Unit = {
     orchestrator.recoveryAwarePersist(MessageReceived(task.index, receivedMessage)) {
@@ -186,7 +197,7 @@ abstract class Task[R](val task: FullTask[_, _]) {
   
       orchestrator.onTaskFinish(task)
   
-      // Notify the tasks that depend on this one, that this one has finished.
+      // Notify the tasks that depend on this one, that this task has finished.
       task.notifyDependents()
   
       //TODO: does invoking onFinish inside the persistHandler cause any problem?
@@ -232,18 +243,8 @@ abstract class Task[R](val task: FullTask[_, _]) {
     }
   }
   
-  final def timeout(receivedMessage: Serializable, id: Long): Unit = {
-    require(Timeout(id) != receivedMessage, "Cannot invoke timeout when handling the timeout.")
-    require(state == Waiting, "innerTimeout can only be invoked when this task is Waiting.")
-    behavior.applyOrElse(Timeout(id), { timeout: Timeout =>
-      //behavior does not handle timeout. So we abort it.
-      abort(receivedMessage = timeout, id = id, cause = new TimeoutException())
-    })
-  }
-  
-  // These are shorcuts
+  // This is a shorcut
   def withLogPrefix(message: => String): String = task.withLogPrefix(message)
-  def report: Report[R] = task.report.asInstanceOf[Report[R]]
   
   override def toString: String = s"Task($expectedDeliveryId, $state, $destination)"
 }

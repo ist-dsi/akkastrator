@@ -12,7 +12,7 @@ class Bundle[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   tasksCreator(this)
   
   override def onFinish(): Unit = {
-    log.info(s"${self.path.name} Finished!")
+    log.info(withLogPrefix("Finished!"))
     //We know the cast will succeed because every task is a Task[R].
     val results: Seq[R] = tasks.flatMap(_.result.asInstanceOf[Option[R]])
     context.parent ! Finished(results, startId)
@@ -29,7 +29,7 @@ class Bundle[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   *   Unrestrained message and destination
   *
   * @param tasksCreator
-  * @tparam R the type the AbstractOrchestrator created in Props must have as its type parameter.
+  * @tparam R the return type of the inner tasks of this bundle.
   */
 class TaskBundle[R](task: FullTask[_, _])(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[Seq[R], Bundle[R]](task)(

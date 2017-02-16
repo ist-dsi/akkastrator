@@ -75,7 +75,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   // Props only imposes the restriction that the class it creates must be <: Actor.
   // However we have a more refined restriction that the class it creates must be <: AbstractOrchestrator[R]
   require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
-    "Props.actorClass must comply with <: AbstractOrchestrator[R]")
+    "TaskSpawnOrchestrator props.actorClass must conform to <: AbstractOrchestrator[R]")
   
   final val innerOrchestratorId: Int = orchestrator.nextInnerOrchestratorId()
   final val spawner: ActorRef = orchestrator.context.actorOf(Props(classOf[Spawner], task), s"spawner-$innerOrchestratorId")

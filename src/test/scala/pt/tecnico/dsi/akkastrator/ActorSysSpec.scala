@@ -18,7 +18,7 @@ import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting}
 import shapeless.ops.hlist.Tupler
-import shapeless.{Generic, HList, HNil}
+import shapeless.{HList, HNil}
 
 object ActorSysSpec {
   case object FinishOrchestrator
@@ -33,13 +33,14 @@ object ActorSysSpec {
     extends DistinctIdsOrchestrator {
     var destinationProbes = Map.empty[String, TestProbe]
   
-    def fulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable, _result: R,
-                                                  dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
+    def fulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable,
+                                                  result: R, dependencies: DL = HNil: HNil, timeout: Duration = Duration.Inf,
+                                                  abortOnReceive: Boolean = false)
                                                  (implicit orchestrator: AbstractOrchestrator[_],
                                                   cm: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
                                                   tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
       destinationProbes += description -> dest
-      FullTask(description, dependencies) createTaskWith { _ =>
+      FullTask(description, dependencies, timeout) createTaskWith { _ =>
         new Task[R](_) {
           val destination: ActorPath = dest.ref.path
           def createMessage(id: Long): Serializable = message(id)
@@ -48,27 +49,20 @@ object ActorSysSpec {
               if (abortOnReceive) {
                 abort(m, id, testsAbortReason)
               } else {
-                finish(m, id, _result)
+                finish(m, id, result)
               }
           }
         }
       }
     }
-  
-    def fulltask[R, DP, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable,
-                                                      _result: R, dependencies: DP, abortOnReceive: Boolean)
-                                                     (implicit orchestrator: AbstractOrchestrator[_],
-                                                      gen: Generic.Aux[DP, DL], cm: TaskComapped.Aux[DL, RL],
-                                                      tupler: Tupler.Aux[RL, RP]): FullTask[R, DL] = {
-      fulltask(description, dest, message, _result, gen.to(dependencies))
-    }
     
-    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, _result: R = "finished",
-                                                               dependencies: DL = HNil: HNil, abortOnReceive: Boolean = false)
+    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, result: R = "finished",
+                                                               dependencies: DL = HNil: HNil, timeout: Duration = Duration.Inf,
+                                                               abortOnReceive: Boolean = false)
                                                               (implicit orchestrator: AbstractOrchestrator[_],
                                                                tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
                                                                tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
-      fulltask(description, dest, SimpleMessage(description, _), _result, dependencies, abortOnReceive)
+      fulltask(description, dest, SimpleMessage(description, _), result, dependencies, timeout, abortOnReceive)
     }
   
     override def persistenceId: String = this.getClass.getSimpleName

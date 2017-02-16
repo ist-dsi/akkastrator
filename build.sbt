@@ -57,7 +57,7 @@ addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.0" classifier "bu
 resolvers += Resolver.bintrayRepo("tek", "maven")
 addCompilerPlugin("tryp" %% "splain" % "0.1.20")
 
-//This is needed for LevelDB to work in tests
+// This is needed for LevelDB to work in tests
 fork in Test := true
 
 //======================================================================================================================

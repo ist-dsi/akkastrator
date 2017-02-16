@@ -4,7 +4,6 @@ import scala.collection.immutable.HashMap
 
 import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful, Props}
 import akka.persistence._
-import pt.tecnico.dsi.akkastrator.Task.Timeout
 
 object Orchestrator {
   case class StartOrchestrator(id: Long)
@@ -41,30 +40,21 @@ object Orchestrator {
   *    will see an independent strictly monotonically increasing sequence number without gaps.
   *  - Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
   *    status, the Orchestrator will respond with the status of each task.
-  *  - Tasks that have no dependencies will be started right away and the Orchestrator will, from that point
-  *    onwards, be prepared to handle the responses to the sent messages.
-  *  - If the Orchestrator crashes, the state it maintains will be correctly restored.
+  *  - When all the dependencies of a task finish that task will be started and the Orchestrator will
+  *    be prepared to handle the messages that the task destination sends.
+  *  - If the Orchestrator crashes, the state it maintains (including the state of each task) will be correctly restored.
   *
   * NOTE: the responses that are received must be Serializable.
   *
   * In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and modify
   * each others state directly. This means they are very tightly coupled with each other. To make this relation more
-  * obvious and to enforce it, you will only be able to create tasks inside an orchestrator.
+  * obvious and to enforce it, you will only be able to create tasks if you have a reference to an orchestrator
+  * (which is passed implicitly to a task).
   *
   * If you have the need to refactor the creation of tasks so that you can use them in multiple orchestrators you can
-  * leverage self type annotations like so:
-  * {{{
-  *   trait DatabaseTasks { self: AbstractOrchestrator[_] =>
-  *     def createQueryTask(): Task = new Task("") {
-  *       val destination: ActorPath = ???
-  *       def createMessage(correlationId: CorrelationId): Any = ???
+  * leverage self type annotations.
   *
-  *       def behavior: Receive = ???
-  *     }
-  *   }
-  * }}}
-  *
-  * @param settings
+  * @param settings the settings to use for this orchestrator.
   * @tparam R the type of result this orchestrator returns when it finishes.
   */
 sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends PersistentActor with AtLeastOnceDelivery
@@ -77,7 +67,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   type ID <: Id
   
   protected[akkastrator] case class StartTask(index: Int)
-  protected[akkastrator] case class TaskTimedOut(index: Int, id: Long) extends PossiblyHarmful
   
   /** This actor is only used to check whether we are handling a timeout inside matchId.
     * Since we will only be matching against its path we can instantiate the actor every time. */
@@ -108,10 +97,9 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   // By using HashMaps instead of HashSets we let the implementation of hashCode and equals of Task and Action to be free.
   // We use HashMaps to ensure remove/insert operations are very fast O(eC). The keys are the Task.index.
   // If you look at the Orchestrator as an ExecutionContext or as a process scheduler these lists are the queues.
-  // INTERNAL API: These are only used by Task and Action.
-  private[akkastrator] final var unstartedTasks = HashMap.empty[Int, FullTask[_, _]]
-  private[akkastrator] final var waitingTasks = HashMap.empty[Int, Task[_]]
-  private[akkastrator] final var finishedTasks = 0
+  protected[akkastrator] final var unstartedTasks = HashMap.empty[Int, FullTask[_, _]]
+  protected[akkastrator] final var waitingTasks = HashMap.empty[Int, Task[_]]
+  protected[akkastrator] final var finishedTasks = 0
   
   // The state this orchestrator is storing. Starts out empty.
   private[this] final var _state: S = _
@@ -133,6 +121,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     _innerOrchestratorsNextId += 1
     id
   }
+  
+  def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
   
   /**
     * Roughly every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
@@ -170,7 +160,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *
     * { @see onTaskAbort} for a callback when a task aborts.
     */
-  def onTaskFinish(finishedTask: FullTask[_, _]): Unit = ()
+  def onTaskFinish(task: FullTask[_, _]): Unit = ()
   /**
     * User overridable callback. Its called after every task finishes.
     * If a task aborts then it will prevent this method from being invoked.
@@ -182,7 +172,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * If a orchestrator starts without tasks it will finish right away.
     */
   def onFinish(): Unit = {
-    log.info(s"${self.path.name} Finished!")
+    log.info(withLogPrefix("Finished!"))
     // TODO: it would be nice to have a default Success case to send to the parent
     context stop self
   }
@@ -203,11 +193,11 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     *
     * { @see onTaskFinish } for a callback when a task finishes.
     *
-    * @param abortedTask the task that aborted.
+    * @param task the task that aborted.
     * @param message the message from the task destination that caused the abort.
     */
-  def onTaskAbort(abortedTask: FullTask[_, _], message: Any, cause: Exception): Unit = {
-    onAbort(TaskAborted(abortedTask.report, cause, startId))
+  def onTaskAbort(task: FullTask[_, _], message: Any, cause: Exception): Unit = {
+    onAbort(TaskAborted(task.report, cause, startId))
   }
   /**
     * User overridable callback. Its called when the orchestrator is aborted. By default an orchestrator
@@ -219,7 +209,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * You can use this to implement your termination strategy.
     */
   def onAbort(failure: Failure): Unit = {
-    log.info(s"${self.path.name} Aborted due to exception: ${failure.cause}!")
+    log.info(withLogPrefix(s"Aborted due to exception: ${failure.cause}!"))
     context.parent ! failure
     context stop self
   }
@@ -235,15 +225,12 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   
   final def computeCurrentBehavior(): Receive = {
     val baseCommands: Actor.Receive = alwaysAvailableCommands orElse {
-      case TaskTimedOut(index, id) =>
-        waitingTasks.get(index).foreach(_.timeout(receivedMessage = None, id))
-      case StartTask(index) =>
-        tasks(index).start()
+      case StartTask(index) => tasks(index).start()
     }
     // baseCommands is the first receive to guarantee the messages vital to the correct working of the orchestrator
     // won't be taken first by one of the tasks behaviors or the extraCommands. Similarly extraCommands
     // is the last receive to ensure it doesn't take one of the messages of the waiting task behaviors.
-    waitingTasks.values.map(_.behavior).fold(baseCommands)(_ orElse _) orElse extraCommands
+    waitingTasks.values.map(_.behaviorHandlingTimeout).fold(baseCommands)(_ orElse _) orElse extraCommands
   }
   
   private def start(): Unit = {
@@ -266,7 +253,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     case m @ StartOrchestrator(id) =>
       recoveryAwarePersist(m) {
         _startId = id
-        log.info(s"${self.path.name} - $m")
+        log.info(withLogPrefix(m.toString))
         start()
       }
   }
@@ -296,24 +283,21 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     case MessageReceived(taskIndex, message) =>
       val task = waitingTasks(taskIndex)
       log.info(task.withLogPrefix("Recovering MessageReceived."))
-      // We need to deal with the Timeout message explicitly because if behavior does not handle it invoking
-      // behavior would throw a MatchError. Unfortunately this is an overhead we cannot overcome.
-      message match {
-        case Timeout(id) => task.timeout(receivedMessage = None, id)
-        case _ => task.behavior(message)
-      }
+      task.behaviorHandlingTimeout(message)
     case RecoveryCompleted =>
       if (tasks.nonEmpty) {
         val tasksString = tasks.map(t => t.withLogPrefix(t.state.toString)).mkString("\n\t")
-        log.debug(s"""${self.path.name} - recovery completed:
+        log.debug(withLogPrefix(s"""Recovery completed:
                      |\t$tasksString
                      |\tNumber of unconfirmed messages: $numberOfUnconfirmed
-                     |\tInner orchestrator next ID: ${_innerOrchestratorsNextId}""".stripMargin)
+                     |\tInner orchestrator next ID: ${_innerOrchestratorsNextId}""".stripMargin))
       }
   }
 }
 
 /**
+  * @inheritdoc
+  *
   * In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
   * destinations of the orchestrator. Because of this, ID = DeliveryId, and matchId only checks the deliveryId
   * as that will be enough information to disambiguate which task should handle the response.
@@ -350,6 +334,8 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
 }
 
 /**
+  * @inheritdoc
+  *
   * In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.
   * To be able to achieve this, an extra state is needed: the DistinctIds.
   * In this orchestrator the delivery id is not sufficient to disambiguate which task should handle the message,

@@ -40,7 +40,7 @@ trait DistinctIds { self: State =>
     * since this will be a fatal error.
     */
   private[akkastrator] def deliveryIdFor(destination: ActorPath, correlationId: CorrelationId): DeliveryId = {
-    // You cannot see a Option.get here. You cannot see a Option.get here. You cannot see a Option.get here.
+    // While a Jedi waves his hand in the air: you cannot see a Option.get here.
     idsPerDestination.get(destination).flatMap(_.get(correlationId)) match {
       case Some(deliveryId) => deliveryId
       case None => throw new IllegalArgumentException(
