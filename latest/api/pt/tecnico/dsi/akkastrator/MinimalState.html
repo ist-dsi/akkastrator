@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -145,8 +145,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks."></a>
-                        <a href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks.">
+                        <a class="class" href="AbstractOrchestrator.html" title=""></a>
+                        <a href="AbstractOrchestrator.html" title="">
                           AbstractOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -160,6 +160,12 @@
                         <a class="class" href="AtLeast.html" title=""></a>
                         <a href="AtLeast.html" title="">
                           AtLeast
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Bundle.html" title=""></a>
+                        <a href="Bundle.html" title="">
+                          Bundle
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -187,8 +193,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator."></a>
-                        <a href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.">
+                        <a class="class" href="DistinctIdsOrchestrator.html" title=""></a>
+                        <a href="DistinctIdsOrchestrator.html" title="">
                           DistinctIdsOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -229,12 +235,6 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="InitializationError.html" title=""></a>
-                        <a href="InitializationError.html" title="">
-                          InitializationError
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="Majority$.html" title=""></a>
                         <a href="Majority$.html" title="">
                           Majority
@@ -253,8 +253,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="" title="The simplest implementation of a State with DistinctIds."></a>
-                        <a href="" title="The simplest implementation of a State with DistinctIds.">
+                        <a class="class" href="" title=""></a>
+                        <a href="" title="">
                           MinimalState
                         </a>
                       </li><li class="current-entities indented4">
@@ -265,11 +265,15 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Orchestrator$.html" title=""></a>
-                        <a class="class" href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator."></a>
-                        <a href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator.">
+                        <a class="class" href="Orchestrator.html" title=""></a>
+                        <a href="Orchestrator.html" title="">
                           Orchestrator
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Quorum.html" title=""></a>
+                        <a href="Quorum.html" title="">
+                          Quorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -279,8 +283,20 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="Settings.html" title="This class holds all the settings that parameterize akkastrator."></a>
-                        <a href="Settings.html" title="This class holds all the settings that parameterize akkastrator.">
+                        <a class="object" href="QuorumImpossibleToAchieve$.html" title=""></a>
+                        <a href="QuorumImpossibleToAchieve$.html" title="">
+                          QuorumImpossibleToAchieve
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="QuorumNotAchieved$.html" title=""></a>
+                        <a href="QuorumNotAchieved$.html" title="">
+                          QuorumNotAchieved
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Settings.html" title=""></a>
+                        <a href="Settings.html" title="">
                           Settings
                         </a>
                       </li><li class="current-entities indented4">
@@ -303,43 +319,27 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Task$.html" title=""></a>
-                        <a class="class" href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator."></a>
-                        <a href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.">
+                        <a class="class" href="Task.html" title=""></a>
+                        <a href="Task.html" title="">
                           Task
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskBundle$.html" title=""></a>
-                        <a class="class" href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-"></a>
-                        <a href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskBundle.html" title=""></a>
+                        <a href="TaskBundle.html" title="">
                           TaskBundle
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskQuorum$.html" title=""></a>
-                        <a class="class" href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function."></a>
-                        <a href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskQuorum.html" title=""></a>
+                        <a href="TaskQuorum.html" title="">
                           TaskQuorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively."></a>
-                        <a href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.">
+                        <a class="class" href="TaskSpawnOrchestrator.html" title=""></a>
+                        <a href="TaskSpawnOrchestrator.html" title="">
                           TaskSpawnOrchestrator
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="TimedOut$.html" title=""></a>
-                        <a href="TimedOut$.html" title="">
-                          TimedOut
                         </a>
                       </li>
               </ul>
@@ -361,21 +361,30 @@ mutate the internal state of the Orchestrator.">
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">MinimalState</span><span class="result"> extends <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></span>
+        <span class="name">MinimalState</span><span class="params">(<span name="idsPerDestination">idsPerDestination: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="akka.actor.ActorPath">ActorPath</span>, <span class="extype" name="scala.collection.immutable.SortedMap">SortedMap</span>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]] = <span class="symbol">Map.empty</span></span>)</span><span class="result"> extends <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>The simplest implementation of a State with DistinctIds. The is the default state used by a DistinctIdsOrchestrator.</p><p>It is not a case class so the user can extend it and implement more complex states.
-</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/ist-dsi/akkastrator/tree/v0.8.0/src/main/scala/pt/tecnico/dsi/akkastrator/State.scala" target="_blank">State.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a>, <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a>, <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block diagram-container" id="inheritance-diagram-container">
+                <span class="toggle diagram-link">
+                  Type Hierarchy
+                </span>
+                <div class="diagram" id="inheritance-diagram"><svg class="class-diagram" id="graph1" viewBox="0.00 0.00 385.50 118.00" height="118pt" width="386pt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><g transform="scale(1 1) rotate(0) translate(4 114)" class="graph" id="page0,1_graph0"><polygon points="-4,4 -4,-114 381.5,-114 381.5,4 -4,4" stroke="transparent" fill="#ffffff"></polygon><g class="cluster" id="clust1"></g><g class="cluster" id="clust2"></g><!-- node0 --><g class="node this class" id="graph1_0"><g id="a_this class|graph1_0"><a xlink:title="pt.tecnico.dsi.akkastrator.MinimalState (this class)" xlink:href="#inheritance-diagram"><path d="M219.1667,-49C219.1667,-49 136.8333,-49 136.8333,-49 132.6667,-49 128.5,-44.8333 128.5,-40.6667 128.5,-40.6667 128.5,-32.3333 128.5,-32.3333 128.5,-28.1667 132.6667,-24 136.8333,-24 136.8333,-24 219.1667,-24 219.1667,-24 223.3333,-24 227.5,-28.1667 227.5,-32.3333 227.5,-32.3333 227.5,-40.6667 227.5,-40.6667 227.5,-44.8333 223.3333,-49 219.1667,-49" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-43.5" x="139" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-34.1" x="160" text-anchor="start">MinimalState</text></a></g></g><!-- node1 --><g class="node trait" id="graph1_1"><g id="a_trait|graph1_1"><a xlink:title="pt.tecnico.dsi.akkastrator.State" xlink:href="State.html#inheritance-diagram"><path d="M57.6667,-110C57.6667,-110 8.3333,-110 8.3333,-110 4.1667,-110 0,-105.8333 0,-101.6667 0,-101.6667 0,-93.3333 0,-93.3333 0,-89.1667 4.1667,-85 8.3333,-85 8.3333,-85 57.6667,-85 57.6667,-85 61.8333,-85 66,-89.1667 66,-93.3333 66,-93.3333 66,-101.6667 66,-101.6667 66,-105.8333 61.8333,-110 57.6667,-110" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-104.5" x="10" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-95.1" x="31" text-anchor="start">State</text></a></g></g><!-- node1&#45;&gt;node0 --><g class="edge inheritance" id="graph1_1_0"><g id="a_inheritance|graph1_1_0"><a xlink:title="MinimalState is a subtype of State"><path d="M69.6751,-82.0712C93.9017,-71.8793 125.2571,-58.6884 147.9944,-49.123" stroke="#d4d4d4" fill="none"></path><polygon points="68.5463,-79.888 63.0441,-84.8608 70.4465,-84.4046 68.5463,-79.888" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node2 --><g class="node trait" id="graph1_2"><g id="a_trait|graph1_2"><a xlink:title="pt.tecnico.dsi.akkastrator.DistinctIds" xlink:href="DistinctIds.html#inheritance-diagram"><path d="M163.1667,-110C163.1667,-110 92.8333,-110 92.8333,-110 88.6667,-110 84.5,-105.8333 84.5,-101.6667 84.5,-101.6667 84.5,-93.3333 84.5,-93.3333 84.5,-89.1667 88.6667,-85 92.8333,-85 92.8333,-85 163.1667,-85 163.1667,-85 167.3333,-85 171.5,-89.1667 171.5,-93.3333 171.5,-93.3333 171.5,-101.6667 171.5,-101.6667 171.5,-105.8333 167.3333,-110 163.1667,-110" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-104.5" x="95" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-95.1" x="116" text-anchor="start">DistinctIds</text></a></g></g><!-- node2&#45;&gt;node0 --><g class="edge inheritance" id="graph1_2_0"><g id="a_inheritance|graph1_2_0"><a xlink:title="MinimalState is a subtype of DistinctIds"><path d="M142.8391,-79.3963C150.8271,-69.6509 160.4829,-57.8708 167.6532,-49.123" stroke="#d4d4d4" fill="none"></path><polygon points="140.9027,-77.8939 138.36,-84.8608 144.6924,-81.0001 140.9027,-77.8939" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node3 --><g class="node trait" id="graph1_3"><g id="a_trait|graph1_3"><a xlink:title="scala.Product"><path d="M258.1667,-110C258.1667,-110 197.8333,-110 197.8333,-110 193.6667,-110 189.5,-105.8333 189.5,-101.6667 189.5,-101.6667 189.5,-93.3333 189.5,-93.3333 189.5,-89.1667 193.6667,-85 197.8333,-85 197.8333,-85 258.1667,-85 258.1667,-85 262.3333,-85 266.5,-89.1667 266.5,-93.3333 266.5,-93.3333 266.5,-101.6667 266.5,-101.6667 266.5,-105.8333 262.3333,-110 258.1667,-110" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-104.5" x="200" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-95.1" x="221" text-anchor="start">Product</text></a></g></g><!-- node3&#45;&gt;node0 --><g class="edge inheritance" id="graph1_3_0"><g id="a_inheritance|graph1_3_0"><a xlink:title="MinimalState is a subtype of Product"><path d="M213.1609,-79.3963C205.1729,-69.6509 195.5171,-57.8708 188.3468,-49.123" stroke="#d4d4d4" fill="none"></path><polygon points="211.3076,-81.0001 217.64,-84.8608 215.0973,-77.8939 211.3076,-81.0001" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node4 --><g class="node trait" id="graph1_4"><g id="a_trait|graph1_4"><a xlink:title="scala.Serializable"><path d="M369.1667,-110C369.1667,-110 292.8333,-110 292.8333,-110 288.6667,-110 284.5,-105.8333 284.5,-101.6667 284.5,-101.6667 284.5,-93.3333 284.5,-93.3333 284.5,-89.1667 288.6667,-85 292.8333,-85 292.8333,-85 369.1667,-85 369.1667,-85 373.3333,-85 377.5,-89.1667 377.5,-93.3333 377.5,-93.3333 377.5,-101.6667 377.5,-101.6667 377.5,-105.8333 373.3333,-110 369.1667,-110" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-104.5" x="295" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-95.1" x="316" text-anchor="start">Serializable</text></a></g></g><!-- node4&#45;&gt;node0 --><g class="edge inheritance" id="graph1_4_0"><g id="a_inheritance|graph1_4_0"><a xlink:title="MinimalState is a subtype of Serializable"><path d="M292.6059,-82.1925C266.9083,-71.9471 233.5065,-58.63 209.399,-49.0185" stroke="#d4d4d4" fill="none"></path><polygon points="291.8887,-84.5441 299.2983,-84.8608 293.7034,-79.9925 291.8887,-84.5441" stroke="#d4d4d4" fill="none"></polygon></a></g></g></g></svg></div>
+                <div id="diagram-controls" class="hiddenContent">
+                  <button id="diagram-zoom-out" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button id="diagram-zoom-in" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button title="Toggle full-screen" id="diagram-fs" class="diagram-btn to-full"><i class="material-icons"></i></button>
+                </div>
+              </div></div>
         
 
       <div id="mbrsel">
@@ -400,7 +409,12 @@ mutate the internal state of the Orchestrator.">
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="pt.tecnico.dsi.akkastrator.MinimalState"><span>MinimalState</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.DistinctIds"><span>DistinctIds</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.State"><span>State</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="pt.tecnico.dsi.akkastrator.MinimalState"><span>MinimalState</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.DistinctIds"><span>DistinctIds</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.State"><span>State</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  </ol>
+                </div><div class="ancestors">
+                  <span class="filtertype">Implicitly<br />
+                  </span>
+                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -478,6 +492,49 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="+(other:String):String"></a><a id="+(String):String"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#+(other:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method any2stringadd in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(MinimalState,B)"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
@@ -532,6 +589,86 @@ mutate the internal state of the Orchestrator.">
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((MinimalState)⇒Boolean,⇒Any):MinimalState"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((MinimalState)⇒Boolean):MinimalState"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):MinimalState"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):MinimalState"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#ensuring(cond:Boolean):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -548,22 +685,6 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#equals(x$1:Any):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -586,6 +707,29 @@ mutate the internal state of the Orchestrator.">
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#formatted(fmtstr:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method StringFormat in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -602,10 +746,10 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIds#getIdsFor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getIdsFor(destination:akka.actor.ActorPath):scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]"></a><a id="getIdsFor(ActorPath):SortedMap[CorrelationId,DeliveryId]"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIds#idsOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="idsOf(destination:akka.actor.ActorPath):scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]"></a><a id="idsOf(ActorPath):SortedMap[CorrelationId,DeliveryId]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#getIdsFor(destination:akka.actor.ActorPath):scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#idsOf(destination:akka.actor.ActorPath):scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -614,44 +758,10 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getIdsFor</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.actor.ActorPath">ActorPath</span></span>)</span><span class="result">: <span class="extype" name="scala.collection.immutable.SortedMap">SortedMap</span>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]</span>
+        <span class="name">idsOf</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.actor.ActorPath">ActorPath</span></span>)</span><span class="result">: <span class="extype" name="scala.collection.immutable.SortedMap">SortedMap</span>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Get the SortedMap relation between CorrelationId and DeliveryId for the given <code>destination</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Get the SortedMap relation between CorrelationId and DeliveryId for the given <code>destination</code>.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIds#getNextCorrelationIdFor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getNextCorrelationIdFor(destination:akka.actor.ActorPath):pt.tecnico.dsi.akkastrator.CorrelationId"></a><a id="getNextCorrelationIdFor(ActorPath):CorrelationId"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#getNextCorrelationIdFor(destination:akka.actor.ActorPath):pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getNextCorrelationIdFor</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.actor.ActorPath">ActorPath</span></span>)</span><span class="result">: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Compute the next correlationId for the given <code>destination</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Compute the next correlationId for the given <code>destination</code>.
-The computation is just the biggest correlationId + 1 or 0 if no correlationId exists.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#hashCode():Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.MinimalState#idsPerDestination" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="idsPerDestination:Map[akka.actor.ActorPath,scala.collection.immutable.SortedMap[pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId]]"></a><a id="idsPerDestination:Map[ActorPath,SortedMap[CorrelationId,DeliveryId]]"></a>
       <span class="permalink">
@@ -700,6 +810,22 @@ The computation is just the biggest correlationId + 1 or 0 if no correlationId e
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIds#nextCorrelationIdFor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nextCorrelationIdFor(destination:akka.actor.ActorPath):pt.tecnico.dsi.akkastrator.CorrelationId"></a><a id="nextCorrelationIdFor(ActorPath):CorrelationId"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#nextCorrelationIdFor(destination:akka.actor.ActorPath):pt.tecnico.dsi.akkastrator.CorrelationId" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nextCorrelationIdFor</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.actor.ActorPath">ActorPath</span></span>)</span><span class="result">: <a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
@@ -748,22 +874,6 @@ The computation is just the biggest correlationId + 1 or 0 if no correlationId e
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#toString():String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.DistinctIds#updatedIdsPerDestination" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="updatedIdsPerDestination(destination:akka.actor.ActorPath,newIdRelation:(pt.tecnico.dsi.akkastrator.CorrelationId,pt.tecnico.dsi.akkastrator.DeliveryId)):pt.tecnico.dsi.akkastrator.Statewithpt.tecnico.dsi.akkastrator.DistinctIds"></a><a id="updatedIdsPerDestination(ActorPath,(CorrelationId,DeliveryId)):StatewithDistinctIds"></a>
       <span class="permalink">
@@ -779,7 +889,7 @@ The computation is just the biggest correlationId + 1 or 0 if no correlationId e
         <span class="name">updatedIdsPerDestination</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.actor.ActorPath">ActorPath</span></span>, <span name="newIdRelation">newIdRelation: (<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>)</span>)</span><span class="result">: <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></span>
       </span>
       
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>a new copy of State with the IdsPerDestination updated for <code>destination</code> using the <code>newIdRelation</code>.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -861,7 +971,27 @@ The computation is just the biggest correlationId + 1 or 0 if no correlationId e
         <span class="name">withIdsPerDestination</span><span class="params">(<span name="newIdsPerDestination">newIdsPerDestination: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="akka.actor.ActorPath">ActorPath</span>, <span class="extype" name="scala.collection.immutable.SortedMap">SortedMap</span>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]]</span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a></span>
       </span>
       
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>a new copy of State with the new IdsPerDestination.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> → <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> → <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(MinimalState,B)"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/MinimalState.html#→[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
               </ol>
             </div>
@@ -872,7 +1002,15 @@ The computation is just the biggest correlationId + 1 or 0 if no correlationId e
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="pt.tecnico.dsi.akkastrator.DistinctIds">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="pt.tecnico.dsi.akkastrator.DistinctIds">
               <h3>Inherited from <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></h3>
             </div><div class="parent" name="pt.tecnico.dsi.akkastrator.State">
               <h3>Inherited from <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a></h3>
@@ -881,7 +1019,23 @@ The computation is just the biggest correlationId + 1 or 0 if no correlationId e
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
-        
+        <div class="conversion" name="scala.Predef.any2stringadd">
+              <h3>Inherited by implicit conversion any2stringadd from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.StringFormat">
+              <h3>Inherited by implicit conversion StringFormat from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.Ensuring">
+              <h3>Inherited by implicit conversion Ensuring from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.ArrowAssoc">
+              <h3>Inherited by implicit conversion ArrowAssoc from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.MinimalState">MinimalState</a>]
+              </h3>
+            </div>
         </div>
 
         <div id="groupedMembers">

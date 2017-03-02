@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -207,7 +207,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/ist-dsi/akkastrator/tree/v0.8.0/src/main/scala/pt/tecnico/dsi/akkastrator/DSL.scala" target="_blank">DSL.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -260,9 +260,9 @@
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PartialTask[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList]extendsAnyRef"></a><a id="PartialTask[DL&lt;:HList,RL&lt;:HList]:PartialTask[DL,RL]"></a>
+      <a id="PartialTask[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList,RP]extendsAnyRef"></a><a id="PartialTask[DL&lt;:HList,RL&lt;:HList,RP]:PartialTask[DL,RL,RP]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DSL$$FullTask$.html#PartialTask[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList]extendsAnyRef" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DSL$$FullTask$.html#PartialTask[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList,RP]extendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -273,7 +273,7 @@
       <span class="symbol">
         <a title="" href="DSL$$FullTask$$PartialTask.html">
               <span class="name">PartialTask</span>
-            </a><span class="tparams">[<span name="DL">DL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RL">RL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+            </a><span class="tparams">[<span name="DL">DL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RL">RL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RP">RP</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
       
@@ -333,10 +333,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DSL.FullTask#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList](description:String,dependencies:DL,timeout:scala.concurrent.duration.Duration)(implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[DL,RL]"></a><a id="apply[DL&lt;:HList,RL&lt;:HList](String,DL,Duration)(Aux[DL,RL]):PartialTask[DL,RL]"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.DSL.FullTask#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList,RP](description:String,dependencies:DL,timeout:scala.concurrent.duration.Duration)(implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL],implicittupler:shapeless.ops.hlist.Tupler.Aux[RL,RP]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[DL,RL,RP]"></a><a id="apply[DL&lt;:HList,RL&lt;:HList,RP](String,DL,Duration)(Aux[DL,RL],shapeless.ops.hlist.Tupler.Aux[RL,RP]):PartialTask[DL,RL,RP]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DSL$$FullTask$.html#apply[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList](description:String,dependencies:DL,timeout:scala.concurrent.duration.Duration)(implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[DL,RL]" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DSL$$FullTask$.html#apply[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList,RP](description:String,dependencies:DL,timeout:scala.concurrent.duration.Duration)(implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL],implicittupler:shapeless.ops.hlist.Tupler.Aux[RL,RP]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[DL,RL,RP]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -345,16 +345,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="DL">DL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RL">RL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>]</span><span class="params">(<span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="dependencies">dependencies: <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span> = <span class="symbol">HNil: HNil</span></span>, <span name="timeout">timeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="cm">cm: <a href="HListConstraints$$TaskComapped$.html#Aux[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList]=pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped[DL]{typeResultsList=RL}" class="extmbr" name="pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux">Aux</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>]</span>)</span><span class="result">: <a href="DSL$$FullTask$$PartialTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask">PartialTask</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="DL">DL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RL">RL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RP">RP</span>]</span><span class="params">(<span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="dependencies">dependencies: <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span> = <span class="symbol">HNil: HNil</span></span>, <span name="timeout">timeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="cm">cm: <a href="HListConstraints$$TaskComapped$.html#Aux[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList]=pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped[DL]{typeResultsList=RL}" class="extmbr" name="pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux">Aux</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>]</span>, <span name="tupler">tupler: <span class="extype" name="shapeless.ops.TuplerInstances.Aux">shapeless.ops.hlist.Tupler.Aux</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RP">RP</span>]</span>)</span><span class="result">: <a href="DSL$$FullTask$$PartialTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask">PartialTask</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RP">RP</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Allows creating a FullTask using HList syntax:</p><div class="fullcomment"><div class="comment cmt"><p>Allows creating a FullTask using HList syntax:</p><pre>FullTask(<span class="lit">"some description"</span>, a :: b :: HNil) createTaskWith { <span class="kw">case</span> aResult :: bResult :: HNil <span class="kw">=&gt;</span>
-
-}</pre></div></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DSL.FullTask#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[DP&lt;:Product,DL&lt;:shapeless.HList,RL&lt;:shapeless.HList](description:String,dependencies:DP,timeout:scala.concurrent.duration.Duration)(implicitgen:shapeless.Generic.Aux[DP,DL],implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[gen.Repr,RL]"></a><a id="apply[DP&lt;:Product,DL&lt;:HList,RL&lt;:HList](String,DP,Duration)(Aux[DP,DL],Aux[DL,RL]):PartialTask[(gen)#Repr,RL]"></a>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.DSL.FullTask#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[DP,DL&lt;:shapeless.HList,RL&lt;:shapeless.HList,RP](description:String,dependencies:DP,timeout:scala.concurrent.duration.Duration)(implicitgen:shapeless.Generic.Aux[DP,DL],implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL],implicittupler:shapeless.ops.hlist.Tupler.Aux[RL,RP]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[DL,RL,RP]"></a><a id="apply[DP,DL&lt;:HList,RL&lt;:HList,RP](String,DP,Duration)(Aux[DP,DL],Aux[DL,RL],shapeless.ops.hlist.Tupler.Aux[RL,RP]):PartialTask[DL,RL,RP]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DSL$$FullTask$.html#apply[DP&lt;:Product,DL&lt;:shapeless.HList,RL&lt;:shapeless.HList](description:String,dependencies:DP,timeout:scala.concurrent.duration.Duration)(implicitgen:shapeless.Generic.Aux[DP,DL],implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[gen.Repr,RL]" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DSL$$FullTask$.html#apply[DP,DL&lt;:shapeless.HList,RL&lt;:shapeless.HList,RP](description:String,dependencies:DP,timeout:scala.concurrent.duration.Duration)(implicitgen:shapeless.Generic.Aux[DP,DL],implicitcm:pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux[DL,RL],implicittupler:shapeless.ops.hlist.Tupler.Aux[RL,RP]):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[DL,RL,RP]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -363,12 +361,26 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="DP">DP &lt;: <span class="extype" name="scala.Product">Product</span></span>, <span name="DL">DL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RL">RL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>]</span><span class="params">(<span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="dependencies">dependencies: <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DP">DP</span></span>, <span name="timeout">timeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="gen">gen: <span class="extype" name="shapeless.Generic.Aux">Aux</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DP">DP</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>]</span>, <span name="cm">cm: <a href="HListConstraints$$TaskComapped$.html#Aux[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList]=pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped[DL]{typeResultsList=RL}" class="extmbr" name="pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux">Aux</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>]</span>)</span><span class="result">: <a href="DSL$$FullTask$$PartialTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask">PartialTask</a>[(<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.gen">gen</span>)#<span class="extype" name="shapeless.Generic.&lt;refinement&gt;.Repr">Repr</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="DP">DP</span>, <span name="DL">DL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RL">RL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>, <span name="RP">RP</span>]</span><span class="params">(<span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="dependencies">dependencies: <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DP">DP</span></span>, <span name="timeout">timeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="gen">gen: <span class="extype" name="shapeless.Generic.Aux">Aux</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DP">DP</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>]</span>, <span name="cm">cm: <a href="HListConstraints$$TaskComapped$.html#Aux[DL&lt;:shapeless.HList,RL&lt;:shapeless.HList]=pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped[DL]{typeResultsList=RL}" class="extmbr" name="pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped.Aux">Aux</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>]</span>, <span name="tupler">tupler: <span class="extype" name="shapeless.ops.TuplerInstances.Aux">shapeless.ops.hlist.Tupler.Aux</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RP">RP</span>]</span>)</span><span class="result">: <a href="DSL$$FullTask$$PartialTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask">PartialTask</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DL">DL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RL">RL</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.RP">RP</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Allows creating a FullTask using tuple syntax:</p><div class="fullcomment"><div class="comment cmt"><p>Allows creating a FullTask using tuple syntax:</p><pre>FullTask(<span class="lit">"some description"</span>, (a, b), Duration.Inf) createTaskWith { <span class="kw">case</span> aResult :: bResult :: HNil <span class="kw">=&gt;</span>
-
-}</pre></div></div>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.DSL.FullTask#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[DR,DDL&lt;:shapeless.HList](description:String,dependency:pt.tecnico.dsi.akkastrator.FullTask[DR,DDL],timeout:scala.concurrent.duration.Duration):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[shapeless.::[pt.tecnico.dsi.akkastrator.FullTask[DR,DDL],shapeless.HNil],shapeless.::[DR,shapeless.HNil],(DR,)]"></a><a id="apply[DR,DDL&lt;:HList](String,FullTask[DR,DDL],Duration):PartialTask[::[FullTask[DR,DDL],HNil],::[DR,HNil],(DR)]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DSL$$FullTask$.html#apply[DR,DDL&lt;:shapeless.HList](description:String,dependency:pt.tecnico.dsi.akkastrator.FullTask[DR,DDL],timeout:scala.concurrent.duration.Duration):pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask[shapeless.::[pt.tecnico.dsi.akkastrator.FullTask[DR,DDL],shapeless.HNil],shapeless.::[DR,shapeless.HNil],(DR,)]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="tparams">[<span name="DR">DR</span>, <span name="DDL">DDL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>]</span><span class="params">(<span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="dependency">dependency: <a href="FullTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.FullTask">FullTask</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DR">DR</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DDL">DDL</span>]</span>, <span name="timeout">timeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="result">: <a href="DSL$$FullTask$$PartialTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.PartialTask">PartialTask</a>[<span class="extype" name="shapeless.::">::</span>[<a href="FullTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.FullTask">FullTask</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DR">DR</span>, <span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DDL">DDL</span>], <span class="extype" name="shapeless.HNil">HNil</span>], <span class="extype" name="shapeless.::">::</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DR">DR</span>, <span class="extype" name="shapeless.HNil">HNil</span>], (<span class="extype" name="pt.tecnico.dsi.akkastrator.DSL.FullTask.apply.DR">DR</span>)]</span>
+      </span>
+      
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">

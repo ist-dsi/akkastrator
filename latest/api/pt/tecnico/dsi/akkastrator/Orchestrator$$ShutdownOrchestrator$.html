@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -163,6 +163,24 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="pt.tecnico.dsi.akkastrator">akkastrator</a></dd></dl></div>
     </li><li class="current-entities indented5">
                         <span class="separator"></span>
+                        <a class="class" href="Orchestrator$$Aborted.html" title=""></a>
+                        <a href="Orchestrator$$Aborted.html" title="">
+                          Aborted
+                        </a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
+                        <a class="trait" href="Orchestrator$$Failure.html" title=""></a>
+                        <a href="Orchestrator$$Failure.html" title="">
+                          Failure
+                        </a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
+                        <a class="class" href="Orchestrator$$Finished.html" title=""></a>
+                        <a href="Orchestrator$$Finished.html" title="">
+                          Finished
+                        </a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
                         <a class="object" href="Orchestrator$$SaveSnapshot$.html" title=""></a>
                         <a href="Orchestrator$$SaveSnapshot$.html" title="">
                           SaveSnapshot
@@ -193,21 +211,15 @@
                         </a>
                       </li><li class="current-entities indented5">
                         <span class="separator"></span>
+                        <a class="trait" href="Orchestrator$$Success.html" title=""></a>
+                        <a href="Orchestrator$$Success.html" title="">
+                          Success
+                        </a>
+                      </li><li class="current-entities indented5">
+                        <span class="separator"></span>
                         <a class="class" href="Orchestrator$$TaskAborted.html" title=""></a>
                         <a href="Orchestrator$$TaskAborted.html" title="">
                           TaskAborted
-                        </a>
-                      </li><li class="current-entities indented5">
-                        <span class="separator"></span>
-                        <a class="class" href="Orchestrator$$TaskReport.html" title="An immutable representation (a report) of a Task in a given moment of time."></a>
-                        <a href="Orchestrator$$TaskReport.html" title="An immutable representation (a report) of a Task in a given moment of time.">
-                          TaskReport
-                        </a>
-                      </li><li class="current-entities indented5">
-                        <span class="separator"></span>
-                        <a class="class" href="Orchestrator$$TasksFinished.html" title=""></a>
-                        <a href="Orchestrator$$TasksFinished.html" title="">
-                          TasksFinished
                         </a>
                       </li>
               </ul>
@@ -232,16 +244,16 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">ShutdownOrchestrator</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ShutdownOrchestrator</span><span class="result"> extends <span class="extype" name="akka.actor.PossiblyHarmful">PossiblyHarmful</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/ist-dsi/akkastrator/tree/v0.8.0/src/main/scala/pt/tecnico/dsi/akkastrator/Orchestrator.scala" target="_blank">Orchestrator.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="akka.actor.PossiblyHarmful">PossiblyHarmful</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -267,7 +279,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="pt.tecnico.dsi.akkastrator.Orchestrator.ShutdownOrchestrator"><span>ShutdownOrchestrator</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="pt.tecnico.dsi.akkastrator.Orchestrator.ShutdownOrchestrator"><span>ShutdownOrchestrator</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="akka.actor.PossiblyHarmful"><span>PossiblyHarmful</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -614,6 +626,8 @@
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="akka.actor.PossiblyHarmful">
+              <h3>Inherited from <span class="extype" name="akka.actor.PossiblyHarmful">PossiblyHarmful</span></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">

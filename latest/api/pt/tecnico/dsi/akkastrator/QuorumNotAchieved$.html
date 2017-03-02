@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -145,8 +145,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks."></a>
-                        <a href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks.">
+                        <a class="class" href="AbstractOrchestrator.html" title=""></a>
+                        <a href="AbstractOrchestrator.html" title="">
                           AbstractOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -160,6 +160,12 @@
                         <a class="class" href="AtLeast.html" title=""></a>
                         <a href="AtLeast.html" title="">
                           AtLeast
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Bundle.html" title=""></a>
+                        <a href="Bundle.html" title="">
+                          Bundle
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -187,8 +193,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator."></a>
-                        <a href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.">
+                        <a class="class" href="DistinctIdsOrchestrator.html" title=""></a>
+                        <a href="DistinctIdsOrchestrator.html" title="">
                           DistinctIdsOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -229,12 +235,6 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="InitializationError.html" title=""></a>
-                        <a href="InitializationError.html" title="">
-                          InitializationError
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="Majority$.html" title=""></a>
                         <a href="Majority$.html" title="">
                           Majority
@@ -253,8 +253,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="MinimalState.html" title="The simplest implementation of a State with DistinctIds."></a>
-                        <a href="MinimalState.html" title="The simplest implementation of a State with DistinctIds.">
+                        <a class="class" href="MinimalState.html" title=""></a>
+                        <a href="MinimalState.html" title="">
                           MinimalState
                         </a>
                       </li><li class="current-entities indented4">
@@ -265,11 +265,15 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Orchestrator$.html" title=""></a>
-                        <a class="class" href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator."></a>
-                        <a href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator.">
+                        <a class="class" href="Orchestrator.html" title=""></a>
+                        <a href="Orchestrator.html" title="">
                           Orchestrator
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Quorum.html" title=""></a>
+                        <a href="Quorum.html" title="">
+                          Quorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -279,8 +283,20 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="Settings.html" title="This class holds all the settings that parameterize akkastrator."></a>
-                        <a href="Settings.html" title="This class holds all the settings that parameterize akkastrator.">
+                        <a class="object" href="QuorumImpossibleToAchieve$.html" title=""></a>
+                        <a href="QuorumImpossibleToAchieve$.html" title="">
+                          QuorumImpossibleToAchieve
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="" title=""></a>
+                        <a href="" title="">
+                          QuorumNotAchieved
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Settings.html" title=""></a>
+                        <a href="Settings.html" title="">
                           Settings
                         </a>
                       </li><li class="current-entities indented4">
@@ -303,43 +319,27 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Task$.html" title=""></a>
-                        <a class="class" href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator."></a>
-                        <a href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.">
+                        <a class="class" href="Task.html" title=""></a>
+                        <a href="Task.html" title="">
                           Task
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskBundle$.html" title=""></a>
-                        <a class="class" href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-"></a>
-                        <a href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskBundle.html" title=""></a>
+                        <a href="TaskBundle.html" title="">
                           TaskBundle
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="" title=""></a>
-                        <a class="class" href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function."></a>
-                        <a href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskQuorum.html" title=""></a>
+                        <a href="TaskQuorum.html" title="">
                           TaskQuorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively."></a>
-                        <a href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.">
+                        <a class="class" href="TaskSpawnOrchestrator.html" title=""></a>
+                        <a href="TaskSpawnOrchestrator.html" title="">
                           TaskSpawnOrchestrator
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="TimedOut$.html" title=""></a>
-                        <a href="TimedOut$.html" title="">
-                          TimedOut
                         </a>
                       </li>
               </ul>
@@ -348,16 +348,14 @@ mutate the internal state of the Orchestrator.">
           <div id="content">
             <body class="object value">
       <div id="definition">
-        <a href="TaskQuorum.html" title="See companion class"><div class="big-circle object-companion-class">o</div></a>
+        <div class="big-circle object">o</div>
         <p id="owner"><a href="../../../index.html" class="extype" name="pt">pt</a>.<a href="../../index.html" class="extype" name="pt.tecnico">tecnico</a>.<a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a>.<a href="index.html" class="extype" name="pt.tecnico.dsi.akkastrator">akkastrator</a></p>
-        <h1><a href="TaskQuorum.html" title="See companion class">TaskQuorum</a><span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html" title="Permalink">
+        <h1>QuorumNotAchieved<span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"><div>
-            Companion <a href="TaskQuorum.html" title="See companion class">class TaskQuorum</a>
-          </div></span></h3>
+        <h3><span class="morelinks"></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
@@ -366,16 +364,16 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">TaskQuorum</span>
+        <span class="name">QuorumNotAchieved</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/ist-dsi/akkastrator/tree/v0.8.0/src/main/scala/pt/tecnico/dsi/akkastrator/TaskQuorum.scala" target="_blank">TaskQuorum.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="java.lang.Exception">Exception</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -401,7 +399,7 @@ mutate the internal state of the Orchestrator.">
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="pt.tecnico.dsi.akkastrator.TaskQuorum"><span>TaskQuorum</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="pt.tecnico.dsi.akkastrator.QuorumNotAchieved"><span>QuorumNotAchieved</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="java.lang.Exception"><span>Exception</span></li><li class="in" name="java.lang.Throwable"><span>Throwable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -421,28 +419,7 @@ mutate the internal state of the Orchestrator.">
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="InnerOrchestrator[R]extendsOrchestrator[Seq[R]]"></a><a id="InnerOrchestrator[R]:InnerOrchestrator[R]"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#InnerOrchestrator[R]extendsOrchestrator[Seq[R]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TaskQuorum$$InnerOrchestrator.html">
-              <span class="name">InnerOrchestrator</span>
-            </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator.R">R</span>]]</span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -452,7 +429,7 @@ mutate the internal state of the Orchestrator.">
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -468,7 +445,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html###():Int" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -484,7 +461,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -497,10 +474,26 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="java.lang.Throwable#addSuppressed" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="addSuppressed(x$1:Throwable):Unit"></a><a id="addSuppressed(Throwable):Unit"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#addSuppressed(x$1:Throwable):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">addSuppressed</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.lang.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -516,7 +509,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#clone():Object" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -538,7 +531,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -554,7 +547,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -567,10 +560,26 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="java.lang.Throwable#fillInStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fillInStackTrace():Throwable"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#fillInStackTrace():Throwable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fillInStackTrace</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#finalize():Unit" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -589,10 +598,26 @@ mutate the internal state of the Orchestrator.">
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="java.lang.Throwable#getCause" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getCause():Throwable"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#getCause():Throwable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getCause</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -605,10 +630,10 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
+    </li><li name="java.lang.Throwable#getLocalizedMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getLocalizedMessage():String"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#hashCode():Int" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#getLocalizedMessage():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -617,14 +642,78 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">getLocalizedMessage</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="java.lang.Throwable#getMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getMessage():String"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#getMessage():String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getMessage</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="java.lang.Throwable#getStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getStackTrace():Array[StackTraceElement]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#getStackTrace():Array[StackTraceElement]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getStackTrace</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="java.lang.StackTraceElement">StackTraceElement</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="java.lang.Throwable#getSuppressed" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getSuppressed():Array[Throwable]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#getSuppressed():Array[Throwable]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getSuppressed</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="java.lang.Throwable">Throwable</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="java.lang.Throwable#initCause" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="initCause(x$1:Throwable):Throwable"></a><a id="initCause(Throwable):Throwable"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#initCause(x$1:Throwable):Throwable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">initCause</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.lang.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -640,7 +729,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -656,7 +745,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#notify():Unit" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -672,7 +761,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -685,10 +774,74 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="java.lang.Throwable#printStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="printStackTrace(x$1:java.io.PrintWriter):Unit"></a><a id="printStackTrace(PrintWriter):Unit"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#printStackTrace(x$1:java.io.PrintWriter):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">printStackTrace</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.io.PrintWriter">PrintWriter</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="java.lang.Throwable#printStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="printStackTrace(x$1:java.io.PrintStream):Unit"></a><a id="printStackTrace(PrintStream):Unit"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#printStackTrace(x$1:java.io.PrintStream):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">printStackTrace</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.io.PrintStream">PrintStream</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="java.lang.Throwable#printStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="printStackTrace():Unit"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#printStackTrace():Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">printStackTrace</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="java.lang.Throwable#setStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="setStackTrace(x$1:Array[StackTraceElement]):Unit"></a><a id="setStackTrace(Array[StackTraceElement]):Unit"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#setStackTrace(x$1:Array[StackTraceElement]):Unit" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">setStackTrace</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="java.lang.StackTraceElement">StackTraceElement</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -701,10 +854,10 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="java.lang.Throwable#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#toString():String" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -716,11 +869,11 @@ mutate the internal state of the Orchestrator.">
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#wait():Unit" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -742,7 +895,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -764,7 +917,7 @@ mutate the internal state of the Orchestrator.">
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/QuorumNotAchieved$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -783,24 +936,6 @@ mutate the internal state of the Orchestrator.">
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="InnerOrchestrator"></a><a id="InnerOrchestrator:InnerOrchestrator"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum$.html#InnerOrchestrator" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TaskQuorum$$InnerOrchestrator$.html">
-              <span class="name">InnerOrchestrator</span>
-            </a>
-      </span>
-      
-      
     </li>
               </ol>
             </div>
@@ -811,7 +946,19 @@ mutate the internal state of the Orchestrator.">
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="java.lang.Exception">
+              <h3>Inherited from <span class="extype" name="java.lang.Exception">Exception</span></h3>
+            </div><div class="parent" name="java.lang.Throwable">
+              <h3>Inherited from <span class="extype" name="java.lang.Throwable">Throwable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

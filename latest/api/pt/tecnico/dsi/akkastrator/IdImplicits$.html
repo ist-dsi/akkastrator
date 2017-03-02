@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -145,8 +145,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks."></a>
-                        <a href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks.">
+                        <a class="class" href="AbstractOrchestrator.html" title=""></a>
+                        <a href="AbstractOrchestrator.html" title="">
                           AbstractOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -160,6 +160,12 @@
                         <a class="class" href="AtLeast.html" title=""></a>
                         <a href="AtLeast.html" title="">
                           AtLeast
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Bundle.html" title=""></a>
+                        <a href="Bundle.html" title="">
+                          Bundle
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -187,8 +193,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator."></a>
-                        <a href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.">
+                        <a class="class" href="DistinctIdsOrchestrator.html" title=""></a>
+                        <a href="DistinctIdsOrchestrator.html" title="">
                           DistinctIdsOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -229,12 +235,6 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="InitializationError.html" title=""></a>
-                        <a href="InitializationError.html" title="">
-                          InitializationError
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="Majority$.html" title=""></a>
                         <a href="Majority$.html" title="">
                           Majority
@@ -253,8 +253,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="MinimalState.html" title="The simplest implementation of a State with DistinctIds."></a>
-                        <a href="MinimalState.html" title="The simplest implementation of a State with DistinctIds.">
+                        <a class="class" href="MinimalState.html" title=""></a>
+                        <a href="MinimalState.html" title="">
                           MinimalState
                         </a>
                       </li><li class="current-entities indented4">
@@ -265,11 +265,15 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Orchestrator$.html" title=""></a>
-                        <a class="class" href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator."></a>
-                        <a href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator.">
+                        <a class="class" href="Orchestrator.html" title=""></a>
+                        <a href="Orchestrator.html" title="">
                           Orchestrator
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Quorum.html" title=""></a>
+                        <a href="Quorum.html" title="">
+                          Quorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -279,8 +283,20 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="Settings.html" title="This class holds all the settings that parameterize akkastrator."></a>
-                        <a href="Settings.html" title="This class holds all the settings that parameterize akkastrator.">
+                        <a class="object" href="QuorumImpossibleToAchieve$.html" title=""></a>
+                        <a href="QuorumImpossibleToAchieve$.html" title="">
+                          QuorumImpossibleToAchieve
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="QuorumNotAchieved$.html" title=""></a>
+                        <a href="QuorumNotAchieved$.html" title="">
+                          QuorumNotAchieved
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Settings.html" title=""></a>
+                        <a href="Settings.html" title="">
                           Settings
                         </a>
                       </li><li class="current-entities indented4">
@@ -303,43 +319,27 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Task$.html" title=""></a>
-                        <a class="class" href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator."></a>
-                        <a href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.">
+                        <a class="class" href="Task.html" title=""></a>
+                        <a href="Task.html" title="">
                           Task
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskBundle$.html" title=""></a>
-                        <a class="class" href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-"></a>
-                        <a href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskBundle.html" title=""></a>
+                        <a href="TaskBundle.html" title="">
                           TaskBundle
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskQuorum$.html" title=""></a>
-                        <a class="class" href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function."></a>
-                        <a href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskQuorum.html" title=""></a>
+                        <a href="TaskQuorum.html" title="">
                           TaskQuorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively."></a>
-                        <a href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.">
+                        <a class="class" href="TaskSpawnOrchestrator.html" title=""></a>
+                        <a href="TaskSpawnOrchestrator.html" title="">
                           TaskSpawnOrchestrator
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="TimedOut$.html" title=""></a>
-                        <a href="TimedOut$.html" title="">
-                          TimedOut
                         </a>
                       </li>
               </ul>
@@ -371,7 +371,7 @@ mutate the internal state of the Orchestrator.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/ist-dsi/akkastrator/tree/v0.8.0/src/main/scala/pt/tecnico/dsi/akkastrator/Ids.scala" target="_blank">Ids.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>

@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -145,8 +145,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks."></a>
-                        <a href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks.">
+                        <a class="class" href="AbstractOrchestrator.html" title=""></a>
+                        <a href="AbstractOrchestrator.html" title="">
                           AbstractOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -160,6 +160,12 @@
                         <a class="class" href="AtLeast.html" title=""></a>
                         <a href="AtLeast.html" title="">
                           AtLeast
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Bundle.html" title=""></a>
+                        <a href="Bundle.html" title="">
+                          Bundle
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -187,8 +193,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator."></a>
-                        <a href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.">
+                        <a class="class" href="DistinctIdsOrchestrator.html" title=""></a>
+                        <a href="DistinctIdsOrchestrator.html" title="">
                           DistinctIdsOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -229,12 +235,6 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="InitializationError.html" title=""></a>
-                        <a href="InitializationError.html" title="">
-                          InitializationError
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="Majority$.html" title=""></a>
                         <a href="Majority$.html" title="">
                           Majority
@@ -253,8 +253,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="MinimalState.html" title="The simplest implementation of a State with DistinctIds."></a>
-                        <a href="MinimalState.html" title="The simplest implementation of a State with DistinctIds.">
+                        <a class="class" href="MinimalState.html" title=""></a>
+                        <a href="MinimalState.html" title="">
                           MinimalState
                         </a>
                       </li><li class="current-entities indented4">
@@ -265,11 +265,15 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Orchestrator$.html" title=""></a>
-                        <a class="class" href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator."></a>
-                        <a href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator.">
+                        <a class="class" href="Orchestrator.html" title=""></a>
+                        <a href="Orchestrator.html" title="">
                           Orchestrator
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Quorum.html" title=""></a>
+                        <a href="Quorum.html" title="">
+                          Quorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -279,8 +283,20 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="Settings.html" title="This class holds all the settings that parameterize akkastrator."></a>
-                        <a href="Settings.html" title="This class holds all the settings that parameterize akkastrator.">
+                        <a class="object" href="QuorumImpossibleToAchieve$.html" title=""></a>
+                        <a href="QuorumImpossibleToAchieve$.html" title="">
+                          QuorumImpossibleToAchieve
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="QuorumNotAchieved$.html" title=""></a>
+                        <a href="QuorumNotAchieved$.html" title="">
+                          QuorumNotAchieved
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Settings.html" title=""></a>
+                        <a href="Settings.html" title="">
                           Settings
                         </a>
                       </li><li class="current-entities indented4">
@@ -303,43 +319,27 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Task$.html" title=""></a>
-                        <a class="class" href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator."></a>
-                        <a href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.">
+                        <a class="class" href="Task.html" title=""></a>
+                        <a href="Task.html" title="">
                           Task
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskBundle$.html" title=""></a>
-                        <a class="class" href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-"></a>
-                        <a href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskBundle.html" title=""></a>
+                        <a href="TaskBundle.html" title="">
                           TaskBundle
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskQuorum$.html" title=""></a>
-                        <a class="class" href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function."></a>
-                        <a href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskQuorum.html" title=""></a>
+                        <a href="TaskQuorum.html" title="">
                           TaskQuorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively."></a>
-                        <a href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.">
+                        <a class="class" href="TaskSpawnOrchestrator.html" title=""></a>
+                        <a href="TaskSpawnOrchestrator.html" title="">
                           TaskSpawnOrchestrator
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="TimedOut$.html" title=""></a>
-                        <a href="TimedOut$.html" title="">
-                          TimedOut
                         </a>
                       </li>
               </ul>
@@ -364,17 +364,27 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">DeliveryId</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
+        <span class="name">DeliveryId</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/ist-dsi/akkastrator/tree/v0.8.0/src/main/scala/pt/tecnico/dsi/akkastrator/Ids.scala" target="_blank">Ids.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a>, <span class="extype" name="scala.Proxy.Typed">Typed</span>[<span class="extype" name="scala.Long">Long</span>], <span class="extype" name="scala.Proxy">Proxy</span>, <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>], <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>], <span class="extype" name="scala.AnyVal">AnyVal</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div></div>
+          <div class="superTypes hiddenContent"><a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a>, <span class="extype" name="scala.Proxy.Typed">Typed</span>[<span class="extype" name="scala.Long">Long</span>], <span class="extype" name="scala.Proxy">Proxy</span>, <span class="extype" name="scala.AnyVal">AnyVal</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block diagram-container" id="inheritance-diagram-container">
+                <span class="toggle diagram-link">
+                  Type Hierarchy
+                </span>
+                <div class="diagram" id="inheritance-diagram"><svg class="class-diagram" id="graph1" viewBox="0.00 0.00 153.00 118.00" height="118pt" width="153pt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><g transform="scale(1 1) rotate(0) translate(4 114)" class="graph" id="page0,1_graph0"><polygon points="-4,4 -4,-114 149,-114 149,4 -4,4" stroke="transparent" fill="#ffffff"></polygon><g class="cluster" id="clust1"></g><g class="cluster" id="clust2"></g><!-- node0 --><g class="node this class" id="graph1_0"><g id="a_this class|graph1_0"><a xlink:title="pt.tecnico.dsi.akkastrator.DeliveryId (this class)" xlink:href="#inheritance-diagram"><path d="M112.1667,-49C112.1667,-49 41.8333,-49 41.8333,-49 37.6667,-49 33.5,-44.8333 33.5,-40.6667 33.5,-40.6667 33.5,-32.3333 33.5,-32.3333 33.5,-28.1667 37.6667,-24 41.8333,-24 41.8333,-24 112.1667,-24 112.1667,-24 116.3333,-24 120.5,-28.1667 120.5,-32.3333 120.5,-32.3333 120.5,-40.6667 120.5,-40.6667 120.5,-44.8333 116.3333,-49 112.1667,-49" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-43.5" x="44" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-34.1" x="65" text-anchor="start">DeliveryId</text></a></g></g><!-- node1 --><g class="node class" id="graph1_1"><g id="a_class|graph1_1"><a xlink:title="scala.AnyVal"><path d="M65.6667,-110C65.6667,-110 8.3333,-110 8.3333,-110 4.1667,-110 0,-105.8333 0,-101.6667 0,-101.6667 0,-93.3333 0,-93.3333 0,-89.1667 4.1667,-85 8.3333,-85 8.3333,-85 65.6667,-85 65.6667,-85 69.8333,-85 74,-89.1667 74,-93.3333 74,-93.3333 74,-101.6667 74,-101.6667 74,-105.8333 69.8333,-110 65.6667,-110" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-104.5" x="10" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-95.1" x="31" text-anchor="start">AnyVal</text></a></g></g><!-- node1&#45;&gt;node0 --><g class="edge inheritance" id="graph1_1_0"><g id="a_inheritance|graph1_1_0"><a xlink:title="DeliveryId is a subtype of AnyVal"><path d="M49.231,-78.8477C55.5498,-69.2116 63.0936,-57.7073 68.7226,-49.123" stroke="#d4d4d4" fill="none"></path><polygon points="47.0778,-77.6635 45.288,-84.8608 51.1754,-80.3505 47.0778,-77.6635" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node2 --><g class="node trait" id="graph1_2"><g id="a_trait|graph1_2"><a xlink:title="pt.tecnico.dsi.akkastrator.Id" xlink:href="Id.html#inheritance-diagram"><path d="M135.6667,-110C135.6667,-110 100.3333,-110 100.3333,-110 96.1667,-110 92,-105.8333 92,-101.6667 92,-101.6667 92,-93.3333 92,-93.3333 92,-89.1667 96.1667,-85 100.3333,-85 100.3333,-85 135.6667,-85 135.6667,-85 139.8333,-85 144,-89.1667 144,-93.3333 144,-93.3333 144,-101.6667 144,-101.6667 144,-105.8333 139.8333,-110 135.6667,-110" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-104.5" x="102" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-95.1" x="123" text-anchor="start">Id</text></a></g></g><!-- node2&#45;&gt;node0 --><g class="edge inheritance" id="graph1_2_0"><g id="a_inheritance|graph1_2_0"><a xlink:title="DeliveryId is a subtype of Id"><path d="M105.4632,-78.8477C98.9865,-69.2116 91.2541,-57.7073 85.4843,-49.123" stroke="#d4d4d4" fill="none"></path><polygon points="103.5665,-80.4178 109.5048,-84.8608 107.6333,-77.6844 103.5665,-80.4178" stroke="#d4d4d4" fill="none"></polygon></a></g></g></g></svg></div>
+                <div id="diagram-controls" class="hiddenContent">
+                  <button id="diagram-zoom-out" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button id="diagram-zoom-in" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button title="Toggle full-screen" id="diagram-fs" class="diagram-btn to-full"><i class="material-icons"></i></button>
+                </div>
+              </div></div>
         
 
       <div id="mbrsel">
@@ -399,7 +409,12 @@ mutate the internal state of the Orchestrator.">
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="pt.tecnico.dsi.akkastrator.DeliveryId"><span>DeliveryId</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.Id"><span>Id</span></li><li class="in" name="scala.Proxy.Typed"><span>Typed</span></li><li class="in" name="scala.Proxy"><span>Proxy</span></li><li class="in" name="scala.math.Ordered"><span>Ordered</span></li><li class="in" name="java.lang.Comparable"><span>Comparable</span></li><li class="in" name="scala.AnyVal"><span>AnyVal</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="pt.tecnico.dsi.akkastrator.DeliveryId"><span>DeliveryId</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.Id"><span>Id</span></li><li class="in" name="scala.Proxy.Typed"><span>Typed</span></li><li class="in" name="scala.Proxy"><span>Proxy</span></li><li class="in" name="scala.AnyVal"><span>AnyVal</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  </ol>
+                </div><div class="ancestors">
+                  <span class="filtertype">Implicitly<br />
+                  </span>
+                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -477,10 +492,10 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="scala.math.Ordered#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(DeliveryId):Boolean"></a>
+    </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="+(other:String):String"></a><a id="+(String):String"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#&lt;(that:A):Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#+(other:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -489,14 +504,18 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less" class="name">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
-    </li><li name="scala.math.Ordered#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(DeliveryId):Boolean"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method any2stringadd in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(DeliveryId,B)"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#&lt;=(that:A):Boolean" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -505,10 +524,17 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$eq" class="name">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Any#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
@@ -525,38 +551,6 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="scala.math.Ordered#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(DeliveryId):Boolean"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#&gt;(that:A):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $greater" class="name">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
-    </li><li name="scala.math.Ordered#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(DeliveryId):Boolean"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#&gt;=(that:A):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $greater$eq" class="name">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -573,10 +567,10 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.DeliveryId#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="compare(that:pt.tecnico.dsi.akkastrator.DeliveryId):Int"></a><a id="compare(DeliveryId):Int"></a>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((DeliveryId)⇒Boolean,⇒Any):DeliveryId"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#compare(that:pt.tecnico.dsi.akkastrator.DeliveryId):Int" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -585,14 +579,18 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">compare</span><span class="params">(<span name="that">that: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> → Ordered</dd></dl></div>
-    </li><li name="scala.math.Ordered#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="compareTo(that:A):Int"></a><a id="compareTo(DeliveryId):Int"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((DeliveryId)⇒Boolean):DeliveryId"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#compareTo(that:A):Int" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -601,10 +599,77 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):DeliveryId"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):DeliveryId"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#ensuring(cond:Boolean):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#formatted(fmtstr:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method StringFormat in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.AnyVal#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_&lt;:AnyVal]"></a>
       <span class="permalink">
@@ -669,6 +734,26 @@ mutate the internal state of the Orchestrator.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> → Proxy → Any</dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(DeliveryId,B)"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/DeliveryId.html#→[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
               </ol>
             </div>
@@ -685,16 +770,28 @@ mutate the internal state of the Orchestrator.">
               <h3>Inherited from <span class="extype" name="scala.Proxy.Typed">Typed</span>[<span class="extype" name="scala.Long">Long</span>]</h3>
             </div><div class="parent" name="scala.Proxy">
               <h3>Inherited from <span class="extype" name="scala.Proxy">Proxy</span></h3>
-            </div><div class="parent" name="scala.math.Ordered">
-              <h3>Inherited from <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]</h3>
-            </div><div class="parent" name="java.lang.Comparable">
-              <h3>Inherited from <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]</h3>
             </div><div class="parent" name="scala.AnyVal">
               <h3>Inherited from <span class="extype" name="scala.AnyVal">AnyVal</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
-        
+        <div class="conversion" name="scala.Predef.any2stringadd">
+              <h3>Inherited by implicit conversion any2stringadd from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.StringFormat">
+              <h3>Inherited by implicit conversion StringFormat from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.Ensuring">
+              <h3>Inherited by implicit conversion Ensuring from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.ArrowAssoc">
+              <h3>Inherited by implicit conversion ArrowAssoc from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]
+              </h3>
+            </div>
         </div>
 
         <div id="groupedMembers">

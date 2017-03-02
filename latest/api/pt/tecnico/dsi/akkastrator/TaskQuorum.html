@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -145,8 +145,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks."></a>
-                        <a href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks.">
+                        <a class="class" href="AbstractOrchestrator.html" title=""></a>
+                        <a href="AbstractOrchestrator.html" title="">
                           AbstractOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -160,6 +160,12 @@
                         <a class="class" href="AtLeast.html" title=""></a>
                         <a href="AtLeast.html" title="">
                           AtLeast
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Bundle.html" title=""></a>
+                        <a href="Bundle.html" title="">
+                          Bundle
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -187,8 +193,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator."></a>
-                        <a href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.">
+                        <a class="class" href="DistinctIdsOrchestrator.html" title=""></a>
+                        <a href="DistinctIdsOrchestrator.html" title="">
                           DistinctIdsOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -229,12 +235,6 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="InitializationError.html" title=""></a>
-                        <a href="InitializationError.html" title="">
-                          InitializationError
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="Majority$.html" title=""></a>
                         <a href="Majority$.html" title="">
                           Majority
@@ -253,8 +253,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="MinimalState.html" title="The simplest implementation of a State with DistinctIds."></a>
-                        <a href="MinimalState.html" title="The simplest implementation of a State with DistinctIds.">
+                        <a class="class" href="MinimalState.html" title=""></a>
+                        <a href="MinimalState.html" title="">
                           MinimalState
                         </a>
                       </li><li class="current-entities indented4">
@@ -265,11 +265,15 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Orchestrator$.html" title=""></a>
-                        <a class="class" href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator."></a>
-                        <a href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator.">
+                        <a class="class" href="Orchestrator.html" title=""></a>
+                        <a href="Orchestrator.html" title="">
                           Orchestrator
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Quorum.html" title=""></a>
+                        <a href="Quorum.html" title="">
+                          Quorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -279,8 +283,20 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="Settings.html" title="This class holds all the settings that parameterize akkastrator."></a>
-                        <a href="Settings.html" title="This class holds all the settings that parameterize akkastrator.">
+                        <a class="object" href="QuorumImpossibleToAchieve$.html" title=""></a>
+                        <a href="QuorumImpossibleToAchieve$.html" title="">
+                          QuorumImpossibleToAchieve
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="QuorumNotAchieved$.html" title=""></a>
+                        <a href="QuorumNotAchieved$.html" title="">
+                          QuorumNotAchieved
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Settings.html" title=""></a>
+                        <a href="Settings.html" title="">
                           Settings
                         </a>
                       </li><li class="current-entities indented4">
@@ -303,43 +319,27 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Task$.html" title=""></a>
-                        <a class="class" href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator."></a>
-                        <a href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.">
+                        <a class="class" href="Task.html" title=""></a>
+                        <a href="Task.html" title="">
                           Task
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskBundle$.html" title=""></a>
-                        <a class="class" href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-"></a>
-                        <a href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskBundle.html" title=""></a>
+                        <a href="TaskBundle.html" title="">
                           TaskBundle
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskQuorum$.html" title=""></a>
-                        <a class="class" href="" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function."></a>
-                        <a href="" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.">
+                        <span class="separator"></span>
+                        <a class="class" href="" title=""></a>
+                        <a href="" title="">
                           TaskQuorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively."></a>
-                        <a href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.">
+                        <a class="class" href="TaskSpawnOrchestrator.html" title=""></a>
+                        <a href="TaskSpawnOrchestrator.html" title="">
                           TaskSpawnOrchestrator
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="TimedOut$.html" title=""></a>
-                        <a href="TimedOut$.html" title="">
-                          TimedOut
                         </a>
                       </li>
               </ul>
@@ -348,16 +348,14 @@ mutate the internal state of the Orchestrator.">
           <div id="content">
             <body class="class type">
       <div id="definition">
-        <a href="TaskQuorum$.html" title="See companion object"><div class="big-circle class-companion-object">c</div></a>
+        <div class="big-circle class">c</div>
         <p id="owner"><a href="../../../index.html" class="extype" name="pt">pt</a>.<a href="../../index.html" class="extype" name="pt.tecnico">tecnico</a>.<a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a>.<a href="index.html" class="extype" name="pt.tecnico.dsi.akkastrator">akkastrator</a></p>
-        <h1><a href="TaskQuorum$.html" title="See companion object">TaskQuorum</a><span class="permalink">
+        <h1>TaskQuorum<span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"><div>
-            Companion <a href="TaskQuorum$.html" title="See companion object">object TaskQuorum</a>
-          </div></span></h3>
+        <h3><span class="morelinks"></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
@@ -366,23 +364,27 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">TaskQuorum</span><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>], <a href="TaskQuorum$$InnerOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator">InnerOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</span>
+        <span class="name">TaskQuorum</span><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>, <a href="Quorum.html" class="extype" name="pt.tecnico.dsi.akkastrator.Quorum">Quorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.
-This means that each destination might give different answers but as long as they produce finished tasks
-these tasks will count towards the quorum.</p><p>TaskQuorum:
-  Variable number of tasks
-  Different destinations
-  Fixed message
-</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/ist-dsi/akkastrator/tree/v0.8.0/src/main/scala/pt/tecnico/dsi/akkastrator/TaskQuorum.scala" target="_blank">TaskQuorum.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>], <a href="TaskQuorum$$InnerOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator">InnerOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]], <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div></div>
+          <div class="superTypes hiddenContent"><a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>, <a href="Quorum.html" class="extype" name="pt.tecnico.dsi.akkastrator.Quorum">Quorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]], <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block diagram-container" id="inheritance-diagram-container">
+                <span class="toggle diagram-link">
+                  Type Hierarchy
+                </span>
+                <div class="diagram" id="inheritance-diagram"><svg class="class-diagram" id="graph1" viewBox="0.00 0.00 217.00 118.00" height="118pt" width="217pt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><g transform="scale(1 1) rotate(0) translate(4 114)" class="graph" id="page0,1_graph0"><polygon points="-4,4 -4,-114 213,-114 213,4 -4,4" stroke="transparent" fill="#ffffff"></polygon><g class="cluster" id="clust1"></g><g class="cluster" id="clust2"></g><!-- node0 --><g class="node this class" id="graph1_0"><g id="a_this class|graph1_0"><a xlink:title="pt.tecnico.dsi.akkastrator.TaskQuorum (this class)" xlink:href="#inheritance-diagram"><path d="M150.6667,-49C150.6667,-49 58.3333,-49 58.3333,-49 54.1667,-49 50,-44.8333 50,-40.6667 50,-40.6667 50,-32.3333 50,-32.3333 50,-28.1667 54.1667,-24 58.3333,-24 58.3333,-24 150.6667,-24 150.6667,-24 154.8333,-24 159,-28.1667 159,-32.3333 159,-32.3333 159,-40.6667 159,-40.6667 159,-44.8333 154.8333,-49 150.6667,-49" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-43.5" x="60.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-34.1" x="81.5" text-anchor="start">TaskQuorum[R]</text></a></g></g><!-- node1 --><g class="node class" id="graph1_1"><g id="a_class|graph1_1"><a xlink:title="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator" xlink:href="TaskSpawnOrchestrator.html#inheritance-diagram"><path d="M200.6667,-110C200.6667,-110 8.3333,-110 8.3333,-110 4.1667,-110 0,-105.8333 0,-101.6667 0,-101.6667 0,-93.3333 0,-93.3333 0,-89.1667 4.1667,-85 8.3333,-85 8.3333,-85 200.6667,-85 200.6667,-85 204.8333,-85 209,-89.1667 209,-93.3333 209,-93.3333 209,-101.6667 209,-101.6667 209,-105.8333 204.8333,-110 200.6667,-110" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-104.5" x="10.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-95.1" x="31.5" text-anchor="start">TaskSpawnOrchestrator[R, Quorum[R]]</text></a></g></g><!-- node1&#45;&gt;node0 --><g class="edge inheritance" id="graph1_1_0"><g id="a_inheritance|graph1_1_0"><a xlink:title="TaskQuorum[R] is a subtype of TaskSpawnOrchestrator[R, Quorum[R]]"><path d="M104.5,-77.7386C104.5,-68.3393 104.5,-57.3803 104.5,-49.123" stroke="#d4d4d4" fill="none"></path><polygon points="102.0501,-77.8607 104.5,-84.8608 106.9501,-77.8608 102.0501,-77.8607" stroke="#d4d4d4" fill="none"></polygon></a></g></g></g></svg></div>
+                <div id="diagram-controls" class="hiddenContent">
+                  <button id="diagram-zoom-out" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button id="diagram-zoom-in" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button title="Toggle full-screen" id="diagram-fs" class="diagram-btn to-full"><i class="material-icons"></i></button>
+                </div>
+              </div></div>
         
 
       <div id="mbrsel">
@@ -410,6 +412,11 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
                     <li class="in" name="pt.tecnico.dsi.akkastrator.TaskQuorum"><span>TaskQuorum</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator"><span>TaskSpawnOrchestrator</span></li><li class="in" name="pt.tecnico.dsi.akkastrator.Task"><span>Task</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
+                  <span class="filtertype">Implicitly<br />
+                  </span>
+                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
+                  </ol>
+                </div><div class="ancestors">
               <span class="filtertype"></span>
               <ol>
                 <li class="hideall out"><span>Hide All</span></li>
@@ -428,9 +435,9 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="pt.tecnico.dsi.akkastrator.TaskQuorum#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(task:pt.tecnico.dsi.akkastrator.FullTask[_,_],minimumVotes:pt.tecnico.dsi.akkastrator.MinimumVotes)(tasksCreator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]=&gt;Seq[pt.tecnico.dsi.akkastrator.FullTask[R,shapeless.HNil]]):pt.tecnico.dsi.akkastrator.TaskQuorum[R]"></a><a id="&lt;init&gt;:TaskQuorum[R]"></a>
+      <a id="&lt;init&gt;(task:pt.tecnico.dsi.akkastrator.FullTask[_,_])(minimumVotes:pt.tecnico.dsi.akkastrator.MinimumVotes,tasksCreator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]=&gt;Seq[pt.tecnico.dsi.akkastrator.FullTask[R,shapeless.HNil]]):pt.tecnico.dsi.akkastrator.TaskQuorum[R]"></a><a id="&lt;init&gt;:TaskQuorum[R]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#&lt;init&gt;(task:pt.tecnico.dsi.akkastrator.FullTask[_,_],minimumVotes:pt.tecnico.dsi.akkastrator.MinimumVotes)(tasksCreator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]=&gt;Seq[pt.tecnico.dsi.akkastrator.FullTask[R,shapeless.HNil]]):pt.tecnico.dsi.akkastrator.TaskQuorum[R]" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#&lt;init&gt;(task:pt.tecnico.dsi.akkastrator.FullTask[_,_])(minimumVotes:pt.tecnico.dsi.akkastrator.MinimumVotes,tasksCreator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]=&gt;Seq[pt.tecnico.dsi.akkastrator.FullTask[R,shapeless.HNil]]):pt.tecnico.dsi.akkastrator.TaskQuorum[R]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -439,7 +446,7 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">TaskQuorum</span><span class="params">(<span name="task">task: <a href="FullTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.FullTask">FullTask</a>[_, _]</span>, <span name="minimumVotes">minimumVotes: <a href="MinimumVotes.html" class="extype" name="pt.tecnico.dsi.akkastrator.MinimumVotes">MinimumVotes</a> = <span class="symbol"><span class="name"><a href="Majority$.html">Majority</a></span></span></span>)</span><span class="params">(<span name="tasksCreator">tasksCreator: (<a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>[_]) ⇒ <span class="extype" name="scala.Seq">Seq</span>[<a href="FullTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.FullTask">FullTask</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>, <span class="extype" name="shapeless.HNil">HNil</span>]]</span>)</span>
+        <span class="name">TaskQuorum</span><span class="params">(<span name="task">task: <a href="FullTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.FullTask">FullTask</a>[_, _]</span>)</span><span class="params">(<span name="minimumVotes">minimumVotes: <a href="MinimumVotes.html" class="extype" name="pt.tecnico.dsi.akkastrator.MinimumVotes">MinimumVotes</a></span>, <span name="tasksCreator">tasksCreator: (<a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>[_]) ⇒ <span class="extype" name="scala.Seq">Seq</span>[<a href="FullTask.html" class="extype" name="pt.tecnico.dsi.akkastrator.FullTask">FullTask</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>, <span class="extype" name="shapeless.HNil">HNil</span>]]</span>)</span>
       </span>
       
       
@@ -485,6 +492,49 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="+(other:String):String"></a><a id="+(String):String"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#+(other:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method any2stringadd in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(TaskQuorum[R],B)"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
@@ -516,15 +566,7 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <span class="name">abort</span><span class="params">(<span name="receivedMessage">receivedMessage: <span class="extype" name="scala.Serializable">Serializable</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="cause">cause: <span class="extype" name="scala.Exception">Exception</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Causes this task to abort.</p><div class="fullcomment"><div class="comment cmt"><p>Causes this task to abort. This will have the following effects:</p><ol class="decimal"><li>This task will change its state to <code>Aborted</code>.
- 2. Every unstarted task that depends on this one will never be started. This will happen because a task can
-    only start if its dependencies have finished and this task did not finish.
- 3. Waiting tasks or tasks which do not have this task as a dependency will continue to be executed, unless
-    the orchestrator is stopped.
- 4. The method <code>onFinish</code> will <b>never</b> be called. Similarly to the unstarted tasks, onFinish will only
-    be invoked if all tasks have finished and this task did not finish.
- 5. The method <code>onAbort</code> will be invoked in the orchestrator.
-</li></ol></div><dl class="paramcmts block"><dt class="param">receivedMessage</dt><dd class="cmt"><p>the message which prompted the abort.</p></dd><dt class="param">id</dt><dd class="cmt"><p>the id obtained from the message.</p></dd><dt class="param">cause</dt><dd class="cmt"><p>what caused the abort to be invoked.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -556,18 +598,23 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <span class="name">behavior</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">Receive</span></span>
       </span>
       
-      <p class="shortcomment cmt">The behavior of this task.</p><div class="fullcomment"><div class="comment cmt"><p>The behavior of this task. This is akin to the receive method of an actor with the following exceptions:
- · An all catching pattern match is prohibited since it will cause the orchestrator to fail.
- · Every case must have an if checking if matchId returns true.
-   This ensures the received message was in fact destined to this task.
-   This choice of implementation allows the messages that are exchanged to have a free form, as its the user that
-   is responsible for extracting the id from the message.
- · Either <code>finish</code> or <code>abort</code> must be invoked after handling each response.
- · The internal state of the orchestrator might be changed while handling each response using
-   <code>orchestrator.state = //Your new state</code></p><p>Example of a well formed behavior: </p><pre><span class="kw">case</span> m @ Success(result, id) <span class="kw">if</span> matchId(id) <span class="kw">=&gt;</span>
-  finish(m, id, result = <span class="lit">"This task result"</span>) <span class="cmt">// The result is the value that the tasks that depend on this one will see.</span>
-<span class="kw">case</span> m @ SomethingWentWrong(why, id) <span class="kw">if</span> matchId(id) <span class="kw">=&gt;</span>
-  abort(m, id, why)</pre></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a> → <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a> → <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+    </li><li name="pt.tecnico.dsi.akkastrator.Task#behaviorHandlingTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="behaviorHandlingTimeout:akka.actor.Actor.Receive"></a><a id="behaviorHandlingTimeout:Receive"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#behaviorHandlingTimeout:akka.actor.Actor.Receive" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">behaviorHandlingTimeout</span><span class="result">: <span class="extype" name="akka.actor.Actor.Receive">Receive</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -591,9 +638,9 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
               
         </dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator#createMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="createMessage(id:Long):Any"></a><a id="createMessage(Long):Any"></a>
+      <a id="createMessage(id:Long):Serializable"></a><a id="createMessage(Long):Serializable"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#createMessage(id:Long):Any" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#createMessage(id:Long):Serializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -602,10 +649,10 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">createMessage</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Any">Any</span></span>
+        <span class="name">createMessage</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      <p class="shortcomment cmt">The constructor of the message to be sent.</p><div class="fullcomment"><div class="comment cmt"><p>The constructor of the message to be sent. It must always return the same message, only the id must be different.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a> → <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a> → <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator#destination" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="destination:akka.actor.ActorPath"></a><a id="destination:ActorPath"></a>
       <span class="permalink">
@@ -622,6 +669,86 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a> → <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((TaskQuorum[R])⇒Boolean,⇒Any):TaskQuorum[R]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((TaskQuorum[R])⇒Boolean):TaskQuorum[R]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):TaskQuorum[R]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):TaskQuorum[R]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#ensuring(cond:Boolean):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -677,7 +804,7 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
               
         </dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.Task#finish" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="finish(receivedMessage:Serializable,id:Long,result:R):Unit"></a><a id="finish(Serializable,Long,Seq[R]):Unit"></a>
+      <a id="finish(receivedMessage:Serializable,id:Long,result:R):Unit"></a><a id="finish(Serializable,Long,R):Unit"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#finish(receivedMessage:Serializable,id:Long,result:R):Unit" title="Permalink">
         <i class="material-icons"></i>
@@ -688,12 +815,33 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finish</span><span class="params">(<span name="receivedMessage">receivedMessage: <span class="extype" name="scala.Serializable">Serializable</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="result">result: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">finish</span><span class="params">(<span name="receivedMessage">receivedMessage: <span class="extype" name="scala.Serializable">Serializable</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="result">result: <span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Finishes this task, which implies:</p><div class="fullcomment"><div class="comment cmt"><p>Finishes this task, which implies:</p><ol class="decimal"><li>Tasks that depend on this one will be started.
- 2. Messages that would be handled by this task will no longer be handled.</li></ol><p> Finishing an already finished task will throw an exception.
-</p></div><dl class="paramcmts block"><dt class="param">receivedMessage</dt><dd class="cmt"><p>the message which prompted the finish.</p></dd><dt class="param">id</dt><dd class="cmt"><p>the id obtained from the message.</p></dd><dt class="param">result</dt><dd class="cmt"><p>the result this task will produce. This is the value that the tasks that depend on this one will see.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+    </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#formatted(fmtstr:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method StringFormat in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -734,7 +882,7 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
@@ -822,22 +970,22 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.Task#persistAndConfirmDelivery" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="persistAndConfirmDelivery(receivedMessage:Serializable,id:Long)(continuation:=&gt;Unit):Unit"></a><a id="persistAndConfirmDelivery(Serializable,Long)(⇒Unit):Unit"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.Task#orchestrator" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="orchestrator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]"></a><a id="orchestrator:AbstractOrchestrator[_]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#persistAndConfirmDelivery(receivedMessage:Serializable,id:Long)(continuation:=&gt;Unit):Unit" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#orchestrator:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">persistAndConfirmDelivery</span><span class="params">(<span name="receivedMessage">receivedMessage: <span class="extype" name="scala.Serializable">Serializable</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="params">(<span name="continuation">continuation: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">orchestrator</span><span class="result">: <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>[_]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="index.html" class="extype" name="pt.tecnico.dsi.akkastrator">pt.tecnico.dsi.akkastrator</a>] </dd><dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
     </li><li name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator#spawner" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="spawner:akka.actor.ActorRef"></a><a id="spawner:ActorRef"></a>
       <span class="permalink">
@@ -918,22 +1066,6 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.Task#toTaskReport" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toTaskReport:pt.tecnico.dsi.akkastrator.Orchestrator.TaskReport[R]"></a><a id="toTaskReport:TaskReport[Seq[R]]"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#toTaskReport:pt.tecnico.dsi.akkastrator.Orchestrator.TaskReport[R]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toTaskReport</span><span class="result">: <a href="Orchestrator$$TaskReport.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator.TaskReport">TaskReport</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1016,6 +1148,26 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a></dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(TaskQuorum[R],B)"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/TaskQuorum.html#→[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
               </ol>
             </div>
@@ -1027,15 +1179,31 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
 
         <div id="inheritedMembers">
         <div class="parent" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">
-              <h3>Inherited from <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>], <a href="TaskQuorum$$InnerOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator">InnerOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</h3>
+              <h3>Inherited from <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>, <a href="Quorum.html" class="extype" name="pt.tecnico.dsi.akkastrator.Quorum">Quorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</h3>
             </div><div class="parent" name="pt.tecnico.dsi.akkastrator.Task">
-              <h3>Inherited from <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</h3>
+              <h3>Inherited from <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
-        
+        <div class="conversion" name="scala.Predef.any2stringadd">
+              <h3>Inherited by implicit conversion any2stringadd from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.StringFormat">
+              <h3>Inherited by implicit conversion StringFormat from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.Ensuring">
+              <h3>Inherited by implicit conversion Ensuring from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.ArrowAssoc">
+              <h3>Inherited by implicit conversion ArrowAssoc from
+                <a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum">TaskQuorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]
+              </h3>
+            </div>
         </div>
 
         <div id="groupedMembers">

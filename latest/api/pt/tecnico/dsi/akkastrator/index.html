@@ -19,7 +19,7 @@
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
       <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
-      
+      <script type="text/javascript" src="../../../../lib/modernizr.custom.js"></script><script type="text/javascript" src="../../../../lib/diagrams.js" id="diagrams-js"></script>
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
         var toRoot = '../../../../';
@@ -143,8 +143,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="pt.tecnico.dsi">dsi</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks."></a>
-                        <a href="AbstractOrchestrator.html" title="An Orchestrator executes a set of, possibly dependent, Tasks.">
+                        <a class="class" href="AbstractOrchestrator.html" title=""></a>
+                        <a href="AbstractOrchestrator.html" title="">
                           AbstractOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -158,6 +158,12 @@
                         <a class="class" href="AtLeast.html" title=""></a>
                         <a href="AtLeast.html" title="">
                           AtLeast
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Bundle.html" title=""></a>
+                        <a href="Bundle.html" title="">
+                          Bundle
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -185,8 +191,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator."></a>
-                        <a href="DistinctIdsOrchestrator.html" title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.">
+                        <a class="class" href="DistinctIdsOrchestrator.html" title=""></a>
+                        <a href="DistinctIdsOrchestrator.html" title="">
                           DistinctIdsOrchestrator
                         </a>
                       </li><li class="current-entities indented4">
@@ -227,12 +233,6 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="InitializationError.html" title=""></a>
-                        <a href="InitializationError.html" title="">
-                          InitializationError
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="Majority$.html" title=""></a>
                         <a href="Majority$.html" title="">
                           Majority
@@ -251,8 +251,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="MinimalState.html" title="The simplest implementation of a State with DistinctIds."></a>
-                        <a href="MinimalState.html" title="The simplest implementation of a State with DistinctIds.">
+                        <a class="class" href="MinimalState.html" title=""></a>
+                        <a href="MinimalState.html" title="">
                           MinimalState
                         </a>
                       </li><li class="current-entities indented4">
@@ -263,11 +263,15 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Orchestrator$.html" title=""></a>
-                        <a class="class" href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator."></a>
-                        <a href="Orchestrator.html" title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator.">
+                        <a class="class" href="Orchestrator.html" title=""></a>
+                        <a href="Orchestrator.html" title="">
                           Orchestrator
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Quorum.html" title=""></a>
+                        <a href="Quorum.html" title="">
+                          Quorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
@@ -277,8 +281,20 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="Settings.html" title="This class holds all the settings that parameterize akkastrator."></a>
-                        <a href="Settings.html" title="This class holds all the settings that parameterize akkastrator.">
+                        <a class="object" href="QuorumImpossibleToAchieve$.html" title=""></a>
+                        <a href="QuorumImpossibleToAchieve$.html" title="">
+                          QuorumImpossibleToAchieve
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="QuorumNotAchieved$.html" title=""></a>
+                        <a href="QuorumNotAchieved$.html" title="">
+                          QuorumNotAchieved
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="Settings.html" title=""></a>
+                        <a href="Settings.html" title="">
                           Settings
                         </a>
                       </li><li class="current-entities indented4">
@@ -301,43 +317,27 @@ destinations of the orchestrator.">
                         </a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="Task$.html" title=""></a>
-                        <a class="class" href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator."></a>
-                        <a href="Task.html" title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.">
+                        <a class="class" href="Task.html" title=""></a>
+                        <a href="Task.html" title="">
                           Task
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskBundle$.html" title=""></a>
-                        <a class="class" href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-"></a>
-                        <a href="TaskBundle.html" title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskBundle.html" title=""></a>
+                        <a href="TaskBundle.html" title="">
                           TaskBundle
                         </a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="TaskQuorum$.html" title=""></a>
-                        <a class="class" href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function."></a>
-                        <a href="TaskQuorum.html" title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.">
+                        <span class="separator"></span>
+                        <a class="class" href="TaskQuorum.html" title=""></a>
+                        <a href="TaskQuorum.html" title="">
                           TaskQuorum
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively."></a>
-                        <a href="TaskSpawnOrchestrator.html" title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.">
+                        <a class="class" href="TaskSpawnOrchestrator.html" title=""></a>
+                        <a href="TaskSpawnOrchestrator.html" title="">
                           TaskSpawnOrchestrator
-                        </a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="TimedOut$.html" title=""></a>
-                        <a href="TimedOut$.html" title="">
-                          TimedOut
                         </a>
                       </li>
               </ul>
@@ -367,7 +367,17 @@ mutate the internal state of the Orchestrator.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"></div>
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block diagram-container" id="content-diagram-container">
+                <span class="toggle diagram-link">
+                  Content Hierarchy
+                </span>
+                <div class="diagram" id="content-diagram"><svg class="package-diagram" id="graph1" viewBox="0.00 0.00 1532.50 216.00" height="216pt" width="1533pt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><g transform="scale(1 1) rotate(0) translate(4 212)" class="graph" id="graph0"><polygon points="-4,4 -4,-212 1528.5,-212 1528.5,4 -4,4" stroke="transparent" fill="#ffffff"></polygon><!-- node0 --><g class="node class" id="graph1_0"><g id="a_class|graph1_0"><a xlink:title="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator" xlink:href="TaskSpawnOrchestrator.html#inheritance-diagram"><path d="M220.6667,-147C220.6667,-147 68.3333,-147 68.3333,-147 64.1667,-147 60,-142.8333 60,-138.6667 60,-138.6667 60,-130.3333 60,-130.3333 60,-126.1667 64.1667,-122 68.3333,-122 68.3333,-122 220.6667,-122 220.6667,-122 224.8333,-122 229,-126.1667 229,-130.3333 229,-130.3333 229,-138.6667 229,-138.6667 229,-142.8333 224.8333,-147 220.6667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="70.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="91.5" text-anchor="start">TaskSpawnOrchestrator[R, O]</text></a></g></g><!-- node1 --><g class="node class" id="graph1_1"><g id="a_class|graph1_1"><a xlink:title="pt.tecnico.dsi.akkastrator.TaskQuorum" xlink:href="TaskQuorum.html#inheritance-diagram"><path d="M100.6667,-86C100.6667,-86 8.3333,-86 8.3333,-86 4.1667,-86 0,-81.8333 0,-77.6667 0,-77.6667 0,-69.3333 0,-69.3333 0,-65.1667 4.1667,-61 8.3333,-61 8.3333,-61 100.6667,-61 100.6667,-61 104.8333,-61 109,-65.1667 109,-69.3333 109,-69.3333 109,-77.6667 109,-77.6667 109,-81.8333 104.8333,-86 100.6667,-86" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-80.5" x="10.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-71.1" x="31.5" text-anchor="start">TaskQuorum[R]</text></a></g></g><!-- node0&#45;&gt;node1 --><g class="edge inheritance" id="graph1_0_1"><g id="a_inheritance|graph1_0_1"><a xlink:title="TaskQuorum[R] is a subtype of TaskSpawnOrchestrator[R, O]"><path d="M119.7848,-117.7486C105.0453,-107.7585 86.6338,-95.2796 73.1242,-86.123" stroke="#d4d4d4" fill="none"></path><polygon points="118.6829,-119.9614 125.8519,-121.8608 121.432,-115.9053 118.6829,-119.9614" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node3 --><g class="node class" id="graph1_3"><g id="a_class|graph1_3"><a xlink:title="pt.tecnico.dsi.akkastrator.TaskBundle" xlink:href="TaskBundle.html#inheritance-diagram"><path d="M223.1667,-86C223.1667,-86 135.8333,-86 135.8333,-86 131.6667,-86 127.5,-81.8333 127.5,-77.6667 127.5,-77.6667 127.5,-69.3333 127.5,-69.3333 127.5,-65.1667 131.6667,-61 135.8333,-61 135.8333,-61 223.1667,-61 223.1667,-61 227.3333,-61 231.5,-65.1667 231.5,-69.3333 231.5,-69.3333 231.5,-77.6667 231.5,-77.6667 231.5,-81.8333 227.3333,-86 223.1667,-86" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-80.5" x="137.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-71.1" x="158.5" text-anchor="start">TaskBundle[R]</text></a></g></g><!-- node0&#45;&gt;node3 --><g class="edge inheritance" id="graph1_0_3"><g id="a_inheritance|graph1_0_3"><a xlink:title="TaskBundle[R] is a subtype of TaskSpawnOrchestrator[R, O]"><path d="M155.3604,-115.5719C160.8566,-105.9927 167.3788,-94.6256 172.2573,-86.123" stroke="#d4d4d4" fill="none"></path><polygon points="153.1107,-114.5699 151.752,-121.8608 157.3608,-117.0085 153.1107,-114.5699" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node2 --><g class="node class" id="graph1_2"><g id="a_class|graph1_2"><a xlink:title="pt.tecnico.dsi.akkastrator.Quorum" xlink:href="Quorum.html#inheritance-diagram"><path d="M377.6667,-25C377.6667,-25 303.3333,-25 303.3333,-25 299.1667,-25 295,-20.8333 295,-16.6667 295,-16.6667 295,-8.3333 295,-8.3333 295,-4.1667 299.1667,0 303.3333,0 303.3333,0 377.6667,0 377.6667,0 381.8333,0 386,-4.1667 386,-8.3333 386,-8.3333 386,-16.6667 386,-16.6667 386,-20.8333 381.8333,-25 377.6667,-25" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-19.5" x="305.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-10.1" x="326.5" text-anchor="start">Quorum[R]</text></a></g></g><!-- node4 --><g class="node class" id="graph1_4"><g id="a_class|graph1_4"><a xlink:title="pt.tecnico.dsi.akkastrator.Bundle" xlink:href="Bundle.html#inheritance-diagram"><path d="M525.1667,-25C525.1667,-25 455.8333,-25 455.8333,-25 451.6667,-25 447.5,-20.8333 447.5,-16.6667 447.5,-16.6667 447.5,-8.3333 447.5,-8.3333 447.5,-4.1667 451.6667,0 455.8333,0 455.8333,0 525.1667,0 525.1667,0 529.3333,0 533.5,-4.1667 533.5,-8.3333 533.5,-8.3333 533.5,-16.6667 533.5,-16.6667 533.5,-20.8333 529.3333,-25 525.1667,-25" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-19.5" x="457.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-10.1" x="478.5" text-anchor="start">Bundle[R]</text></a></g></g><!-- node5 --><g class="node class" id="graph1_5"><g id="a_class|graph1_5"><a xlink:title="pt.tecnico.dsi.akkastrator.Task" xlink:href="Task.html#inheritance-diagram"><path d="M173.6667,-208C173.6667,-208 115.3333,-208 115.3333,-208 111.1667,-208 107,-203.8333 107,-199.6667 107,-199.6667 107,-191.3333 107,-191.3333 107,-187.1667 111.1667,-183 115.3333,-183 115.3333,-183 173.6667,-183 173.6667,-183 177.8333,-183 182,-187.1667 182,-191.3333 182,-191.3333 182,-199.6667 182,-199.6667 182,-203.8333 177.8333,-208 173.6667,-208" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-202.5" x="117.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-193.1" x="138.5" text-anchor="start">Task[R]</text></a></g></g><!-- node5&#45;&gt;node0 --><g class="edge inheritance" id="graph1_5_0"><g id="a_inheritance|graph1_5_0"><a xlink:title="TaskSpawnOrchestrator[R, O] is a subtype of Task[R]"><path d="M144.5,-175.7386C144.5,-166.3393 144.5,-155.3803 144.5,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="142.0501,-175.8607 144.5,-182.8608 146.9501,-175.8608 142.0501,-175.8607" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node6 --><g class="node class" id="graph1_6"><g id="a_class|graph1_6"><a xlink:title="pt.tecnico.dsi.akkastrator.MinimalState" xlink:href="MinimalState.html#inheritance-diagram"><path d="M662.6667,-147C662.6667,-147 580.3333,-147 580.3333,-147 576.1667,-147 572,-142.8333 572,-138.6667 572,-138.6667 572,-130.3333 572,-130.3333 572,-126.1667 576.1667,-122 580.3333,-122 580.3333,-122 662.6667,-122 662.6667,-122 666.8333,-122 671,-126.1667 671,-130.3333 671,-130.3333 671,-138.6667 671,-138.6667 671,-142.8333 666.8333,-147 662.6667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="582.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="603.5" text-anchor="start">MinimalState</text></a></g></g><!-- node7 --><g class="node trait" id="graph1_7"><g id="a_trait|graph1_7"><a xlink:title="pt.tecnico.dsi.akkastrator.DistinctIds" xlink:href="DistinctIds.html#inheritance-diagram"><path d="M656.6667,-208C656.6667,-208 586.3333,-208 586.3333,-208 582.1667,-208 578,-203.8333 578,-199.6667 578,-199.6667 578,-191.3333 578,-191.3333 578,-187.1667 582.1667,-183 586.3333,-183 586.3333,-183 656.6667,-183 656.6667,-183 660.8333,-183 665,-187.1667 665,-191.3333 665,-191.3333 665,-199.6667 665,-199.6667 665,-203.8333 660.8333,-208 656.6667,-208" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-202.5" x="588.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-193.1" x="609.5" text-anchor="start">DistinctIds</text></a></g></g><!-- node7&#45;&gt;node6 --><g class="edge inheritance" id="graph1_7_6"><g id="a_inheritance|graph1_7_6"><a xlink:title="MinimalState is a subtype of DistinctIds"><path d="M621.5,-175.7386C621.5,-166.3393 621.5,-155.3803 621.5,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="619.0501,-175.8607 621.5,-182.8608 623.9501,-175.8608 619.0501,-175.8607" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node8 --><g class="node object" id="graph1_8"><g id="a_object|graph1_8"><a xlink:title="pt.tecnico.dsi.akkastrator.EmptyState" xlink:href="EmptyState$.html#inheritance-diagram"><path d="M773.6667,-147C773.6667,-147 697.3333,-147 697.3333,-147 693.1667,-147 689,-142.8333 689,-138.6667 689,-138.6667 689,-130.3333 689,-130.3333 689,-126.1667 693.1667,-122 697.3333,-122 697.3333,-122 773.6667,-122 773.6667,-122 777.8333,-122 782,-126.1667 782,-130.3333 782,-130.3333 782,-138.6667 782,-138.6667 782,-142.8333 777.8333,-147 773.6667,-147" stroke="#103a51" fill="#103a51"></path><image xlink:href="../../../../lib/object_diagram.png" y="-141.5" x="699.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="720.5" text-anchor="start">EmptyState</text></a></g></g><!-- node9 --><g class="node trait" id="graph1_9"><g id="a_trait|graph1_9"><a xlink:title="pt.tecnico.dsi.akkastrator.State" xlink:href="State.html#inheritance-diagram"><path d="M751.1667,-208C751.1667,-208 701.8333,-208 701.8333,-208 697.6667,-208 693.5,-203.8333 693.5,-199.6667 693.5,-199.6667 693.5,-191.3333 693.5,-191.3333 693.5,-187.1667 697.6667,-183 701.8333,-183 701.8333,-183 751.1667,-183 751.1667,-183 755.3333,-183 759.5,-187.1667 759.5,-191.3333 759.5,-191.3333 759.5,-199.6667 759.5,-199.6667 759.5,-203.8333 755.3333,-208 751.1667,-208" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-202.5" x="703.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-193.1" x="724.5" text-anchor="start">State</text></a></g></g><!-- node9&#45;&gt;node6 --><g class="edge inheritance" id="graph1_9_6"><g id="a_inheritance|graph1_9_6"><a xlink:title="MinimalState is a subtype of State"><path d="M698.5827,-179.2814C681.2385,-169.2052 659.2709,-156.4431 643.2282,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="697.4605,-181.4628 704.7439,-182.8608 699.9219,-177.2259 697.4605,-181.4628" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node9&#45;&gt;node8 --><g class="edge inheritance" id="graph1_9_8"><g id="a_inheritance|graph1_9_8"><a xlink:title="EmptyState is a subtype of State"><path d="M729.4156,-175.7386C730.8024,-166.3393 732.4193,-155.3803 733.6376,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="726.9629,-175.5781 728.3648,-182.8608 731.8104,-176.2934 726.9629,-175.5781" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node10 --><g class="node class" id="graph1_10"><g id="a_class|graph1_10"><a xlink:title="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator" xlink:href="DistinctIdsOrchestrator.html#inheritance-diagram"><path d="M408.6667,-86C408.6667,-86 272.3333,-86 272.3333,-86 268.1667,-86 264,-81.8333 264,-77.6667 264,-77.6667 264,-69.3333 264,-69.3333 264,-65.1667 268.1667,-61 272.3333,-61 272.3333,-61 408.6667,-61 408.6667,-61 412.8333,-61 417,-65.1667 417,-69.3333 417,-69.3333 417,-77.6667 417,-77.6667 417,-81.8333 412.8333,-86 408.6667,-86" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-80.5" x="274.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-71.1" x="295.5" text-anchor="start">DistinctIdsOrchestrator[R]</text></a></g></g><!-- node10&#45;&gt;node2 --><g class="edge inheritance" id="graph1_10_2"><g id="a_inheritance|graph1_10_2"><a xlink:title="Quorum[R] is a subtype of DistinctIdsOrchestrator[R]"><path d="M340.5,-53.7386C340.5,-44.3393 340.5,-33.3803 340.5,-25.123" stroke="#d4d4d4" fill="none"></path><polygon points="338.0501,-53.8607 340.5,-60.8608 342.9501,-53.8608 338.0501,-53.8607" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node11 --><g class="node class" id="graph1_11"><g id="a_class|graph1_11"><a xlink:title="pt.tecnico.dsi.akkastrator.Orchestrator" xlink:href="Orchestrator.html#inheritance-diagram"><path d="M537.6667,-86C537.6667,-86 443.3333,-86 443.3333,-86 439.1667,-86 435,-81.8333 435,-77.6667 435,-77.6667 435,-69.3333 435,-69.3333 435,-65.1667 439.1667,-61 443.3333,-61 443.3333,-61 537.6667,-61 537.6667,-61 541.8333,-61 546,-65.1667 546,-69.3333 546,-69.3333 546,-77.6667 546,-77.6667 546,-81.8333 541.8333,-86 537.6667,-86" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-80.5" x="445.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-71.1" x="466.5" text-anchor="start">Orchestrator[R]</text></a></g></g><!-- node11&#45;&gt;node4 --><g class="edge inheritance" id="graph1_11_4"><g id="a_inheritance|graph1_11_4"><a xlink:title="Bundle[R] is a subtype of Orchestrator[R]"><path d="M490.5,-53.7386C490.5,-44.3393 490.5,-33.3803 490.5,-25.123" stroke="#d4d4d4" fill="none"></path><polygon points="488.0501,-53.8607 490.5,-60.8608 492.9501,-53.8608 488.0501,-53.8607" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node12 --><g class="node class" id="graph1_12"><g id="a_class|graph1_12"><a xlink:title="pt.tecnico.dsi.akkastrator.AbstractOrchestrator" xlink:href="AbstractOrchestrator.html#inheritance-diagram"><path d="M440.1667,-147C440.1667,-147 310.8333,-147 310.8333,-147 306.6667,-147 302.5,-142.8333 302.5,-138.6667 302.5,-138.6667 302.5,-130.3333 302.5,-130.3333 302.5,-126.1667 306.6667,-122 310.8333,-122 310.8333,-122 440.1667,-122 440.1667,-122 444.3333,-122 448.5,-126.1667 448.5,-130.3333 448.5,-130.3333 448.5,-138.6667 448.5,-138.6667 448.5,-142.8333 444.3333,-147 440.1667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="312.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="333.5" text-anchor="start">AbstractOrchestrator[R]</text></a></g></g><!-- node12&#45;&gt;node10 --><g class="edge inheritance" id="graph1_12_10"><g id="a_inheritance|graph1_12_10"><a xlink:title="DistinctIdsOrchestrator[R] is a subtype of AbstractOrchestrator[R]"><path d="M364.6396,-115.5719C359.1434,-105.9927 352.6212,-94.6256 347.7427,-86.123" stroke="#d4d4d4" fill="none"></path><polygon points="362.6392,-117.0085 368.248,-121.8608 366.8893,-114.5699 362.6392,-117.0085" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node12&#45;&gt;node11 --><g class="edge inheritance" id="graph1_12_11"><g id="a_inheritance|graph1_12_11"><a xlink:title="Orchestrator[R] is a subtype of AbstractOrchestrator[R]"><path d="M405.5774,-118.5459C424.6496,-108.4294 448.9777,-95.5249 466.7025,-86.123" stroke="#d4d4d4" fill="none"></path><polygon points="404.3639,-116.4162 399.3281,-121.8608 406.6601,-120.7449 404.3639,-116.4162" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node13 --><g class="node object" id="graph1_13"><g id="a_object|graph1_13"><a xlink:title="pt.tecnico.dsi.akkastrator.All" xlink:href="All$.html#inheritance-diagram"><path d="M846.6667,-147C846.6667,-147 808.3333,-147 808.3333,-147 804.1667,-147 800,-142.8333 800,-138.6667 800,-138.6667 800,-130.3333 800,-130.3333 800,-126.1667 804.1667,-122 808.3333,-122 808.3333,-122 846.6667,-122 846.6667,-122 850.8333,-122 855,-126.1667 855,-130.3333 855,-130.3333 855,-138.6667 855,-138.6667 855,-142.8333 850.8333,-147 846.6667,-147" stroke="#103a51" fill="#103a51"></path><image xlink:href="../../../../lib/object_diagram.png" y="-141.5" x="810.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="831.5" text-anchor="start">All</text></a></g></g><!-- node14 --><g class="node class" id="graph1_14"><g id="a_class|graph1_14"><a xlink:title="pt.tecnico.dsi.akkastrator.AtLeast" xlink:href="AtLeast.html#inheritance-diagram"><path d="M941.1667,-147C941.1667,-147 881.8333,-147 881.8333,-147 877.6667,-147 873.5,-142.8333 873.5,-138.6667 873.5,-138.6667 873.5,-130.3333 873.5,-130.3333 873.5,-126.1667 877.6667,-122 881.8333,-122 881.8333,-122 941.1667,-122 941.1667,-122 945.3333,-122 949.5,-126.1667 949.5,-130.3333 949.5,-130.3333 949.5,-138.6667 949.5,-138.6667 949.5,-142.8333 945.3333,-147 941.1667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="883.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="904.5" text-anchor="start">AtLeast</text></a></g></g><!-- node15 --><g class="node object" id="graph1_15"><g id="a_object|graph1_15"><a xlink:title="pt.tecnico.dsi.akkastrator.Majority" xlink:href="Majority$.html#inheritance-diagram"><path d="M1037.1667,-147C1037.1667,-147 975.8333,-147 975.8333,-147 971.6667,-147 967.5,-142.8333 967.5,-138.6667 967.5,-138.6667 967.5,-130.3333 967.5,-130.3333 967.5,-126.1667 971.6667,-122 975.8333,-122 975.8333,-122 1037.1667,-122 1037.1667,-122 1041.3333,-122 1045.5,-126.1667 1045.5,-130.3333 1045.5,-130.3333 1045.5,-138.6667 1045.5,-138.6667 1045.5,-142.8333 1041.3333,-147 1037.1667,-147" stroke="#103a51" fill="#103a51"></path><image xlink:href="../../../../lib/object_diagram.png" y="-141.5" x="977.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="998.5" text-anchor="start">Majority</text></a></g></g><!-- node16 --><g class="node trait" id="graph1_16"><g id="a_trait|graph1_16"><a xlink:title="pt.tecnico.dsi.akkastrator.MinimumVotes" xlink:href="MinimumVotes.html#inheritance-diagram"><path d="M956.1667,-208C956.1667,-208 866.8333,-208 866.8333,-208 862.6667,-208 858.5,-203.8333 858.5,-199.6667 858.5,-199.6667 858.5,-191.3333 858.5,-191.3333 858.5,-187.1667 862.6667,-183 866.8333,-183 866.8333,-183 956.1667,-183 956.1667,-183 960.3333,-183 964.5,-187.1667 964.5,-191.3333 964.5,-191.3333 964.5,-199.6667 964.5,-199.6667 964.5,-203.8333 960.3333,-208 956.1667,-208" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-202.5" x="868.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-193.1" x="889.5" text-anchor="start">MinimumVotes</text></a></g></g><!-- node16&#45;&gt;node13 --><g class="edge inheritance" id="graph1_16_13"><g id="a_inheritance|graph1_16_13"><a xlink:title="All is a subtype of MinimumVotes"><path d="M888.0632,-178.4804C874.3691,-168.5359 857.379,-156.1978 844.8826,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="886.9914,-180.73 894.0951,-182.8608 889.8707,-176.7651 886.9914,-180.73" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node16&#45;&gt;node14 --><g class="edge inheritance" id="graph1_16_14"><g id="a_inheritance|graph1_16_14"><a xlink:title="AtLeast is a subtype of MinimumVotes"><path d="M911.5,-175.7386C911.5,-166.3393 911.5,-155.3803 911.5,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="909.0501,-175.8607 911.5,-182.8608 913.9501,-175.8608 909.0501,-175.8607" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node16&#45;&gt;node15 --><g class="edge inheritance" id="graph1_16_15"><g id="a_inheritance|graph1_16_15"><a xlink:title="Majority is a subtype of MinimumVotes"><path d="M937.1725,-179.0156C952.7992,-168.9816 972.4536,-156.3614 986.8412,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="935.7506,-177.0169 931.1841,-182.8608 938.3981,-181.1401 935.7506,-177.0169" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node17 --><g class="node object" id="graph1_17"><g id="a_object|graph1_17"><a xlink:title="pt.tecnico.dsi.akkastrator.IdImplicits" xlink:href="IdImplicits$.html#inheritance-diagram"><path d="M545.6667,-147C545.6667,-147 475.3333,-147 475.3333,-147 471.1667,-147 467,-142.8333 467,-138.6667 467,-138.6667 467,-130.3333 467,-130.3333 467,-126.1667 471.1667,-122 475.3333,-122 475.3333,-122 545.6667,-122 545.6667,-122 549.8333,-122 554,-126.1667 554,-130.3333 554,-130.3333 554,-138.6667 554,-138.6667 554,-142.8333 549.8333,-147 545.6667,-147" stroke="#103a51" fill="#103a51"></path><image xlink:href="../../../../lib/object_diagram.png" y="-141.5" x="477.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="498.5" text-anchor="start">IdImplicits</text></a></g></g><!-- node18 --><g class="node trait" id="graph1_18"><g id="a_trait|graph1_18"><a xlink:title="pt.tecnico.dsi.akkastrator.IdImplicits" xlink:href="IdImplicits.html#inheritance-diagram"><path d="M477.6667,-208C477.6667,-208 407.3333,-208 407.3333,-208 403.1667,-208 399,-203.8333 399,-199.6667 399,-199.6667 399,-191.3333 399,-191.3333 399,-187.1667 403.1667,-183 407.3333,-183 407.3333,-183 477.6667,-183 477.6667,-183 481.8333,-183 486,-187.1667 486,-191.3333 486,-191.3333 486,-199.6667 486,-199.6667 486,-203.8333 481.8333,-208 477.6667,-208" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-202.5" x="409.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-193.1" x="430.5" text-anchor="start">IdImplicits</text></a></g></g><!-- node18&#45;&gt;node12 --><g class="edge inheritance" id="graph1_18_12"><g id="a_inheritance|graph1_18_12"><a xlink:title="AbstractOrchestrator[R] is a subtype of IdImplicits"><path d="M423.2134,-177.9406C412.3965,-168.0923 399.1525,-156.0343 389.3647,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="421.792,-179.9598 428.6176,-182.8608 425.0909,-176.3365 421.792,-179.9598" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node18&#45;&gt;node17 --><g class="edge inheritance" id="graph1_18_17"><g id="a_inheritance|graph1_18_17"><a xlink:title="IdImplicits is a subtype of IdImplicits"><path d="M462.0744,-177.9406C473.0528,-168.0923 486.4945,-156.0343 496.4284,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="460.1643,-176.3627 456.5896,-182.8608 463.4363,-180.0102 460.1643,-176.3627" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node19 --><g class="node class" id="graph1_19"><g id="a_class|graph1_19"><a xlink:title="pt.tecnico.dsi.akkastrator.CorrelationId" xlink:href="CorrelationId.html#inheritance-diagram"><path d="M1154.6667,-147C1154.6667,-147 1072.3333,-147 1072.3333,-147 1068.1667,-147 1064,-142.8333 1064,-138.6667 1064,-138.6667 1064,-130.3333 1064,-130.3333 1064,-126.1667 1068.1667,-122 1072.3333,-122 1072.3333,-122 1154.6667,-122 1154.6667,-122 1158.8333,-122 1163,-126.1667 1163,-130.3333 1163,-130.3333 1163,-138.6667 1163,-138.6667 1163,-142.8333 1158.8333,-147 1154.6667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="1074.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="1095.5" text-anchor="start">CorrelationId</text></a></g></g><!-- node20 --><g class="node class" id="graph1_20"><g id="a_class|graph1_20"><a xlink:title="pt.tecnico.dsi.akkastrator.DeliveryId" xlink:href="DeliveryId.html#inheritance-diagram"><path d="M1259.6667,-147C1259.6667,-147 1189.3333,-147 1189.3333,-147 1185.1667,-147 1181,-142.8333 1181,-138.6667 1181,-138.6667 1181,-130.3333 1181,-130.3333 1181,-126.1667 1185.1667,-122 1189.3333,-122 1189.3333,-122 1259.6667,-122 1259.6667,-122 1263.8333,-122 1268,-126.1667 1268,-130.3333 1268,-130.3333 1268,-138.6667 1268,-138.6667 1268,-142.8333 1263.8333,-147 1259.6667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="1191.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="1212.5" text-anchor="start">DeliveryId</text></a></g></g><!-- node21 --><g class="node trait" id="graph1_21"><g id="a_trait|graph1_21"><a xlink:title="pt.tecnico.dsi.akkastrator.Id" xlink:href="Id.html#inheritance-diagram"><path d="M1186.1667,-208C1186.1667,-208 1150.8333,-208 1150.8333,-208 1146.6667,-208 1142.5,-203.8333 1142.5,-199.6667 1142.5,-199.6667 1142.5,-191.3333 1142.5,-191.3333 1142.5,-187.1667 1146.6667,-183 1150.8333,-183 1150.8333,-183 1186.1667,-183 1186.1667,-183 1190.3333,-183 1194.5,-187.1667 1194.5,-191.3333 1194.5,-191.3333 1194.5,-199.6667 1194.5,-199.6667 1194.5,-203.8333 1190.3333,-208 1186.1667,-208" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-202.5" x="1152.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-193.1" x="1173.5" text-anchor="start">Id</text></a></g></g><!-- node21&#45;&gt;node19 --><g class="edge inheritance" id="graph1_21_19"><g id="a_inheritance|graph1_21_19"><a xlink:title="CorrelationId is a subtype of Id"><path d="M1152.177,-177.3963C1143.3902,-167.6509 1132.7688,-155.8708 1124.8814,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="1150.5969,-179.3025 1157.104,-182.8608 1154.2361,-176.0213 1150.5969,-179.3025" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node21&#45;&gt;node20 --><g class="edge inheritance" id="graph1_21_20"><g id="a_inheritance|graph1_21_20"><a xlink:title="DeliveryId is a subtype of Id"><path d="M1184.8695,-177.669C1193.864,-167.8714 1204.8058,-155.9526 1212.9116,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="1183.0324,-176.0473 1180.1032,-182.8608 1186.642,-179.361 1183.0324,-176.0473" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node22 --><g class="node class" id="graph1_22"><g id="a_class|graph1_22"><a xlink:title="pt.tecnico.dsi.akkastrator.MessageReceived" xlink:href="MessageReceived.html#inheritance-diagram"><path d="M1398.1667,-147C1398.1667,-147 1294.8333,-147 1294.8333,-147 1290.6667,-147 1286.5,-142.8333 1286.5,-138.6667 1286.5,-138.6667 1286.5,-130.3333 1286.5,-130.3333 1286.5,-126.1667 1290.6667,-122 1294.8333,-122 1294.8333,-122 1398.1667,-122 1398.1667,-122 1402.3333,-122 1406.5,-126.1667 1406.5,-130.3333 1406.5,-130.3333 1406.5,-138.6667 1406.5,-138.6667 1406.5,-142.8333 1402.3333,-147 1398.1667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="1296.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="1317.5" text-anchor="start">MessageReceived</text></a></g></g><!-- node23 --><g class="node class" id="graph1_23"><g id="a_class|graph1_23"><a xlink:title="pt.tecnico.dsi.akkastrator.MessageSent" xlink:href="MessageSent.html#inheritance-diagram"><path d="M1516.1667,-147C1516.1667,-147 1432.8333,-147 1432.8333,-147 1428.6667,-147 1424.5,-142.8333 1424.5,-138.6667 1424.5,-138.6667 1424.5,-130.3333 1424.5,-130.3333 1424.5,-126.1667 1428.6667,-122 1432.8333,-122 1432.8333,-122 1516.1667,-122 1516.1667,-122 1520.3333,-122 1524.5,-126.1667 1524.5,-130.3333 1524.5,-130.3333 1524.5,-138.6667 1524.5,-138.6667 1524.5,-142.8333 1520.3333,-147 1516.1667,-147" stroke="#418565" fill="#418565"></path><image xlink:href="../../../../lib/class_diagram.png" y="-141.5" x="1434.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-132.1" x="1455.5" text-anchor="start">MessageSent</text></a></g></g><!-- node24 --><g class="node trait" id="graph1_24"><g id="a_trait|graph1_24"><a xlink:title="pt.tecnico.dsi.akkastrator.Event" xlink:href="Event.html#inheritance-diagram"><path d="M1436.6667,-208C1436.6667,-208 1384.3333,-208 1384.3333,-208 1380.1667,-208 1376,-203.8333 1376,-199.6667 1376,-199.6667 1376,-191.3333 1376,-191.3333 1376,-187.1667 1380.1667,-183 1384.3333,-183 1384.3333,-183 1436.6667,-183 1436.6667,-183 1440.8333,-183 1445,-187.1667 1445,-191.3333 1445,-191.3333 1445,-199.6667 1445,-199.6667 1445,-203.8333 1440.8333,-208 1436.6667,-208" stroke="#2e6d82" fill="#2e6d82"></path><image xlink:href="../../../../lib/trait_diagram.png" y="-202.5" x="1386.5" preserveAspectRatio="xMinYMin meet" height="15px" width="15px"></image><text fill="#ffffff" font-size="8.00" font-family="Source Code Pro" y="-193.1" x="1407.5" text-anchor="start">Event</text></a></g></g><!-- node24&#45;&gt;node22 --><g class="edge inheritance" id="graph1_24_22"><g id="a_inheritance|graph1_24_22"><a xlink:title="MessageReceived is a subtype of Event"><path d="M1392.077,-177.9406C1381.7444,-168.0923 1369.0934,-156.0343 1359.7439,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="1390.4817,-179.8047 1397.2392,-182.8608 1393.8624,-176.2577 1390.4817,-179.8047" stroke="#d4d4d4" fill="none"></polygon></a></g></g><!-- node24&#45;&gt;node23 --><g class="edge inheritance" id="graph1_24_23"><g id="a_inheritance|graph1_24_23"><a xlink:title="MessageSent is a subtype of Event"><path d="M1428.923,-177.9406C1439.2556,-168.0923 1451.9066,-156.0343 1461.2561,-147.123" stroke="#d4d4d4" fill="none"></path><polygon points="1427.1376,-176.2577 1423.7608,-182.8608 1430.5183,-179.8047 1427.1376,-176.2577" stroke="#d4d4d4" fill="none"></polygon></a></g></g></g></svg></div>
+                <div id="diagram-controls" class="hiddenContent">
+                  <button id="diagram-zoom-out" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button id="diagram-zoom-in" class="diagram-btn"><i class="material-icons"></i></button>
+                  <button title="Toggle full-screen" id="diagram-fs" class="diagram-btn to-full"><i class="material-icons"></i></button>
+                </div>
+              </div></div>
         
 
       <div id="mbrsel">
@@ -402,7 +412,7 @@ mutate the internal state of the Orchestrator.">
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="AbstractOrchestrator[R]extendsPersistentActorwithAtLeastOnceDeliverywithActorLoggingwithIdImplicits"></a><a id="AbstractOrchestrator[R]:AbstractOrchestrator[R]"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#AbstractOrchestrator[R]extendsPersistentActorwithAtLeastOnceDeliverywithActorLoggingwithIdImplicits" title="Permalink">
@@ -414,27 +424,12 @@ mutate the internal state of the Orchestrator.">
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="An Orchestrator executes a set of, possibly dependent, Tasks." href="AbstractOrchestrator.html">
+        <a title="" href="AbstractOrchestrator.html">
               <span class="name">AbstractOrchestrator</span>
             </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <span class="extype" name="akka.persistence.PersistentActor">PersistentActor</span> with <span class="extype" name="akka.persistence.AtLeastOnceDelivery">AtLeastOnceDelivery</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span> with <a href="IdImplicits.html" class="extype" name="pt.tecnico.dsi.akkastrator.IdImplicits">IdImplicits</a></span>
       </span>
       
-      <p class="shortcomment cmt">An Orchestrator executes a set of, possibly dependent, <code>Tasks</code>.</p><div class="fullcomment"><div class="comment cmt"><p>An Orchestrator executes a set of, possibly dependent, <code>Tasks</code>.
-A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.</p><p>The Orchestrator together with the Task is able to:</p><ul><li>Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.</li><li>Delivering messages with at-least-once delivery guarantee. The Orchestrator ensures each destination
-   will see an independent strictly monotonically increasing sequence number without gaps.</li><li>Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
-   status, the Orchestrator will respond with the status of each task.</li><li>Tasks that have no dependencies will be started right away and the Orchestrator will, from that point
-   onwards, be prepared to handle the responses to the sent messages.</li><li>If the Orchestrator crashes, the state it maintains will be correctly restored.</li></ul><p>NOTE: the responses that are received must be Serializable.</p><p>In order for the Orchestrator and the Tasks to be able to achieve all of this they have to access and modify
-each others state directly. This means they are very tightly coupled with each other. To make this relation more
-obvious and to enforce it, you will only be able to create tasks inside an orchestrator.</p><p>If you have the need to refactor the creation of tasks so that you can use them in multiple orchestrators you can
-leverage self type annotations like so:</p><pre><span class="kw">trait</span> DatabaseTasks { self: AbstractOrchestrator[_] <span class="kw">=&gt;</span>
-  <span class="kw">def</span> createQueryTask(): Task = <span class="kw">new</span> Task(<span class="lit">""</span>) {
-    <span class="kw">val</span> destination: ActorPath = ???
-    <span class="kw">def</span> createMessage(correlationId: CorrelationId): <span class="std">Any</span> = ???
-
-    <span class="kw">def</span> behavior: Receive = ???
-  }
-}</pre></div></div>
+      
     </li><li name="pt.tecnico.dsi.akkastrator.AtLeast" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AtLeastextendsMinimumVoteswithProductwithSerializable"></a><a id="AtLeast:AtLeast"></a>
       <span class="permalink">
@@ -450,6 +445,24 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
         <a title="" href="AtLeast.html">
               <span class="name">AtLeast</span>
             </a><span class="params">(<span name="x">x: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <a href="MinimumVotes.html" class="extype" name="pt.tecnico.dsi.akkastrator.MinimumVotes">MinimumVotes</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Bundle" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Bundle[R]extendsOrchestrator[Seq[R]]"></a><a id="Bundle[R]:Bundle[R]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#Bundle[R]extendsOrchestrator[Seq[R]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Bundle.html">
+              <span class="name">Bundle</span>
+            </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="Orchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator">Orchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.Bundle.R">R</span>]]</span>
       </span>
       
       
@@ -472,9 +485,9 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
       
       
     </li><li name="pt.tecnico.dsi.akkastrator.DeliveryId" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DeliveryIdextendsAnyValwithOrdered[pt.tecnico.dsi.akkastrator.DeliveryId]withId"></a><a id="DeliveryId:DeliveryId"></a>
+      <a id="DeliveryIdextendsAnyValwithId"></a><a id="DeliveryId:DeliveryId"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#DeliveryIdextendsAnyValwithOrdered[pt.tecnico.dsi.akkastrator.DeliveryId]withId" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#DeliveryIdextendsAnyValwithId" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -485,7 +498,7 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
       <span class="symbol">
         <a title="" href="DeliveryId.html">
               <span class="name">DeliveryId</span>
-            </a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>] with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
+            </a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="Id.html" class="extype" name="pt.tecnico.dsi.akkastrator.Id">Id</a></span>
       </span>
       
       
@@ -507,7 +520,7 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
       </span>
       
       
-    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="DistinctIdsOrchestrator[R]extendsAbstractOrchestrator[R]"></a><a id="DistinctIdsOrchestrator[R]:DistinctIdsOrchestrator[R]"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#DistinctIdsOrchestrator[R]extendsAbstractOrchestrator[R]" title="Permalink">
@@ -519,18 +532,12 @@ leverage self type annotations like so:</p><pre><span class="kw">trait</span> Da
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator." href="DistinctIdsOrchestrator.html">
+        <a title="" href="DistinctIdsOrchestrator.html">
               <span class="name">DistinctIdsOrchestrator</span>
             </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator.R">R</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.</p><div class="fullcomment"><div class="comment cmt"><p>In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.
-To be able to achieve this, an extra state is needed: the DistinctIds.
-In this orchestrator the delivery id is not sufficient to disambiguate which task should handle the message,
-so the ID = CorrelationId and the matchId also needs to check the sender.
-There is also the added necessity of being able to compute the correlation id for a given (sender, deliveryId)
-as well as translating a correlation id back to a delivery id.
-</p></div></div>
+      
     </li><li name="pt.tecnico.dsi.akkastrator.Event" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="EventextendsAnyRef"></a><a id="Event:Event"></a>
       <span class="permalink">
@@ -549,7 +556,7 @@ as well as translating a correlation id back to a delivery id.
       </span>
       
       
-    </li><li name="pt.tecnico.dsi.akkastrator.FullTask" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.FullTask" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="FullTask[R,DL&lt;:shapeless.HList]extendsAnyRef"></a><a id="FullTask[R,DL&lt;:HList]:FullTask[R,DL]"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#FullTask[R,DL&lt;:shapeless.HList]extendsAnyRef" title="Permalink">
@@ -566,7 +573,7 @@ as well as translating a correlation id back to a delivery id.
             </a><span class="tparams">[<span name="R">R</span>, <span name="DL">DL &lt;: <span class="extype" name="shapeless.HList">HList</span></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="tparam">R</dt><dd class="cmt"><p>the result type of this task.</p></dd><dt class="tparam">DL</dt><dd class="cmt"><p>the type of the dependencies HList.</p></dd></dl></div>
+      
     </li><li name="pt.tecnico.dsi.akkastrator.Id" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="IdextendsAnywithProxy.Typed[Long]"></a><a id="Id:Id"></a>
       <span class="permalink">
@@ -600,24 +607,6 @@ as well as translating a correlation id back to a delivery id.
         <a title="" href="IdImplicits.html">
               <span class="name">IdImplicits</span>
             </a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      
-      
-    </li><li name="pt.tecnico.dsi.akkastrator.InitializationError" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="InitializationErrorextendsExceptionwithProductwithSerializable"></a><a id="InitializationError:InitializationError"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#InitializationErrorextendsExceptionwithProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="InitializationError.html">
-              <span class="name">InitializationError</span>
-            </a><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -657,25 +646,24 @@ as well as translating a correlation id back to a delivery id.
       </span>
       
       
-    </li><li name="pt.tecnico.dsi.akkastrator.MinimalState" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="MinimalStateextendsStatewithDistinctIds"></a><a id="MinimalState:MinimalState"></a>
+    </li><li name="pt.tecnico.dsi.akkastrator.MinimalState" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MinimalStateextendsStatewithDistinctIdswithProductwithSerializable"></a><a id="MinimalState:MinimalState"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#MinimalStateextendsStatewithDistinctIds" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#MinimalStateextendsStatewithDistinctIdswithProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="The simplest implementation of a State with DistinctIds." href="MinimalState.html">
+        <a title="" href="MinimalState.html">
               <span class="name">MinimalState</span>
-            </a><span class="result"> extends <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a></span>
+            </a><span class="params">(<span name="idsPerDestination">idsPerDestination: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="akka.actor.ActorPath">ActorPath</span>, <span class="extype" name="scala.collection.immutable.SortedMap">SortedMap</span>[<a href="CorrelationId.html" class="extype" name="pt.tecnico.dsi.akkastrator.CorrelationId">CorrelationId</a>, <a href="DeliveryId.html" class="extype" name="pt.tecnico.dsi.akkastrator.DeliveryId">DeliveryId</a>]] = <span class="symbol">Map.empty</span></span>)</span><span class="result"> extends <a href="State.html" class="extype" name="pt.tecnico.dsi.akkastrator.State">State</a> with <a href="DistinctIds.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIds">DistinctIds</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      <p class="shortcomment cmt">The simplest implementation of a State with DistinctIds.</p><div class="fullcomment"><div class="comment cmt"><p>The simplest implementation of a State with DistinctIds. The is the default state used by a DistinctIdsOrchestrator.</p><p>It is not a case class so the user can extend it and implement more complex states.
-</p></div></div>
+      
     </li><li name="pt.tecnico.dsi.akkastrator.MinimumVotes" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="MinimumVotesextendsInt=&gt;Int"></a><a id="MinimumVotes:MinimumVotes"></a>
       <span class="permalink">
@@ -694,7 +682,7 @@ as well as translating a correlation id back to a delivery id.
       </span>
       
       
-    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.Orchestrator" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Orchestrator[R]extendsAbstractOrchestrator[R]"></a><a id="Orchestrator[R]:Orchestrator[R]"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#Orchestrator[R]extendsAbstractOrchestrator[R]" title="Permalink">
@@ -706,18 +694,31 @@ as well as translating a correlation id back to a delivery id.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator." href="Orchestrator.html">
+        <a title="" href="Orchestrator.html">
               <span class="name">Orchestrator</span>
             </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.Orchestrator.R">R</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator.</p><div class="fullcomment"><div class="comment cmt"><p>In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
-destinations of the orchestrator. Because of this, ID = DeliveryId, and matchId only checks the deliveryId
-as that will be enough information to disambiguate which task should handle the response.
-</p></div></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.Settings" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Quorum" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Quorum[R]extendsDistinctIdsOrchestrator[R]"></a><a id="Quorum[R]:Quorum[R]"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#Quorum[R]extendsDistinctIdsOrchestrator[R]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Quorum.html">
+              <span class="name">Quorum</span>
+            </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="DistinctIdsOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.DistinctIdsOrchestrator">DistinctIdsOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.Quorum.R">R</span>]</span>
+      </span>
+      
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.Settings" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SettingsextendsAnyRef"></a><a id="Settings:Settings"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#SettingsextendsAnyRef" title="Permalink">
@@ -729,15 +730,12 @@ as that will be enough information to disambiguate which task should handle the 
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="This class holds all the settings that parameterize akkastrator." href="Settings.html">
+        <a title="" href="Settings.html">
               <span class="name">Settings</span>
             </a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <p class="shortcomment cmt">This class holds all the settings that parameterize akkastrator.</p><div class="fullcomment"><div class="comment cmt"><p>This class holds all the settings that parameterize akkastrator.</p><p>By default these settings are read from the Config obtained with <code>ConfigFactory.load()</code>.</p><p>You can change the settings in multiple ways:</p><ul><li>Change them in the default configuration file (e.g. application.conf)</li><li>Pass a different config holding your configurations: </li></ul><pre><span class="kw">new</span> Settings(yourConfig)</pre><p>    However it will be more succinct to pass your config directly to your akkastrator: </p><pre>context.actorOf(Props(classOf[YourOrchestrator], yourConfig))</pre><ul><li>Extend this class overriding the settings you want to redefine </li></ul><pre><span class="kw">object</span> YourSettings <span class="kw">extends</span> Settings() {
-  <span class="kw">override</span> <span class="kw">val</span> saveSnapshotEveryXMessages = <span class="num">1000</span>
-}
-context.actorOf(Props(classOf[YourOrchestrator], YourSettings))</pre></div></div>
+      
     </li><li name="pt.tecnico.dsi.akkastrator.SpawnAndStart" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SpawnAndStartextendsProductwithSerializable"></a><a id="SpawnAndStart:SpawnAndStart"></a>
       <span class="permalink">
@@ -792,7 +790,7 @@ context.actorOf(Props(classOf[YourOrchestrator], YourSettings))</pre></div></div
       </span>
       
       
-    </li><li name="pt.tecnico.dsi.akkastrator.Task" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+    </li><li name="pt.tecnico.dsi.akkastrator.Task" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Task[R]extendsAnyRef"></a><a id="Task[R]:Task[R]"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#Task[R]extendsAnyRef" title="Permalink">
@@ -804,25 +802,16 @@ context.actorOf(Props(classOf[YourOrchestrator], YourSettings))</pre></div></div
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator." href="Task.html">
+        <a title="" href="Task.html">
               <span class="name">Task</span>
             </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <p class="shortcomment cmt">A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.</p><div class="fullcomment"><div class="comment cmt"><p>A task corresponds to sending a message to an actor, handling its response and possibly
-mutate the internal state of the Orchestrator.</p><p>The answer(s) to the sent message must be handled in <code>behavior</code>. <code>behavior</code> must invoke <code>finish</code> when
-no further processing is necessary. Or <code>abort</code> if the received message will prevent subsequent
-tasks from executing properly.</p><p>The pattern matching inside <code>behavior</code> must invoke <code>matchId</code> to ensure the received message
-is in fact the one that this task its waiting to receive.</p><p>The internal state of the orchestrator might be mutated inside <code>behavior</code>.</p><p>This class is very tightly coupled with Orchestrator and the reverse is also true.
-Because of this you need to pass an instance of orchestrator.
-Because of this you can only create instances of Task inside an orchestrator.
-</p></div></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="TaskBundle[R]extendsTaskSpawnOrchestrator[Seq[R],pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator[R]]"></a><a id="TaskBundle[R]:TaskBundle[R]"></a>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TaskBundle[R]extendsTaskSpawnOrchestrator[Seq[R],pt.tecnico.dsi.akkastrator.Bundle[R]]"></a><a id="TaskBundle[R]:TaskBundle[R]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TaskBundle[R]extendsTaskSpawnOrchestrator[Seq[R],pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator[R]]" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TaskBundle[R]extendsTaskSpawnOrchestrator[Seq[R],pt.tecnico.dsi.akkastrator.Bundle[R]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -831,25 +820,16 @@ Because of this you can only create instances of Task inside an orchestrator.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-" href="TaskBundle.html">
+        <a title="" href="TaskBundle.html">
               <span class="name">TaskBundle</span>
-            </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.R">R</span>], <a href="TaskBundle$$InnerOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.InnerOrchestrator">InnerOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.R">R</span>]]</span>
+            </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.R">R</span>], <a href="Bundle.html" class="extype" name="pt.tecnico.dsi.akkastrator.Bundle">Bundle</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskBundle.R">R</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-</p><div class="fullcomment"><div class="comment cmt"><p>TaskBundle:
-  Variable number of tasks
-  Task return type must be the same
-</p></div><dl class="paramcmts block"><dt class="tparam">R</dt><dd class="cmt"><p>the type the AbstractOrchestrator created in Props must have as its type parameter.</p></dd></dl></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.TaskQuorum" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="TaskQuorum[R]extendsTaskSpawnOrchestrator[Seq[R],pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator[R]]"></a><a id="TaskQuorum[R]:TaskQuorum[R]"></a>
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskQuorum" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TaskQuorum[R]extendsTaskSpawnOrchestrator[R,pt.tecnico.dsi.akkastrator.Quorum[R]]"></a><a id="TaskQuorum[R]:TaskQuorum[R]"></a>
       <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TaskQuorum[R]extendsTaskSpawnOrchestrator[Seq[R],pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator[R]]" title="Permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TaskQuorum[R]extendsTaskSpawnOrchestrator[R,pt.tecnico.dsi.akkastrator.Quorum[R]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -858,19 +838,13 @@ Because of this you can only create instances of Task inside an orchestrator.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function." href="TaskQuorum.html">
+        <a title="" href="TaskQuorum.html">
               <span class="name">TaskQuorum</span>
-            </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>], <a href="TaskQuorum$$InnerOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.InnerOrchestrator">InnerOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</span>
+            </a><span class="tparams">[<span name="R">R</span>]</span><span class="result"> extends <a href="TaskSpawnOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator">TaskSpawnOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>, <a href="Quorum.html" class="extype" name="pt.tecnico.dsi.akkastrator.Quorum">Quorum</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskQuorum.R">R</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.</p><div class="fullcomment"><div class="comment cmt"><p>The quorum is obtained when X tasks finish, where X is calculated with the minimumVotes function.
-This means that each destination might give different answers but as long as they produce finished tasks
-these tasks will count towards the quorum.</p><p>TaskQuorum:
-  Variable number of tasks
-  Different destinations
-  Fixed message
-</p></div></div>
-    </li><li name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="TaskSpawnOrchestrator[R,O&lt;:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[R]]extendsTask[R]"></a><a id="TaskSpawnOrchestrator[R,O&lt;:AbstractOrchestrator[R]]:TaskSpawnOrchestrator[R,O]"></a>
       <span class="permalink">
       <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TaskSpawnOrchestrator[R,O&lt;:pt.tecnico.dsi.akkastrator.AbstractOrchestrator[R]]extendsTask[R]" title="Permalink">
@@ -882,19 +856,12 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively." href="TaskSpawnOrchestrator.html">
+        <a title="" href="TaskSpawnOrchestrator.html">
               <span class="name">TaskSpawnOrchestrator</span>
             </a><span class="tparams">[<span name="R">R</span>, <span name="O">O &lt;: <a href="AbstractOrchestrator.html" class="extype" name="pt.tecnico.dsi.akkastrator.AbstractOrchestrator">AbstractOrchestrator</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator.R">R</span>]</span>]</span><span class="result"> extends <a href="Task.html" class="extype" name="pt.tecnico.dsi.akkastrator.Task">Task</a>[<span class="extype" name="pt.tecnico.dsi.akkastrator.TaskSpawnOrchestrator.R">R</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.</p><div class="fullcomment"><div class="comment cmt"><p>In order for this task to work correctly one of two things must happen:
- · The created orchestrator must send to its parent a TasksFinished and a TasksAborted when it finishes or aborts respectively.
-   And must terminate afterwords of sending the message.
- · The method behavior must be overridden to handle the messages the inner orchestrator sends when it terminates or
-   aborts.
-</p></div><dl class="paramcmts block"><dt class="tparam">R</dt><dd class="cmt"><p>the type the AbstractOrchestrator created in Props must have as its type parameter.</p></dd><dt class="tparam">O</dt><dd class="cmt"><p>the type of AbstractOrchestrator the Props must create.</p></dd></dl></div>
+      
     </li></ol>
             </div>
 
@@ -1047,6 +1014,42 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
       </span>
       
       
+    </li><li name="pt.tecnico.dsi.akkastrator.QuorumImpossibleToAchieve" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QuorumImpossibleToAchieve"></a><a id="QuorumImpossibleToAchieve:QuorumImpossibleToAchieve"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#QuorumImpossibleToAchieve" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="QuorumImpossibleToAchieve$.html">
+              <span class="name">QuorumImpossibleToAchieve</span>
+            </a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      
+    </li><li name="pt.tecnico.dsi.akkastrator.QuorumNotAchieved" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QuorumNotAchieved"></a><a id="QuorumNotAchieved:QuorumNotAchieved"></a>
+      <span class="permalink">
+      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#QuorumNotAchieved" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="QuorumNotAchieved$.html">
+              <span class="name">QuorumNotAchieved</span>
+            </a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      
     </li><li name="pt.tecnico.dsi.akkastrator.Task" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Task"></a><a id="Task:Task"></a>
       <span class="permalink">
@@ -1062,60 +1065,6 @@ these tasks will count towards the quorum.</p><p>TaskQuorum:
         <a title="" href="Task$.html">
               <span class="name">Task</span>
             </a>
-      </span>
-      
-      
-    </li><li name="pt.tecnico.dsi.akkastrator.TaskBundle" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TaskBundle"></a><a id="TaskBundle:TaskBundle"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TaskBundle" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TaskBundle$.html">
-              <span class="name">TaskBundle</span>
-            </a>
-      </span>
-      
-      
-    </li><li name="pt.tecnico.dsi.akkastrator.TaskQuorum" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TaskQuorum"></a><a id="TaskQuorum:TaskQuorum"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TaskQuorum" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TaskQuorum$.html">
-              <span class="name">TaskQuorum</span>
-            </a>
-      </span>
-      
-      
-    </li><li name="pt.tecnico.dsi.akkastrator.TimedOut" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TimedOut"></a><a id="TimedOut:TimedOut"></a>
-      <span class="permalink">
-      <a href="../../../../pt/tecnico/dsi/akkastrator/index.html#TimedOut" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TimedOut$.html">
-              <span class="name">TimedOut</span>
-            </a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
