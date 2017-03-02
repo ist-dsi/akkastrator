@@ -50,7 +50,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
   
-    def postTask(what: String, where: String): FullTask[_, _] => Task[Unit] = new Task[Unit](_) {
+    def postTask(what: String, where: String): TaskBuilder[Unit] = new Task[Unit](_) {
       val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
   
       def createMessage(id: Long): Serializable = SimpleMessage(s"post $what in $where", id)
@@ -147,7 +147,8 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           val c: FullTask[Unit, _] = post(getHiggs :: where :: HNil)
           
           def post2(someParam: String)(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
-            FullTask("demo", dependencies) createTask { case (ta, tb) =>
+            
+            FullTask("demo", dependencies) createTask { case (ta, tb: String) =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString(s"akka://user/dummy/$someParam")
                 def createMessage(id: Long): Serializable = SimpleMessage(tb.substring(4), id)

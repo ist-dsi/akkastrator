@@ -34,8 +34,8 @@ object ActorSysSpec {
     var destinationProbes = Map.empty[String, TestProbe]
   
     def fulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable,
-                                                  result: R, dependencies: DL = HNil: HNil, timeout: Duration = Duration.Inf,
-                                                  abortOnReceive: Boolean = false)
+                                                  result: R, dependencies: DL = HNil: HNil,
+                                                  timeout: Duration = Duration.Inf, abortOnReceive: Boolean = false)
                                                  (implicit orchestrator: AbstractOrchestrator[_],
                                                   cm: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
                                                   tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
@@ -56,8 +56,9 @@ object ActorSysSpec {
       }
     }
     
-    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, result: R = "finished",
-                                                               dependencies: DL = HNil: HNil, timeout: Duration = Duration.Inf,
+    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe,
+                                                               result: R = "finished", dependencies: DL = HNil: HNil,
+                                                               timeout: Duration = Duration.Inf,
                                                                abortOnReceive: Boolean = false)
                                                               (implicit orchestrator: AbstractOrchestrator[_],
                                                                tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
@@ -234,7 +235,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       for((description, expected) <- state.expectedStatus) {
         // expected should contain (taskState(description))
         // does not work for the Aborted state because Exception does not implement its own equals.
-        expected.contains(taskState(description))
+        expected contains taskState(description)
       }
       logger.info("Status matched!")
     }
@@ -249,20 +250,21 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
         testStatus(state)
       }
   
-      probe.expectTerminated(orchestratorActor)
+      probe expectTerminated orchestratorActor
     }
     
     def expectInnerOrchestratorTermination(description: String, max: Duration = Duration.Undefined): Unit = {
       // We do not create Task{Quorum|Bundle}s via the fullTask of controllable orchestrator
       // so we cannot use the testProbeOfTask map to get the destination of the task
       orchestratorActor.tell(Status, probe.ref)
-      val tasks = probe.expectMsgClass(classOf[StatusResponse]).tasks
-      tasks.foreach {
+      probe.expectMsgClass(classOf[StatusResponse]).tasks.foreach {
+        case Task.Report(`description`, _, Task.Unstarted, _, _) =>
+          throw new IllegalStateException("Cannot expect for inner orchestrator termination if the inner orchestrator hasn't started.")
         case Task.Report(`description`, _, Task.Waiting, Some(destination), _) =>
           // To be able to watch an actor we need its ActorRef first
           system.actorSelection(destination).tell(Identify(1L), probe.ref)
           probe.expectMsgClass(classOf[ActorIdentity]) match {
-            case ActorIdentity(_, Some(ref)) =>
+            case ActorIdentity(1L, Some(ref)) =>
               // We know that when an orchestrator finishes or aborts it stops it self.
               // So we just need to expect for its termination.
               logger.info(s"Task $description destination ActorRef $ref")
@@ -271,10 +273,8 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
             case _ =>
               // The innerOrchestrator already finished, so we don't need to do anything
           }
-        case Task.Report(`description`, _, Task.Unstarted, _, _) =>
-          throw new IllegalStateException("Cannot expect for inner orchestrator termination if the inner orchestrator hasn't started.")
         case _ =>
-          // The task already finished
+          // The task already finished or aborted
       }
     }
   }

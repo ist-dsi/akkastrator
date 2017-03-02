@@ -38,6 +38,8 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
                                       |\t${t1.createMessage(1L)}
                                       |\t${t2.createMessage(1L)}""".stripMargin)
   } foreach { cause =>
+    // Makes it more obvious when debugging the application
+    log.error(withLogPrefix(cause.getMessage))
     onAbort(Aborted(cause, startId))
   }
   
@@ -58,6 +60,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   log.info(withLogPrefix(s"${tasks.size} tasks, need $votesToAchieveQuorum votes to get a quorum, $tolerance tasks can fail."))
   
   override def onTaskFinish(task: FullTask[_, _]): Unit = {
+    // Since the task has finished we know that there will be a result
     val result = task.unsafeResult.asInstanceOf[R]
     val currentCount = resultsCount.getOrElse(result, 0)
     val newCount = currentCount + 1
@@ -96,11 +99,11 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   
   override def onTaskAbort(task: FullTask[_, _], message: Any, cause: Exception): Unit = {
     tolerance -= 1
-  
+    
     log.debug(withLogPrefix(task.withLogPrefix(s"""Aborted.
                                                   |\tWinning Result: $winningResult, with $winningResultCount vote(s)
                                                   |\tWaiting for ${waitingTasks.size} more votes, $tolerance task can fail""".stripMargin)))
-  
+    
     if (tolerance < 0) {
       log.info(withLogPrefix("Tolerance surpassed."))
       abortWaitingTasks(QuorumImpossibleToAchieve)(
@@ -113,7 +116,6 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
       // So onFinish is invoked directly, it will terminate the Quorum with a QuorumNotAchieved.
       onFinish()
     }
-    
   }
   
   /** Aborts all tasks that are still waiting, but does not cause the orchestrator to abort.
@@ -146,7 +148,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   *   Different destinations
   *   Fixed message
   */
-class TaskQuorum[R](task: FullTask[_, _], minimumVotes: MinimumVotes)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
+class TaskQuorum[R](task: FullTask[_, _])(minimumVotes: MinimumVotes, tasksCreator: (AbstractOrchestrator[_]) => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[R, Quorum[R]](task)(
     Props(classOf[Quorum[R]], tasksCreator, minimumVotes, task.orchestrator.persistenceId)
   )

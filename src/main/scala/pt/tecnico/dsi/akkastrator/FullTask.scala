@@ -36,6 +36,8 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     */
   final val index = orchestrator.addTask(this)
   
+  // The colors are a huge help when debugging an orchestrator however if the logs are being sent
+  // to a file having colors makes the
   lazy val color = orchestrator.settings.taskColors(index % orchestrator.settings.taskColors.size)
   def withColor(message: => String): String = {
     if (orchestrator.settings.useTaskColors) {
@@ -64,25 +66,6 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   }
   
   def createTask(results: comapped.ResultsList): Task[R]
-  
-  /*
-  def createFormattedDescription(results: RL): String = {
-    // This is the default implementation
-    messageKey
-    // The more realistic implementation should be:
-  
-    //val pattern = fetch the pattern from a message file using description as a messageKey
-    //MessageFormat.format(pattern, results.toList[Any]:_*)
-  }
-  
-  def description: String = {
-    if (allDependenciesFinished) {
-      createFormattedDescription(buildResults())
-    } else {
-      messageKey
-    }
-  }
-  */
   
   protected final def allDependenciesFinished: Boolean = finishedDependencies == dependenciesIndexes.length
   

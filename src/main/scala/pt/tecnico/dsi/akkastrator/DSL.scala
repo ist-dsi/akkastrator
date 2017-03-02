@@ -7,23 +7,25 @@ import shapeless.ops.hlist.{At, Tupler}
 import shapeless.{Generic, HList, HNil, _0, ::}
 
 object DSL {
+  type TaskBuilder[R] = FullTask[_, _] => Task[R]
+  
   object FullTask {
     class PartialTask[DL <: HList, RL <: HList, RP] private[FullTask] (description: String, dependencies: DL, timeout: Duration)
                                                                       (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]) {
       // Ideally all of these methods would be called `createTask` but due to type erasure we cannot declare them so.
       
-      def createTaskWith[R](f: RL => (FullTask[_, _] => Task[R]))(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
+      def createTaskWith[R](f: RL => TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
         new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
           def createTask(results: comapped.ResultsList): Task[R] = f(results.asInstanceOf[RL])(this)
         }
       }
-      def createTask[R](f: RP => (FullTask[_, _] => Task[R]))(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
+      def createTask[R](f: RP => TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
         createTaskWith(resultsList => f(tupler(resultsList)))
       }
       
       import shapeless.ops.function.FnToProduct
       def createTaskF[F, T, R](builder: F)(implicit orchestrator: AbstractOrchestrator[_], fntp: FnToProduct.Aux[F, RL => T],
-                                          ev: <:<[T, FullTask[_, _] => Task[R]]): FullTask[R, DL] = {
+                                          ev: T <:< TaskBuilder[R]): FullTask[R, DL] = {
         createTaskWith(fntp(builder) andThen ev)
       }
     }

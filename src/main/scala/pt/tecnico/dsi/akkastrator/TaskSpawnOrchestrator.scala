@@ -87,7 +87,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
       finish(m, m.id, m.result)
     case m: Failure if matchId(m.id) =>
       abort(m, m.id, m.cause)
-    case m @ Timeout(id) =>
+    case m @ Timeout(id) if matchId(m.id) =>
       spawner.tell(m, orchestrator.self)
       // Make it look like the timeout is automatically handled
       abort(m, id, cause = new TimeoutException())
