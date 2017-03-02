@@ -55,7 +55,7 @@ libraryDependencies ++= Seq(
 addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.1" classifier "bundle")
 // Removes some of the redundancy of the compiler output and prints additional info for implicit resolution errors.
 resolvers += Resolver.bintrayRepo("tek", "maven")
-addCompilerPlugin("tryp" %% "splain" % "0.1.20")
+addCompilerPlugin("tryp" %% "splain" % "0.1.21")
 
 // This is needed for LevelDB to work in tests
 fork in Test := true
