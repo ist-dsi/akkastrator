@@ -19,6 +19,13 @@ libraryDependencies += "pt.tecnico.dsi" %% "akkastrator" % "0.8.0"
 We use [semantic versioning](http://semver.org).
 
 
+## Notes
+The content of the sent messages are not persisted to the journal, however the content of the received responses is
+persisted to the journal. This has the following implications:
+
+1. It is not possible to reap the benefits of Event Sourcing since the requests are not journaled. However it is possible
+to implement ES on top of akkastrator by sending aditional messages inside the orchestrators.
+2. If sensitive data is sent in the responses be sure to secure your journals as the data will be journaled there. 
 
 ## License
 Akkastrator is open source and available under the [MIT license](LICENSE).

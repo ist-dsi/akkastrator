@@ -85,7 +85,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       def createMessage(id: Long): Serializable = SimpleMessage(s"Ping $ip", id)
   
       def behavior: Receive = {
-        case m @ SimpleMessage(s, id) if matchId(id) =>
+        case m @ SimpleMessage(_, id) if matchId(id) =>
           finish(m, id, ())
       }
     }
@@ -100,7 +100,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
   def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: => O, numberOfTasks: Int): Unit = {
     val orchestrator = system.actorOf(Props(creator))
     orchestrator ! Status
-    val tasks = expectMsgClass(classOf[StatusResponse]).tasks
+    val tasks = expectMsgType[StatusResponse].tasks
     tasks.length shouldBe numberOfTasks
   }
   
@@ -148,7 +148,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           
           def post2(someParam: String)(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
             
-            FullTask("demo", dependencies) createTask { case (ta, tb: String) =>
+            FullTask("demo", dependencies) createTask { case (_, tb: String) =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString(s"akka://user/dummy/$someParam")
                 def createMessage(id: Long): Serializable = SimpleMessage(tb.substring(4), id)

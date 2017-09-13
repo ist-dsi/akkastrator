@@ -127,9 +127,9 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
       // We abort every waiting task to ensure that if this orchestrator crashes and is restarted
       // then it will correctly be restored to the correct state. And no messages are sent to the destinations.
       waitingTasks.values.foreach { task =>
-        // receivedMessage is set to None to make it more obvious that we did not receive a message for this task
-        // task is waiting which ensures it has a expectedId aka .get will never throw
-        task.innerAbort(receivedMessage = None, id = task.expectedId.get.self, cause) {
+        // receivedMessage is set to None to make it more obvious that we did not receive a message for this task.
+        // The task is waiting which ensures it has a expectedID aka .get will never throw
+        task.innerAbort(receivedMessage = None, id = task.expectedID.get.self, cause) {
           if (waitingTasks.isEmpty) {
             afterAllAborts
           }
@@ -140,7 +140,8 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
 }
 
 /**
-  * The quorum is obtained when X tasks finish and produce the same result, where X is calculated with the minimumVotes function.
+  * The quorum is obtained when X tasks finish and produce the same result.
+  * X is calculated with the minimumVotes function.
   *
   * TaskQuorum:
   *   Variable number of tasks
@@ -148,7 +149,8 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   *   Different destinations
   *   Fixed message
   */
-class TaskQuorum[R](task: FullTask[_, _])(minimumVotes: MinimumVotes, tasksCreator: (AbstractOrchestrator[_]) => Seq[FullTask[R, HNil]])
+class TaskQuorum[R](task: FullTask[_, _])(minimumVotes: MinimumVotes,
+                                          tasksCreator: (AbstractOrchestrator[_]) => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[R, Quorum[R]](task)(
     Props(classOf[Quorum[R]], tasksCreator, minimumVotes, task.orchestrator.persistenceId)
   )

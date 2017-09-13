@@ -1,13 +1,14 @@
 package pt.tecnico.dsi.akkastrator
 
+import scala.collection.immutable
 import scala.collection.immutable.HashMap
+import scala.collection.mutable
 
-import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful, Props}
+import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful}
 import akka.persistence._
+import shapeless.HNil
 
 object Orchestrator {
-  case class StartOrchestrator(id: Long)
-  
   trait Success[R] extends Serializable {
     def id: Long
     def result: R
@@ -22,10 +23,12 @@ object Orchestrator {
   case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Exception, id: Long) extends Failure
   
   case object Status
-  case class StatusResponse(tasks: IndexedSeq[Task.Report[_]])
+  case class StatusResponse(tasks: Seq[Task.Report[_]])
   
   case object SaveSnapshot
   case object ShutdownOrchestrator extends PossiblyHarmful
+  
+  protected[akkastrator] case class StartTask(index: Int)
 }
 
 /**
@@ -57,8 +60,8 @@ object Orchestrator {
   * @param settings the settings to use for this orchestrator.
   * @tparam R the type of result this orchestrator returns when it finishes.
   */
-sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends PersistentActor with AtLeastOnceDelivery
-  with ActorLogging with IdImplicits {
+sealed abstract class AbstractOrchestrator[R](val settings: Settings)
+  extends PersistentActor with AtLeastOnceDelivery with ActorLogging {
   import Orchestrator._
   
   /** The type of the state this orchestrator maintains. */
@@ -66,40 +69,26 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
   /** The type of Id this orchestrator handles. */
   type ID <: Id
   
-  protected[akkastrator] case class StartTask(index: Int)
-  
-  /** This actor is only used to check whether we are handling a timeout inside matchId.
-    * Since we will only be matching against its path we can instantiate the actor every time. */
-  private[akkastrator] val timeouterActorRef = context.actorOf(Props(new Actor {
-    def receive = Actor.ignoringBehavior
-  }), name = "timeouter")
-  
-  /** This exists to make the creation of tasks easier. */
+  /** This exists to make the creation of FullTasks easier. */
   final implicit val orchestrator: AbstractOrchestrator[_] = this
   
   /**
     * All the tasks this orchestrator will have will be stored here, which allows them to have a stable index.
     * Once every task is added to this list, this becomes "immutable", that is, it will no longer be modified.
-    * This is a Vector because we want to ensure indexing elements and appending is very fast O(eC).
+    * This is a Buffer because we want to ensure indexing elements is very fast. Also mutable.Buffer has about
+    * half the memory overhead of a List. See the excellent blog post of Li Haoyi for more details:
+    * http://www.lihaoyi.com/post/BenchmarkingScalaCollections.html#lists-vs-mutablebuffer
     */
-  private[this] final var _tasks = Vector.empty[FullTask[_, _]]
-  /**
-    * INTERNAL API
-    * Only FullTask takes advantage of the private[akkastrator].
-    */
-  private[akkastrator] def addTask(task: FullTask[_, _]): Int = {
-    val index = tasks.length
-    _tasks :+= task
-    index
-  }
-  def tasks: Vector[FullTask[_, _]] = _tasks
+  private[this] final val _tasks = mutable.Buffer.empty[FullTask[_, _]]
+  final def tasks: immutable.Seq[FullTask[_, _]] = _tasks.toVector // To make sure the mutability does not escape
   
-  // By using HashMaps instead of HashSets we let the implementation of hashCode and equals of Task and Action to be free.
-  // We use HashMaps to ensure remove/insert operations are very fast O(eC). The keys are the Task.index.
-  // If you look at the Orchestrator as an ExecutionContext or as a process scheduler these lists are the queues.
-  protected[akkastrator] final var unstartedTasks = HashMap.empty[Int, FullTask[_, _]]
-  protected[akkastrator] final var waitingTasks = HashMap.empty[Int, Task[_]]
-  protected[akkastrator] final var finishedTasks = 0
+  /** We use a HashMap to ensure remove/insert operations are very fast O(eC). The keys are the Task.index. */
+  protected[this] final var _waitingTasks = HashMap.empty[Int, Task[_]]
+  final def waitingTasks: HashMap[Int, Task[_]] = _waitingTasks
+  
+  private[this] final var _finishedTasks = 0
+  /** How many tasks of this orchestrator have successfully finished. Aborted tasks do not count as a finished task. */
+  final def finishedTasks: Int = _finishedTasks
   
   // The state this orchestrator is storing. Starts out empty.
   private[this] final var _state: S = _
@@ -122,8 +111,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     id
   }
   
-  def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
-  
   /**
     * Roughly every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
     * By default this method returns the value defined in the configuration.
@@ -136,21 +123,59 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     * By setting this to 0 and sending `SaveSnapshot` messages you can manually choose when to save snapshots.
     */
   def saveSnapshotRoughlyEveryXMessages: Int = settings.saveSnapshotRoughlyEveryXMessages
+  def scheduleSnapshotIfNeeded(): Unit = {
+    // It is lastSequenceNr % (saveSnapshotEveryXMessages * 2) because we persist MessageSent and MessageReceived,
+    // however we are only interested in MessageReceived. This will roughly correspond to every X MessageReceived.
+    if (saveSnapshotRoughlyEveryXMessages > 0 && lastSequenceNr % (saveSnapshotRoughlyEveryXMessages * 2) == 0) {
+      self ! SaveSnapshot
+    }
+  }
+  
+  def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
+  
+  implicit def toID(id: Long): ID
+  /** Computes ID from the deliveryId of akka-persistence. Also updates this orchestrator state if necessary. */
+  def computeID(destination: ActorPath, deliveryId: DeliveryId): ID
+  /** Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence. */
+  def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId
+  /** Ensures the received message was in fact destined to be received by `task`. */
+  def matchId(task: Task[_], id: ID): Boolean
+  
   
   /**
-    * Converts the deliveryId obtained from the deliver method of akka-persistence to ID.
-    * Also updates this orchestrator state if necessary.
+    * INTERNAL API
+    * Only FullTask takes advantage of the private[akkastrator].
     */
-  def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): ID
-  /**
-    * Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence.
-    */
-  def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId
-  /**
-    * Ensures the received message was in fact destined to be received by `task`.
-    */
-  def matchId(task: Task[_], id: Long): Boolean
+  private[akkastrator] def addTask(task: FullTask[_, _]): Int = {
+    val index = tasks.length
+    _tasks += task
+    // By adding the tasks without dependencies directly to _waitingTasks, we ensure that when the StartOrchestrator message
+    // is received we do not need to iterate through all the tasks to compute which ones can start right away.
+    if (task.dependencies == HNil) {
+      _waitingTasks += index -> task.innerCreateTask()
+    }
+    index
+  }
   
+  private[akkastrator] def taskStarted(task: FullTask[_, _], innerTask: Task[_]): Unit = {
+    _waitingTasks += task.index -> innerTask
+    context become computeCurrentBehavior()
+  }
+  
+  private[akkastrator] def taskFinished(task: FullTask[_, _]): Unit = {
+    _waitingTasks -= task.index
+    _finishedTasks += 1
+    context become computeCurrentBehavior()
+    
+    scheduleSnapshotIfNeeded()
+    
+    onTaskFinish(task)
+    
+    //TODO: does invoking onFinish inside the persistHandler cause any problem?
+    if (finishedTasks == tasks.size) {
+      onFinish()
+    }
+  }
   /**
     * User overridable callback. Its called every time a task finishes.
     *
@@ -177,6 +202,11 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     context stop self
   }
   
+  private[akkastrator] def taskAborted(task: FullTask[_, _]): Unit = {
+    _waitingTasks -= task.index
+    // We do not increment finishedTasks because the task did not finish
+    context become computeCurrentBehavior()
+  }
   /**
     * User overridable callback. Its called every time a task aborts.
     *
@@ -219,9 +249,13 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
       // When recovering the event is already persisted no need to persist it again.
       handler
     } else {
-      persist(event)(_ => handler)
+      persist(event) { _ =>
+        log.debug(withLogPrefix(s"Persisted ${event.getClass.getSimpleName}."))
+        handler
+      }
     }
   }
+  
   
   final def computeCurrentBehavior(): Receive = {
     val baseCommands: Actor.Receive = alwaysAvailableCommands orElse {
@@ -233,28 +267,23 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings) extends Pe
     waitingTasks.values.map(_.behaviorHandlingTimeout).fold(baseCommands)(_ orElse _) orElse extraCommands
   }
   
-  private def start(): Unit = {
-    if (tasks.isEmpty) {
-      onFinish()
-    } else if (!recoveryRunning) {
-      // When a task is created it adds itself to:
-      // · waitingTasks, if its dependencies == HNil
-      // · unstartedTasks, otherwise.
-      // So in order to start the orchestrator we only need to start the tasks in the waitingTasks map.
-      // This ruse ensures we do not have to iterate through every task in order to compute which ones are ready to start.
-      // Subsequent tasks will be started because computeCurrentBehavior (which is called inside start) handles the StartTask message.
-      waitingTasks.values.foreach(_.start())
-      // If recovery is running we don't need to start the tasks because we will eventually handle a MessageSent
-      // which will start the task(s).
-    }
-  }
-  
   final def unstarted: Actor.Receive = {
     case m @ StartOrchestrator(id) =>
       recoveryAwarePersist(m) {
         _startId = id
-        log.info(withLogPrefix(m.toString))
-        start()
+        log.info(withLogPrefix(s"Started with StardId=$id"))
+        if (tasks.isEmpty) {
+          onFinish()
+        } else if (!recoveryRunning) {
+          // Every task adds itself to `_tasks`. If it has no dependencies then it will also be added to `_waitingTasks`.
+          // So in order to start the orchestrator we only need to start the tasks in the `waitingTasks`.
+          // With this ruse we don't have to iterate through `tasks` in order to compute which ones are ready to start.
+          // Once a task finishes it will notify every task that depend on it that it was finished. When all the dependencies
+          // of a task finish a StartTask is scheduled.
+          waitingTasks.values.foreach(_.start())
+          // If recovery is running we don't need to start the tasks because we will eventually handle a MessageSent
+          // which will start the task(s).
+        }
       }
   }
   final def alwaysAvailableCommands: Actor.Receive = {
@@ -308,14 +337,15 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
   state = EmptyState
   
   /** This orchestrator uses DeliveryId directly because the same sequence number (of the akka-persistence)
-    * is used for all of its destinations. */
+    * is used for all of its destinations. Which means the destinations of this orchestrator will see gaps
+    * in the delivery ids of the received messages.*/
   final type ID = DeliveryId
   
-  final def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
-  final def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = id
-  final def matchId(task: Task[_], id: Long): Boolean = {
-    val deliveryId: DeliveryId = id
-    val matches = task.expectedDeliveryId.contains(deliveryId)
+  override final implicit def toID(id: Long): DeliveryId = new DeliveryId(id)
+  final def computeID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
+  final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = id
+  final def matchId(task: Task[_], id: ID): Boolean = {
+    val matches = task.expectedID.contains(id)
     
     log.debug(task.withLogPrefix{
       String.format(
@@ -325,12 +355,13 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
             |    VALUE │ %s
             | EXPECTED │ %s
             | Matches: %s""".stripMargin,
-        Some(deliveryId), task.expectedDeliveryId,
+        Some(id), task.expectedID,
         matches.toString.toUpperCase
       )
     })
     matches
   }
+  
 }
 
 /**
@@ -348,11 +379,12 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
   final type S = State with DistinctIds
   state = MinimalState()
   
-  /** This orchestrator uses CorrelationId for its ID.
-    * This is needed to ensure every destination sees an independent sequence. */
+  /** This orchestrator uses CorrelationId for its ID. This ensures every destination sees an independent
+    * sequence without gaps. */
   final type ID = CorrelationId
   
-  final def deliveryId2ID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
+  override final implicit def toID(id: Long): CorrelationId = new CorrelationId(id)
+  final def computeID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
     val correlationId = state.nextCorrelationIdFor(destination)
     
     state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
@@ -360,33 +392,30 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
     
     correlationId
   }
-  final def ID2DeliveryId(destination: ActorPath, id: Long): DeliveryId = {
-    state.deliveryIdFor(destination, id)
+  final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = {
+    state.deliveryIdOf(destination, id)
   }
-  final def matchId(task: Task[_], id: Long): Boolean = {
-    lazy val deliveryId = state.deliveryIdFor(task.destination, id)
+  final def matchId(task: Task[_], id: ID): Boolean = {
     lazy val (matchesSender, reason) = sender().path match {
-      case _ if recoveryRunning => (true, " because recovery is running.")
-      case s if s == timeouterActorRef.path => (true, " because we are handling a timeout.")
+      case s if s == context.system.deadLetters.path && recoveryRunning => (true, " because recovery is running.")
+      case s if s == self.path => (true, " because we are handling a timeout.")
       case s => (s == task.destination, "")
     }
-    
-    val matches = task.state == Task.Waiting && task.expectedDeliveryId.contains(deliveryId) && matchesSender
+    val matches = task.expectedID.contains(id) && matchesSender
     log.debug(task.withLogPrefix{
       val senderPathString = sender().path.toStringWithoutAddress
       val destinationString = task.destination.toStringWithoutAddress
       val length = senderPathString.length max destinationString.length
       String.format(
         s"""MatchId:
-           |($destinationString, CorrelationId($id)) resolved to $deliveryId
            |          │ %${length}s │ DeliveryId
            |──────────┼─%${length}s─┼──────────────────────────────
            |    VALUE │ %${length}s │ %s
            | EXPECTED │ %${length}s │ %s
            | Matches: %s""".stripMargin,
         "SenderPath", "─" * length,
-        senderPathString, Some(deliveryId),
-        destinationString, task.expectedDeliveryId,
+        senderPathString, Some(id),
+        destinationString, task.expectedID,
         matches.toString.toUpperCase + reason
       )
     })

@@ -33,7 +33,7 @@ class Step2_DependenciesSpec extends ActorSysSpec {
     
     withOrchestratorTermination(orchestrator) {
       for (i <- 0 until numberOfTasks) {
-        val message = destinations(i) expectMsgClass classOf[SimpleMessage]
+        val message = destinations(i).expectMsgType[SimpleMessage]
         for (j <- (i + 1) until numberOfTasks) {
           destinations(j).expectNoMsg(100.millis.dilated)
         }
@@ -58,7 +58,7 @@ class Step2_DependenciesSpec extends ActorSysSpec {
       }))
       
       withOrchestratorTermination(orchestrator) {
-        val a0m = destinationActor0 expectMsgClass classOf[SimpleMessage]
+        val a0m = destinationActor0.expectMsgType[SimpleMessage]
         destinationActor0 reply SimpleMessage("Destination 0", a0m.id)
       }
     }
@@ -73,8 +73,8 @@ class Step2_DependenciesSpec extends ActorSysSpec {
       }))
       
       withOrchestratorTermination(orchestrator) {
-        val a0m = destinations(0) expectMsgClass classOf[SimpleMessage]
-        val a1m = destinations(1) expectMsgClass classOf[SimpleMessage]
+        val a0m = destinations(0).expectMsgType[SimpleMessage]
+        val a1m = destinations(1).expectMsgType[SimpleMessage]
         destinations(0) reply SimpleMessage("Destination 0", a0m.id)
         destinations(1) reply SimpleMessage("Destination 1", a1m.id)
       }
@@ -101,15 +101,15 @@ class Step2_DependenciesSpec extends ActorSysSpec {
       }))
 
       withOrchestratorTermination(orchestrator) {
-        val a0m = destinations(0) expectMsgClass classOf[SimpleMessage]
+        val a0m = destinations(0).expectMsgType[SimpleMessage]
         destinations(2).expectNoMsg(100.millis.dilated)
         destinations(0) reply SimpleMessage("Destination 0", a0m.id)
 
-        val a1m = destinations(1) expectMsgClass classOf[SimpleMessage]
+        val a1m = destinations(1).expectMsgType[SimpleMessage]
         destinations(2).expectNoMsg(100.millis.dilated)
         destinations(1) reply SimpleMessage("Destination 1", a1m.id)
 
-        val a2m = destinations(2) expectMsgClass classOf[SimpleMessage]
+        val a2m = destinations(2).expectMsgType[SimpleMessage]
         destinations(2) reply SimpleMessage("Destination 2", a2m.id)
       }
     }

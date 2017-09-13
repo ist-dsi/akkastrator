@@ -473,7 +473,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
             { secondState =>
               // We don't answer to ensure that the orchestrator timeouts
               fruits.indices.par.foreach { i =>
-                destinations(i) expectMsgClass classOf[SimpleMessage]
+                destinations(i).expectMsgType[SimpleMessage]
               }
   
               // Ensure the timeout is triggered

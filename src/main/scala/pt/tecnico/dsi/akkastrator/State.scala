@@ -27,7 +27,7 @@ trait DistinctIds { self: State =>
     * The computation is just the biggest correlationId + 1 or 0 if no correlationId exists.
     */
   final def nextCorrelationIdFor(destination: ActorPath): CorrelationId = {
-    import pt.tecnico.dsi.akkastrator.IdImplicits._
+    import IdImplicits._
     idsOf(destination)
       .keySet.lastOption
       .map[CorrelationId](_.self + 1L)
@@ -39,7 +39,7 @@ trait DistinctIds { self: State =>
     * If the translation is unsuccessful an exception will be thrown in order to crash the orchestrator
     * since this will be a fatal error.
     */
-  private[akkastrator] def deliveryIdFor(destination: ActorPath, correlationId: CorrelationId): DeliveryId = {
+  private[akkastrator] def deliveryIdOf(destination: ActorPath, correlationId: CorrelationId): DeliveryId = {
     // While a Jedi waves his hand in the air: you cannot see a Option.get here.
     idsPerDestination.get(destination).flatMap(_.get(correlationId)) match {
       case Some(deliveryId) => deliveryId

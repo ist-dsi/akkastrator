@@ -166,7 +166,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     }))
     
     orchestratorActor.tell(GetDestinations, probe.ref)
-    val testProbeOfTask = probe.expectMsgClass(classOf[Destinations]).destinations
+    val testProbeOfTask = probe.expectMsgType[Destinations].destinations
     
     probe watch orchestratorActor
     
@@ -191,7 +191,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     
     def pingPong(destination: TestProbe, ignoreTimeoutError: Boolean = false): Unit = {
       try {
-        val m = destination expectMsgClass classOf[SimpleMessage]
+        val m = destination.expectMsgType[SimpleMessage]
         logger.info(s"$m: ${destination.sender()} <-> ${destination.ref}")
         //system.actorSelection(destination.sender().path).tell(m, destination.ref)
         destination reply m
@@ -228,7 +228,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     
     def testStatus(state: State, max: FiniteDuration = remainingOrDefault): Unit = {
       orchestratorActor.tell(Status, probe.ref)
-      val taskState = probe.expectMsgClass(max, classOf[StatusResponse])
+      val taskState = probe.expectMsgType[StatusResponse](max)
         .tasks
         .map(t => (t.description, t.state))
         .toMap
@@ -257,13 +257,13 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       // We do not create Task{Quorum|Bundle}s via the fullTask of controllable orchestrator
       // so we cannot use the testProbeOfTask map to get the destination of the task
       orchestratorActor.tell(Status, probe.ref)
-      probe.expectMsgClass(classOf[StatusResponse]).tasks.foreach {
+      probe.expectMsgType[StatusResponse].tasks.foreach {
         case Task.Report(`description`, _, Task.Unstarted, _, _) =>
           throw new IllegalStateException("Cannot expect for inner orchestrator termination if the inner orchestrator hasn't started.")
         case Task.Report(`description`, _, Task.Waiting, Some(destination), _) =>
           // To be able to watch an actor we need its ActorRef first
           system.actorSelection(destination).tell(Identify(1L), probe.ref)
-          probe.expectMsgClass(classOf[ActorIdentity]) match {
+          probe.expectMsgType[ActorIdentity] match {
             case ActorIdentity(1L, Some(ref)) =>
               // We know that when an orchestrator finishes or aborts it stops it self.
               // So we just need to expect for its termination.

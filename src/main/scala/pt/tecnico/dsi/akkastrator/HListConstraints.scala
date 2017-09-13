@@ -39,10 +39,10 @@ object HListConstraints {
       }
   }
   
-  implicit class taskHListOps[L <: HList](val l: L) extends AnyVal {
-    def forEach(f: FullTask[_, _] => Unit)(implicit ev: TaskComapped[L]): Unit = {
-      //The implicit TaskCommaped ensures that every element of the HList L is of type FullTask[_, _, _]
-      //So we annotated l with @unchecked because otherwise the compiler would think the match is not exhaustive, which it is.
+  implicit class taskHListOps[L <: HList](l: L)(implicit ev: TaskComapped[L]) {
+    def foreach(f: FullTask[_, _] => Unit): Unit = {
+      // The implicit TaskComaped ensures that every element of the HList L is of type FullTask[_, _]
+      // So we annotated l with @unchecked because otherwise the compiler would think the match is not exhaustive, which it is.
       @tailrec def loop(l: HList): Unit = (l: @unchecked) match {
         case HNil => ()
         case (head: FullTask[_, _]) :: tail =>

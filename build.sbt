@@ -1,4 +1,7 @@
+import java.net.URL
+
 import ExtraReleaseKeys._
+import sbt.{Developer, ScmInfo}
 
 organization := "pt.tecnico.dsi"
 name := "akkastrator"
@@ -7,31 +10,47 @@ name := "akkastrator"
 //==== Compile Options =================================================================================================
 //======================================================================================================================
 javacOptions ++= Seq("-Xlint", "-encoding", "UTF-8", "-Dfile.encoding=utf-8")
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.3"
 scalacOptions ++= Seq(
-  "-deprecation",                   //Emit warning and location for usages of deprecated APIs.
-  "-encoding", "UTF-8",             //Use UTF-8 encoding. Should be default.
-  "-feature",                       //Emit warning and location for usages of features that should be imported explicitly.
-  "-language:implicitConversions",  //Explicitly enables the implicit conversions feature
-  "-unchecked",                     //Enable detailed unchecked (erasure) warnings
-  "-Xfatal-warnings",               //Fail the compilation if there are any warnings.
-  "-Xlint",                         //Enable recommended additional warnings.
-  "-Yno-adapted-args",              //Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
-  "-Ywarn-dead-code",               //Warn when dead code is identified.
-  "-Ywarn-inaccessible",            //Warn about inaccessible types in method signatures.
-  "-Ywarn-infer-any",               //Warn when a type argument is inferred to be `Any`.
-  "-Ywarn-nullary-override",        //Warn when non-nullary `def f()' overrides nullary `def f'.
-  "-Ywarn-nullary-unit",            //Warn when nullary methods return Unit.
-  "-Ywarn-numeric-widen",           //Warn when numerics are widened.
-  "-Ywarn-unused",                  //Warn when local and private vals, vars, defs, and types are unused.
-  "-Ywarn-unused-import"            //Warn when imports are unused.
+  "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
+  "-encoding", "utf-8",                // Specify character encoding used by source files.
+  "-explaintypes",                     // Explain type errors in more detail.
+  "-feature",                          // Emit warning and location for usages of features that should be imported explicitly.
+  "-language:implicitConversions",     // Explicitly enables the implicit conversions feature
+  "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
+  // This causes akka to fail. https://github.com/akka/akka/issues/23453
+  //"-Xcheckinit",                       // Wrap field accessors to throw an exception on uninitialized access.
+  "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
+  "-Xfuture",                          // Turn on future language features.
+  "-Ypartial-unification",             // Enable partial unification in type constructor inference
+  "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
+  //"-Xlint",                            // Enables every warning. scala -Xlint:help for a list and explanation
+  "-Xlint:_,-unused",                  // Enables every warning except "unused". scala -Xlint:help for a list and explanation
+  "-Ywarn-dead-code",                  // Warn when dead code is identified.
+  "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
+  "-Ywarn-numeric-widen",              // Warn when numerics are widened.
+  "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
+  "-Ywarn-unused:privates",            // Warn if a private member is unused.
+  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
+  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+  //"-Ywarn-unused:params",              // Warn if a value parameter is unused.
+  "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+  //"-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
 )
+// These lines ensure that in sbt console or sbt test:console the -Ywarn* and the -Xfatal-warning are not bothersome.
+// https://stackoverflow.com/questions/26940253/in-sbt-how-do-you-override-scalacoptions-for-console-in-all-configurations
+scalacOptions in (Compile, console) ~= (_ filterNot { option =>
+  option.startsWith("-Ywarn") || option == "-Xfatal-warnings"
+})
+scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value
 
 //======================================================================================================================
 //==== Dependencies ====================================================================================================
 //======================================================================================================================
-val akkaVersion = "2.4.17"
+val akkaVersion = "2.5.4"
 libraryDependencies ++= Seq(
+  //Config
+  "com.typesafe" % "config" % "1.3.1",
   //Shapeless
   "com.chuusai" %% "shapeless" % "2.3.2",
   //Akka
@@ -41,21 +60,21 @@ libraryDependencies ++= Seq(
   "org.iq80.leveldb" % "leveldb" % "0.9" % Test,
   "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8" % Test,
   //Logging
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0" % Test,
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2" % Test,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
-  "ch.qos.logback" % "logback-classic" % "1.2.1" % Test,
+  "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
   //Testing
-  "org.scalatest" %% "scalatest" % "3.0.1" % Test,
+  "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
 
   "commons-io" % "commons-io" % "2.5" % Test
 )
 // Good advice for Scala compiler errors: tells you when you need to provide implicit instances
-//addSbtPlugin("com.softwaremill.clippy" % "plugin-sbt" % "0.3.5")
-addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.1" classifier "bundle")
+/*addSbtPlugin("com.softwaremill.clippy" % "plugin-sbt" % "0.3.5")
+addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.1" classifier "bundle")*/
 // Removes some of the redundancy of the compiler output and prints additional info for implicit resolution errors.
-resolvers += Resolver.bintrayRepo("tek", "maven")
-addCompilerPlugin("tryp" %% "splain" % "0.1.21")
+/*resolvers += Resolver.bintrayRepo("tek", "maven")
+addCompilerPlugin("tryp" %% "splain" % "0.1.21")*/
 
 // This is needed for LevelDB to work in tests
 fork in Test := true
@@ -75,69 +94,30 @@ scalacOptions in (Compile, doc) ++= Seq(
 //link against the API documentation using autoAPIMappings.
 apiURL := Some(url(s"${homepage.value.get}/${latestReleasedVersion.value}/api/"))
 
-site.settings
-site.includeScaladoc()
-ghpages.settings
+enablePlugins(GhpagesPlugin)
+enablePlugins(SiteScaladocPlugin)
 git.remoteRepo := s"git@github.com:ist-dsi/${name.value}.git"
 
 //======================================================================================================================
 //==== Deployment ======================================================================================================
 //======================================================================================================================
-publishMavenStyle := true
+/*def artifactsDsiRepo(status: String): Resolver = {
+  MavenRepository(s"maven-$status", s"https://artifacts.dsi.tecnico.ulisboa.pt/nexus_deploy/repository/maven-$status")
+}
+publishTo := Some(artifactsDsiRepo(if (isSnapshot.value) "snapshots" else "releases"))*/
 publishTo := Some(if (isSnapshot.value) Opts.resolver.sonatypeSnapshots else Opts.resolver.sonatypeStaging)
-publishArtifact in Test := false
 sonatypeProfileName := organization.value
 
-pomIncludeRepository := { _ => false }
-homepage := Some(url(s"https://github.com/ist-dsi/${name.value}"))
 licenses += "MIT" -> url("http://opensource.org/licenses/MIT")
+homepage := Some(url(s"https://github.com/ist-dsi/${name.value}"))
 scmInfo := Some(ScmInfo(homepage.value.get, s"git@github.com:ist-dsi/${name.value}.git"))
-pomExtra :=
-  <developers>
-    <developer>
-      <id>Lasering</id>
-      <name>Simão Martins</name>
-      <url>https://github.com/Lasering</url>
-    </developer>
-  </developers>
+developers += Developer("Lasering", "Simão Martins", "", new URL("https://github.com/Lasering"))
 
-
-lazy val writeVersions: ReleaseStep = { st: State =>
-  import sbtrelease.ReleasePlugin.autoImport.ReleaseKeys.versions
-  import sbtrelease.Utilities._
-  import sbtrelease.ReleaseStateTransformations.reapply
-  
-  val vs = st.get(versions).getOrElse(sys.error("No versions are set! Was this release part executed before inquireVersions?"))
-  val (releasedVersion, nextVersion) = vs
-  
-  
-  st.log.info("Setting version to '%s'." format nextVersion)
-  
-  val useGlobal = st.extract.get(releaseUseGlobalVersion)
-  val global = if (useGlobal) "in ThisBuild " else ""
-  val versionStr = s"""import ExtraReleaseKeys._
-                      |version $global := "$nextVersion"
-                      |latestReleasedVersion $global := "$releasedVersion"""".stripMargin
-  
-  val file = st.extract.get(releaseVersionFile)
-  IO.writeLines(file, Seq(versionStr))
-  
-  reapply(Seq(
-    if (useGlobal) {
-      version in ThisBuild := nextVersion
-    } else {
-      version := nextVersion
-    },
-    if (useGlobal) {
-      latestReleasedVersion in ThisBuild := releasedVersion
-    } else {
-      latestReleasedVersion := releasedVersion
-    }
-  ), st)
-}
-
-//Will fail a build if updates for the dependencies are found
+// Will fail the build/release if updates for the dependencies are found
 dependencyUpdatesFailBuild := true
+
+//coverageFailOnMinimum := true
+//coverageMinimum := 90
 
 import ReleaseTransformations._
 releaseProcess := Seq[ReleaseStep](

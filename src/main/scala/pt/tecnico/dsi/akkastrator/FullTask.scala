@@ -1,11 +1,12 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.concurrent.duration.Duration
 import scala.collection.immutable.Seq
+import scala.concurrent.duration.Duration
 
 import pt.tecnico.dsi.akkastrator.HListConstraints.{TaskComapped, taskHListOps}
+import pt.tecnico.dsi.akkastrator.Orchestrator.StartTask
 import pt.tecnico.dsi.akkastrator.Task._
-import shapeless.{HList, HNil}
+import shapeless.HList
 
 /**
   * @param description a text that describes this task in a human readable way, or a message key to be used in
@@ -37,7 +38,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   final val index = orchestrator.addTask(this)
   
   // The colors are a huge help when debugging an orchestrator however if the logs are being sent
-  // to a file having colors makes the
+  // to a file having colors makes the file troublesome to read
   lazy val color = orchestrator.settings.taskColors(index % orchestrator.settings.taskColors.size)
   def withColor(message: => String): String = {
     if (orchestrator.settings.useTaskColors) {
@@ -51,19 +52,11 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   private def addDependent(dependent: FullTask[_, _]): Unit = dependents +:= dependent
   
   //Initialization
-  dependencies.forEach { dependency =>
+  dependencies.foreach { dependency =>
     dependency.addDependent(this)
     dependenciesIndexes +:= dependency.index
   }
   //From here on the dependents and dependenciesIndexes are no longer changed. They are just iterated over.
-  
-  // By adding the tasks directly to the right list, we ensure that when the StartOrchestrator message
-  // is received we do not need to iterate through all the tasks to compute which ones can start right away.
-  if (dependencies == HNil) {
-    orchestrator.waitingTasks += index -> innerCreateTask()
-  } else {
-    orchestrator.unstartedTasks += index -> this
-  }
   
   def createTask(results: comapped.ResultsList): Task[R]
   
@@ -80,12 +73,18 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     * Creates the `innerTask` using the results obtained from `buildResults` and returns it.
     * Also saves it in the innerTask field.
     */
-  private final def innerCreateTask(): Task[R] = {
+  private[akkastrator] final def innerCreateTask(): Task[R] = {
     val results = buildResults()
     val task = createTask(results)
     innerTask = Some(task)
     task
   }
+  
+  /** Starts this task. */
+  final def start(): Unit = innerCreateTask().start()
+  
+  /** Iterates through the dependents of this task and informs them that this task has finished. */
+  final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
   
   /** When a dependency of this task finishes this method is invoked. */
   private final def dependencyFinished(): Unit = {
@@ -100,7 +99,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
       //  · The persist handle will be executing during a much shorter period of time.
       // This also means that tasks are started in a breadth-first order.
       if (!orchestrator.recoveryRunning) {
-        orchestrator.self ! orchestrator.StartTask(index)
+        orchestrator.self ! StartTask(index)
       }
       // When the orchestrator is recovering we do not send the StartTask for the following reasons:
       //  · The MessageSent would always be handled before the StartTask in the receiveRecover of the orchestrator.
@@ -108,11 +107,6 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
       //    So if we also sent the StartTask then the task would be started again at a later time when it was already waiting.
     }
   }
-  
-  private[akkastrator] final def start(): Unit = innerCreateTask().start()
-  
-  /** Iterates through the dependents of this task and informs them that this task has finished. */
-  final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
   
   /** @return the current state of this task. */
   final def state: Task.State = innerTask.map(_.state).getOrElse(Unstarted)

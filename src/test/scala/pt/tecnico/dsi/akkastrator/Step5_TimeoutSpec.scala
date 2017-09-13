@@ -59,7 +59,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         val testCase1 = new TestCase[ExplicitTimeoutHandling](1, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              testProbeOfTask("A") expectMsgClass classOf[SimpleMessage]
+              testProbeOfTask("A").expectMsgType[SimpleMessage]
               // We purposefully do not reply
               
               secondState.updatedStatuses(
@@ -76,7 +76,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         val testCase2 = new TestCase[AutomaticTimeoutHandling](1, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              testProbeOfTask("A") expectMsgClass classOf[SimpleMessage]
+              testProbeOfTask("A").expectMsgType[SimpleMessage]
               // We purposefully do not reply
               
               secondState.updatedStatuses(
