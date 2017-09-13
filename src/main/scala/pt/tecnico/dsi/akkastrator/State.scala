@@ -4,21 +4,13 @@ import akka.actor.ActorPath
 
 import scala.collection.immutable.SortedMap
 
-trait State
+sealed trait State
 case object EmptyState extends State
 
-trait DistinctIds { self: State =>
-  //By using a SortedMap as opposed to a Map we can also extract the latest correlationId per sender
-  //This must be a val to ensure the returned value is always the same.
-  val idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]
-
-  /**
-    * @return a new copy of State with the new IdsPerDestination.
-    */
-  def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): State with DistinctIds
-
+//By using a SortedMap as opposed to a Map we can also extract the latest correlationId per sender
+final case class DistinctIdsState(idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State {
   /** @return the relations between CorrelationId and DeliveryId for the given `destination`. */
-  final def idsOf(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
+  def idsOf(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
     idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId])
   }
   
@@ -26,7 +18,7 @@ trait DistinctIds { self: State =>
     * Compute the next correlationId for the given `destination`.
     * The computation is just the biggest correlationId + 1 or 0 if no correlationId exists.
     */
-  final def nextCorrelationIdFor(destination: ActorPath): CorrelationId = {
+  def nextCorrelationIdFor(destination: ActorPath): CorrelationId = {
     import IdImplicits._
     idsOf(destination)
       .keySet.lastOption
@@ -53,16 +45,7 @@ trait DistinctIds { self: State =>
   /**
     * @return a new copy of State with the IdsPerDestination updated for `destination` using the `newIdRelation`.
     */
-  final def updatedIdsPerDestination(destination: ActorPath, newIdRelation: (CorrelationId, DeliveryId)): State with DistinctIds = {
-    withIdsPerDestination(idsPerDestination.updated(destination, idsOf(destination) + newIdRelation))
-  }
-}
-
-/**
-  * The simplest implementation of a State with DistinctIds. The is the default state used by a DistinctIdsOrchestrator.
-  */
-case class MinimalState(idsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = Map.empty) extends State with DistinctIds {
-  def withIdsPerDestination(newIdsPerDestination: Map[ActorPath, SortedMap[CorrelationId, DeliveryId]]): MinimalState = {
-    MinimalState(newIdsPerDestination)
+  def updatedIdsPerDestination(destination: ActorPath, newIdRelation: (CorrelationId, DeliveryId)): DistinctIdsState = {
+    this.copy(idsPerDestination.updated(destination, idsOf(destination) + newIdRelation))
   }
 }

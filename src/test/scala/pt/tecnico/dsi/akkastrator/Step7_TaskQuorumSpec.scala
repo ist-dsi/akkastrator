@@ -44,7 +44,7 @@ object Step7_TaskQuorumSpec {
     FullTask("A") createTask { _ =>
       new TaskQuorum(_)(minimumVotes = AtLeast(2), o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"A-$fruit", destinations(i), SimpleMessage("A-InnerTask", _), fruit.length)(o)
+          fulltask(s"A-$fruit", destinations(i), (id: Long) => SimpleMessage(id), fruit.length)(o)
         }
       )
     }
@@ -56,7 +56,7 @@ object Step7_TaskQuorumSpec {
       new TaskQuorum(_)(minimumVotes = Majority, o =>
         // Every inner task will give a different answer
         Seq.tabulate(5)("a" * _).zipWithIndex.map { case (string, i) =>
-          fulltask(s"A-$string", destinations(i), SimpleMessage("A-InnerTask", _), string.length)(o)
+          fulltask(s"A-$string", destinations(i), (id: Long) => SimpleMessage(id), string.length)(o)
         }
       )
     }
@@ -68,7 +68,7 @@ object Step7_TaskQuorumSpec {
     FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(minimumVotes = Majority, o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"B-$fruit", destinations(i + 1), SimpleMessage("B-InnerTask", _), fruit.length, abortOnReceive = i < 2)(o)
+          fulltask(s"B-$fruit", destinations(i + 1), (id: Long) => SimpleMessage(id), fruit.length, abortOnReceive = i < 2)(o)
         }
       )
     }
@@ -82,22 +82,22 @@ object Step7_TaskQuorumSpec {
     val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(minimumVotes = Majority, o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"B-$fruit", destinations(i + 6), SimpleMessage("B message", _), fruit.length)(o)
+          fulltask(s"B-$fruit", destinations(i + 6), (id: Long) => SimpleMessage(id), fruit.length)(o)
         }
       )
     }
     val c = FullTask("C", a :: HNil) createTaskWith { case fruits :: HNil =>
       new TaskQuorum(_)(AtLeast(2), o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"C-$fruit", destinations(i + 1), SimpleMessage("C message", _), fruit.length)(o)
+          fulltask(s"C-$fruit", destinations(i + 1), (id: Long) => SimpleMessage(id), fruit.length)(o)
         }
       )
     }
     // Using tuple syntax makes it prettier
     FullTask("D", (b, c), Duration.Inf) createTask { case (fruitsLengthB, fruitsLengthC) =>
       new TaskQuorum(_)(All, o => Seq(
-        fulltask("D-B", destinations(11), SimpleMessage("D message", _), fruitsLengthB)(o),
-        fulltask("D-C", destinations(12), SimpleMessage("D message", _), fruitsLengthC)(o)
+        fulltask("D-B", destinations(11), (id: Long) => SimpleMessage(id), fruitsLengthB)(o),
+        fulltask("D-C", destinations(12), (id: Long) => SimpleMessage(id), fruitsLengthC)(o)
       ))
     }
   }
@@ -109,7 +109,7 @@ object Step7_TaskQuorumSpec {
       // Given that one of the tasks aborts so should the Quorum
       new TaskQuorum(_)(minimumVotes = All, o =>
         (0 to 2) map { i =>
-          fulltask(s"B-$i", destinations(i), SimpleMessage("B-InnerTask", _), "some nice result", timeout = 100.millis)(o)
+          fulltask(s"B-$i", destinations(i), (id: Long) => SimpleMessage(id), "some nice result", timeout = 100.millis)(o)
         }
       )
     }
@@ -127,7 +127,7 @@ object Step7_TaskQuorumSpec {
     FullTask("A") createTask { _ =>
       new TaskQuorum(_)(minimumVotes = Majority, o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"A-$fruit", destinations(i), SimpleMessage("A-InnerTask", _), fruit.length,
+          fulltask(s"A-$fruit", destinations(i), (id: Long) => SimpleMessage(id), fruit.length,
             abortOnReceive = i > 2)(o)
         }
       )

@@ -45,11 +45,11 @@ object ActorSysSpec {
           val destination: ActorPath = dest.ref.path
           def createMessage(id: Long): Serializable = message(id)
           def behavior: Receive =  {
-            case m @ SimpleMessage(_, id) if matchId(id) =>
+            case SimpleMessage(id) if matchId(id) =>
               if (abortOnReceive) {
-                abort(m, id, testsAbortReason)
+                abort(testsAbortReason)
               } else {
-                finish(m, id, result)
+                finish(result)
               }
           }
         }
@@ -63,7 +63,7 @@ object ActorSysSpec {
                                                               (implicit orchestrator: AbstractOrchestrator[_],
                                                                tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
                                                                tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
-      fulltask(description, dest, SimpleMessage(description, _), result, dependencies, timeout, abortOnReceive)
+      fulltask(description, dest, SimpleMessage, result, dependencies, timeout, abortOnReceive)
     }
   
     override def persistenceId: String = this.getClass.getSimpleName

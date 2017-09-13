@@ -13,7 +13,12 @@ object DSL {
     class PartialTask[DL <: HList, RL <: HList, RP] private[FullTask] (description: String, dependencies: DL, timeout: Duration)
                                                                       (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]) {
       // Ideally all of these methods would be called `createTask` but due to type erasure we cannot declare them so.
-      
+  
+      /*def createTask[R](f: TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_], ev: DL =:= HNil): FullTask[R, HNil] = {
+        new FullTask[R, HNil](description, dependencies, timeout)(orchestrator, TaskComapped[HNil]) {
+          def createTask(results: comapped.ResultsList): Task[R] = f(this)
+        }
+      }*/
       def createTaskWith[R](f: RL => TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
         new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
           def createTask(results: comapped.ResultsList): Task[R] = f(results.asInstanceOf[RL])(this)

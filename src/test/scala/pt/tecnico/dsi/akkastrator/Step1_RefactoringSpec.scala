@@ -14,11 +14,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     val theOneTask: FullTask[Unit, HNil] = FullTask("the One") createTask { _ =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-        def createMessage(id: Long): Serializable = SimpleMessage("TheOneTask", id)
+        def createMessage(id: Long): Serializable = SimpleMessage(id)
       
         def behavior: Receive = {
-          case m @ SimpleMessage(_, id) if matchId(id) =>
-            finish(m, id, ())
+          case SimpleMessage(id) if matchId(id) => finish(())
         }
       }
     }
@@ -26,11 +25,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     def deleteUser(user: String): FullTask[Unit, HNil] = FullTask(s"Delete user $user") createTaskWith { case HNil =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-        def createMessage(id: Long): Serializable = SimpleMessage(s"DELETE $user", id)
+        def createMessage(id: Long): Serializable = SimpleMessage(id)
   
         def behavior: Receive = {
-          case m @ SimpleMessage(_, id) if matchId(id) =>
-            finish(m, id, ())
+          case SimpleMessage(id) if matchId(id) => finish(())
         }
       }
     }
@@ -41,11 +39,11 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
   
-        def createMessage(id: Long): Serializable = SimpleMessage("AnotherTask", id)
+        def createMessage(id: Long): Serializable = SimpleMessage(id)
   
         def behavior: Receive = {
-          case m @ SimpleMessage(_, id) if matchId(id) =>
-            finish(m, id, "a non-zero constant value almost everywhere")
+          case SimpleMessage(id) if matchId(id) =>
+            finish("a non-zero constant value almost everywhere")
         }
       }
     }
@@ -53,11 +51,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     def postTask(what: String, where: String): TaskBuilder[Unit] = new Task[Unit](_) {
       val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
   
-      def createMessage(id: Long): Serializable = SimpleMessage(s"post $what in $where", id)
+      def createMessage(id: Long): Serializable = SimpleMessage(id)
   
       def behavior: Receive = {
-        case m @ SimpleMessage(_, id) if matchId(id) =>
-          finish(m, id, ())
+        case SimpleMessage(id) if matchId(id) => finish(())
       }
     }
     
@@ -70,11 +67,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     val obtainLocation: FullTask[String, HNil] = FullTask("obtain The location") createTaskWith { case HNil =>
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-        def createMessage(id: Long): Serializable = SimpleMessage("SomeTask", id)
+        def createMessage(id: Long): Serializable = SimpleMessage(id)
       
         def behavior: Receive = {
-          case m @ SimpleMessage(_, id) if matchId(id) =>
-            finish(m, id, "::1")
+          case SimpleMessage(id) if matchId(id) => finish("::1")
         }
       }
     }
@@ -82,11 +78,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     case class PingTask(ip: String)(ft: FullTask[_, _]) extends Task[Unit](ft) {
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/f")
-      def createMessage(id: Long): Serializable = SimpleMessage(s"Ping $ip", id)
+      def createMessage(id: Long): Serializable = SimpleMessage(id)
   
       def behavior: Receive = {
-        case m @ SimpleMessage(_, id) if matchId(id) =>
-          finish(m, id, ())
+        case SimpleMessage(id) if matchId(id) => finish(())
       }
     }
     
@@ -135,11 +130,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           val where: FullTask[String, HNil] = FullTask("get where") createTaskWith { case HNil =>
             new Task[String](_) {
               val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-              def createMessage(id: Long): Serializable = SimpleMessage("Where", id)
+              def createMessage(id: Long): Serializable = SimpleMessage(id)
       
               def behavior: Receive = {
-                case m @ SimpleMessage(_, id) if matchId(id) =>
-                  finish(m, id, "http://example.com")
+                case SimpleMessage(id) if matchId(id) => finish("http://example.com")
               }
             }
           }
@@ -151,11 +145,10 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
             FullTask("demo", dependencies) createTask { case (_, tb: String) =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString(s"akka://user/dummy/$someParam")
-                def createMessage(id: Long): Serializable = SimpleMessage(tb.substring(4), id)
+                def createMessage(id: Long): Serializable = SimpleMessage(id)
         
                 def behavior: Receive = {
-                  case m @ SimpleMessage(_, id) if matchId(id) =>
-                    finish(m, id, "demo result")
+                  case SimpleMessage(id) if matchId(id) => finish(tb)
                 }
               }
             }

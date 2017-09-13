@@ -2,6 +2,8 @@ package pt.tecnico.dsi.akkastrator
 
 import com.typesafe.config.{Config, ConfigFactory}
 
+// TODO: change Settings to a proper domain class
+
 /**
   * This class holds all the settings that parameterize akkastrator.
   *
@@ -45,7 +47,5 @@ class Settings(config: Config = ConfigFactory.load()) {
     Console.YELLOW,
     Console.WHITE
   )
-
-  override def toString: String = akkastratorConfig.root.render
 }
 

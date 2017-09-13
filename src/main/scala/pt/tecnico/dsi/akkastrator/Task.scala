@@ -6,16 +6,18 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 
 import akka.actor.{Actor, ActorPath, PossiblyHarmful}
 import pt.tecnico.dsi.akkastrator.Task._
+import pt.tecnico.dsi.akkastrator.Event._
 
 object Task {
   sealed trait State
   case object Unstarted extends State
   case object Waiting extends State
-  case class Aborted(cause: Exception) extends State
+  case class Aborted(cause: Throwable) extends State
   case class Finished[R](result: R) extends State
   
   case class Timeout(id: Long) extends PossiblyHarmful
   
+  // TODO: maybe this class should be in FullTask companion object
   /**
     * An immutable representation (a report) of a Task in a given moment of time.
     *
@@ -31,8 +33,7 @@ object Task {
 
 // Maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
 
-// TODO: the requires inside Task.{start, finish, innerAbort} and TaskSpawnOrchestrator might be troublesome since
-// they will crash the orchestrator.
+// TODO: the requires inside Task.{start, finish, innerAbort} and TaskSpawnOrchestrator might be troublesome since they will crash the orchestrator.
 
 /**
   * A task corresponds to sending a message to an actor, handling its response and possibly
@@ -56,10 +57,10 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
   
   import orchestrator.log
   import orchestrator.ID
+  import IdImplicits._
   
-  // TODO: Currently only TaskQuorum uses this field because of abort, it would be awesome to remove it and innerAbort!!
-  private[akkastrator] var _expectedID: Option[ID] = None
-  def expectedID: Option[ID] = _expectedID
+  private[this] var _expectedID: ID = _ // Can you see the null? Blink and you'll miss it.
+  def expectedID: Option[ID] = Option(_expectedID) // Ensure the null does not escape
   
   private[this] var _state: Task.State = Unstarted
   def state: Task.State = _state
@@ -72,26 +73,31 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
   
   final def start(): Unit = {
     require(state == Unstarted, "Start can only be invoked when this task is Unstarted.")
-    log.info(withLogPrefix(s"Starting."))
-    orchestrator.recoveryAwarePersist(MessageSent(task.index)) {
+    log.info(withOrchestratorAndTaskPrefix(s"Starting."))
+    
+    val taskStarted = TaskStarted(task.index)
+    orchestrator.recoveryAwarePersist(taskStarted, withTaskPrefix(s"Persisted $taskStarted")) {
       orchestrator.deliver(destination) { deliveryId =>
-        val id = orchestrator.computeID(destination, new DeliveryId(deliveryId))
-        _expectedID = Some(id)
+        _expectedID = orchestrator.computeID(destination, deliveryId)
         _state = Waiting
         // The next line makes sure the orchestrator is ready to deal with the answers from destination.
         orchestrator.taskStarted(task, this)
   
-        // "Possibly" because when recovering the deliver handler will be run but the message won't be delivered every time
-        log.debug(withLogPrefix("(Possibly) delivering message."))
+        log.debug(withOrchestratorAndTaskPrefix(if (orchestrator.recoveryRunning) {
+          // "Possibly" because when recovering the deliver handler will be run but the message won't be delivered every time
+          "Possibly delivering message. Possibly because we are recovering."
+        } else {
+          "Delivering message."
+        }))
   
-        scheduleTimeout(id)
+        scheduleTimeout(_expectedID)
         
-        createMessage(id.self)
+        createMessage(_expectedID.self)
       }
     }
   }
   final def scheduleTimeout(id: ID): Unit = task.timeout match {
-    case f: FiniteDuration if f > Duration.Zero =>
+    case f: FiniteDuration if f >= Duration.Zero =>
       import orchestrator.context.system
       system.scheduler.scheduleOnce(f) {
         // We would like to do `orchestrator.self.tell(Timeout(id.self), destination)` however
@@ -99,7 +105,7 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
         // uniform with the rest of the messages (aka we want to make the user invoke matchId for Timeout)
         // we are forced to make an exception inside matchId to detect when we are handling a Timeout.
         // The exception is matching the sender against `orchestrator.self.path` which signals we are handling a timeout.
-        orchestrator.self ! Timeout(id.self)
+        orchestrator.self.tell(Timeout(id.self), orchestrator.self)
       }(system.dispatcher)
     case _ => // We do nothing because the timeout is either negative, 0, or infinite.
   }
@@ -133,20 +139,25 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
   
   final def behaviorHandlingTimeout: Actor.Receive = behavior orElse {
     // This is the default timeout handling logic.
-    case m @ Timeout(id) => abort(receivedMessage = m, id, cause = new TimeoutException())
+    case Timeout(id) if matchId(id) => abort(new TimeoutException())
   }
   
-  final def persistAndConfirmDelivery(receivedMessage: Serializable, id: Long)(continuation: => Unit): Unit = {
-    orchestrator.recoveryAwarePersist(MessageReceived(task.index, receivedMessage)) {
-      orchestrator.confirmDelivery(orchestrator.deliveryIdOf(destination, orchestrator.toID(id)).self)
+  private final def persistAndConfirmDelivery(event: Event)(continuation: => Unit): Unit = {
+    // This method is only invoked from inside finish and abort. These methods are only invoked if
+    // matchId returned true. So we already validated the id and can safely use _expectedID.
+    orchestrator.recoveryAwarePersist(event, withTaskPrefix(s"Persisted $event")) {
+      orchestrator.confirmDelivery(orchestrator.deliveryIdOf(destination, _expectedID).self)
       continuation
     }
   }
 
+  // TODO: we could make finish/abort idempotent, aka lift the contract stating:
+  //       "Finishing/Aborting an already finished/aborted task will throw an exception."
+  
   /**
     * Finishes this task, which implies:
     *
-    *  1. This task will change its _state to `Finished`.
+    *  1. This task will change its state to `Finished`.
     *  2. Tasks that depend on this one will be started.
     *  3. Re-sends from `destination` will no longer be handled by `behavior`. If destinations re-sends its answer
     *     it will be logged as an unhandled message.
@@ -154,15 +165,12 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     *
     *  Finishing an already finished task will throw an exception.
     *
-    * @param receivedMessage the message which prompted the finish.
-    * @param id the id obtained from the message.
     * @param result the result this task will produce. This is the value that the tasks that depend on this one will see.
     */
-  final def finish(receivedMessage: Serializable, id: Long, result: R): Unit = {
+  final def finish(result: R): Unit = {
     require(state == Waiting, "Finish can only be invoked when this task is Waiting.")
-    log.info(withLogPrefix(s"Finishing."))
-    persistAndConfirmDelivery(receivedMessage, id) {
-      _expectedID = None
+    log.info(withOrchestratorAndTaskPrefix(s"Finishing."))
+    persistAndConfirmDelivery(TaskFinished(task.index, result)) {
       _state = Finished(result)
       // The next line makes sure the orchestrator no longer deals with the answers from destination.
       // This means that if destination re-sends an answer the orchestrator will treat it as an unhandled message.
@@ -180,7 +188,7 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
   /**
     * Aborts this task, which implies:
     *
-    *  1. This task will change its _state to `Aborted`.
+    *  1. This task will change its state to `Aborted`.
     *  2. Every unstarted task that depends on this one will never be started. This will happen because a task can
     *     only start if its dependencies have finished.
     *  3. Waiting tasks or tasks which do not have this task as a dependency will remain untouched,
@@ -189,22 +197,18 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     *  4. The method `onTaskAbort` will be invoked in the orchestrator.
     *  5. The method `onFinish` in the orchestrator will never be invoked since this task did not finish.
     *
-    * @param receivedMessage the message which prompted the abort.
-    * @param id the id obtained from the message.
+    *  Aborting an already aborted task will throw an exception.
+    *  
     * @param cause what caused the abort to be invoked.
     */
-  final def abort(receivedMessage: Serializable, id: Long, cause: Exception): Unit = {
-    innerAbort(receivedMessage, id, cause) {
-      orchestrator.onTaskAbort(task, receivedMessage, cause)
-    }
+  final def abort(cause: Throwable): Unit = innerAbort(cause) {
+    orchestrator.onTaskAbort(task, cause)
   }
   
-  private[akkastrator] final def innerAbort(receivedMessage: Serializable, id: Long, cause: Exception)
-                                           (afterAbortContinuation: => Unit): Unit = {
+  private[akkastrator] final def innerAbort(cause: Throwable)(afterAbortContinuation: => Unit): Unit = {
     require(state == Waiting, "Abort can only be invoked when this task is Waiting.")
-    log.info(withLogPrefix(s"Aborting due to exception: $cause."))
-    persistAndConfirmDelivery(receivedMessage, id) {
-      _expectedID = None
+    log.info(withOrchestratorAndTaskPrefix(s"Aborting due to exception: $cause."))
+    persistAndConfirmDelivery(TaskAborted(task.index, cause)) {
       _state = Aborted(cause)
       
       orchestrator.taskAborted(task)
@@ -216,8 +220,9 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     }
   }
   
-  // This is a shorcut
-  def withLogPrefix(message: => String): String = task.withLogPrefix(message)
+  // These are shortcuts
+  def withTaskPrefix(message: => String): String = task.withTaskPrefix(message)
+  def withOrchestratorAndTaskPrefix(message: => String): String = task.withOrchestratorAndTaskPrefix(message)
   
   override def toString: String = s"Task($expectedID, $state, $destination)"
 }

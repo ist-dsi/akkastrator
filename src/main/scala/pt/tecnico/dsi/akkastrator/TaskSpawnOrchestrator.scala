@@ -17,17 +17,17 @@ case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
 //  · When the outer orchestrator is recovering the inner orchestrator is not created if it already
 //    had finished before the crash.
 class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
-  log.debug(task.withLogPrefix(s"Created Spawner: $self"))
+  log.debug(task.withOrchestratorAndTaskPrefix(s"Created Spawner: $self"))
   
   def receive: Receive = {
     case SpawnAndStart(props, innerOrchestratorId, startId) =>
       val innerOrchestrator = context.actorOf(props, s"${props.actorClass().getSimpleName.toLowerCase}-$innerOrchestratorId")
   
-      log.debug(task.withLogPrefix(s"Created inner orchestrator: $innerOrchestrator"))
+      log.debug(task.withOrchestratorAndTaskPrefix(s"Created inner orchestrator: $innerOrchestrator"))
       
       context watch innerOrchestrator
       
-      log.debug(task.withLogPrefix(s"Sending StartOrchestrator($startId) to $innerOrchestrator"))
+      log.debug(task.withOrchestratorAndTaskPrefix(s"Sending StartOrchestrator($startId) to $innerOrchestrator"))
       innerOrchestrator ! StartOrchestrator(startId)
       
       context become innerSpawned(innerOrchestrator)
@@ -84,12 +84,12 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   
   def behavior: Receive = {
     case m: Success[R] if matchId(m.id) =>
-      finish(m, m.id, m.result)
+      finish(m.result)
     case m: Failure if matchId(m.id) =>
-      abort(m, m.id, m.cause)
-    case m @ Timeout(id) if matchId(m.id) =>
+      abort(m.cause)
+    case m @ Timeout(id) if matchId(id) =>
       spawner.tell(m, orchestrator.self)
       // Make it look like the timeout is automatically handled
-      abort(m, id, cause = new TimeoutException())
+      abort(new TimeoutException())
   }
 }

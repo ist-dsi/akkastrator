@@ -11,7 +11,6 @@ case object QuorumNotAchieved extends Exception
 /** Signals that the quorum is impossible to achieve since enough tasks have aborted that prevent the orchestrator
   * from achieving enough votes to satisfy the minimumVotes function. */
 case object QuorumImpossibleToAchieve extends Exception
-
 /** The quorum has already achieved however some tasks were still waiting. In this case the waiting tasks
   * are aborted with this cause.*/
 case object QuorumAlreadyAchieved extends Exception
@@ -62,8 +61,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   override def onTaskFinish(task: FullTask[_, _]): Unit = {
     // Since the task has finished we know that there will be a result
     val result = task.unsafeResult.asInstanceOf[R]
-    val currentCount = resultsCount.getOrElse(result, 0)
-    val newCount = currentCount + 1
+    val newCount = resultsCount.getOrElse(result, 0) + 1
     resultsCount(result) = newCount
     
     // Update the winning result
@@ -72,7 +70,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
       winningResultCount = newCount
     }
     
-    log.debug(withLogPrefix(task.withLogPrefix(s"""Finished.
+    log.debug(withLogPrefix(task.withOrchestratorAndTaskPrefix(s"""Finished.
                                                   |\tWinning Result: $winningResult (with $winningResultCount votes)
                                                   |\tWaiting for ${waitingTasks.size} more votes, $tolerance task can fail""".stripMargin)))
     
@@ -97,10 +95,10 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
     context stop self
   }
   
-  override def onTaskAbort(task: FullTask[_, _], message: Any, cause: Exception): Unit = {
+  override def onTaskAbort(task: FullTask[_, _], cause: Throwable): Unit = {
     tolerance -= 1
     
-    log.debug(withLogPrefix(task.withLogPrefix(s"""Aborted.
+    log.debug(withLogPrefix(task.withOrchestratorAndTaskPrefix(s"""Aborted.
                                                   |\tWinning Result: $winningResult, with $winningResultCount vote(s)
                                                   |\tWaiting for ${waitingTasks.size} more votes, $tolerance task can fail""".stripMargin)))
     
@@ -127,9 +125,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
       // We abort every waiting task to ensure that if this orchestrator crashes and is restarted
       // then it will correctly be restored to the correct state. And no messages are sent to the destinations.
       waitingTasks.values.foreach { task =>
-        // receivedMessage is set to None to make it more obvious that we did not receive a message for this task.
-        // The task is waiting which ensures it has a expectedID aka .get will never throw
-        task.innerAbort(receivedMessage = None, id = task.expectedID.get.self, cause) {
+        task.innerAbort(cause) {
           if (waitingTasks.isEmpty) {
             afterAllAborts
           }

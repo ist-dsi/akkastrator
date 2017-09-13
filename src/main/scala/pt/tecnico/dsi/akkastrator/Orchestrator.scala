@@ -9,6 +9,8 @@ import akka.persistence._
 import shapeless.HNil
 
 object Orchestrator {
+  case class StartOrchestrator(id: Long)
+  
   trait Success[R] extends Serializable {
     def id: Long
     def result: R
@@ -17,10 +19,10 @@ object Orchestrator {
   
   trait Failure extends Serializable {
     def id: Long
-    def cause: Exception
+    def cause: Throwable
   }
-  case class Aborted(cause: Exception, id: Long) extends Failure
-  case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Exception, id: Long) extends Failure
+  case class Aborted(cause: Throwable, id: Long) extends Failure
+  case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Throwable, id: Long) extends Failure
   
   case object Status
   case class StatusResponse(tasks: Seq[Task.Report[_]])
@@ -91,11 +93,9 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   final def finishedTasks: Int = _finishedTasks
   
   // The state this orchestrator is storing. Starts out empty.
-  private[this] final var _state: S = _
+  protected final var _state: S = _
   /** Gets the state this orchestrator currently has. */
   final def state: S = _state
-  /** Sets the new state for this orchestrator. */
-  final def state_=(state: S): Unit = _state = state
   
   // The id obtained in the StartOrchestrator message which prompted the execution of this orchestrator tasks
   // This is mainly used for TaskSpawnOrchestrator
@@ -124,8 +124,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     */
   def saveSnapshotRoughlyEveryXMessages: Int = settings.saveSnapshotRoughlyEveryXMessages
   def scheduleSnapshotIfNeeded(): Unit = {
-    // It is lastSequenceNr % (saveSnapshotEveryXMessages * 2) because we persist MessageSent and MessageReceived,
-    // however we are only interested in MessageReceived. This will roughly correspond to every X MessageReceived.
+    // It is lastSequenceNr % (saveSnapshotEveryXMessages * 2) because we persist TaskStarted and TaskFinished,
+    // however we are only interested in TaskFinished. This will roughly correspond to every X TaskFinished.
     if (saveSnapshotRoughlyEveryXMessages > 0 && lastSequenceNr % (saveSnapshotRoughlyEveryXMessages * 2) == 0) {
       self ! SaveSnapshot
     }
@@ -133,7 +133,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   
   def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
   
-  implicit def toID(id: Long): ID
+  def toID(id: Long): ID
   /** Computes ID from the deliveryId of akka-persistence. Also updates this orchestrator state if necessary. */
   def computeID(destination: ActorPath, deliveryId: DeliveryId): ID
   /** Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence. */
@@ -161,6 +161,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     _waitingTasks += task.index -> innerTask
     context become computeCurrentBehavior()
   }
+  
   
   private[akkastrator] def taskFinished(task: FullTask[_, _]): Unit = {
     _waitingTasks -= task.index
@@ -202,6 +203,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     context stop self
   }
   
+  
   private[akkastrator] def taskAborted(task: FullTask[_, _]): Unit = {
     _waitingTasks -= task.index
     // We do not increment finishedTasks because the task did not finish
@@ -224,9 +226,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     * { @see onTaskFinish } for a callback when a task finishes.
     *
     * @param task the task that aborted.
-    * @param message the message from the task destination that caused the abort.
     */
-  def onTaskAbort(task: FullTask[_, _], message: Any, cause: Exception): Unit = {
+  def onTaskAbort(task: FullTask[_, _], cause: Throwable): Unit = {
     onAbort(TaskAborted(task.report, cause, startId))
   }
   /**
@@ -244,15 +245,14 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     context stop self
   }
   
-  final def recoveryAwarePersist(event: Any)(handler: => Unit): Unit = {
+  
+  final def recoveryAwarePersist(event: Any, logMessage: String)(handler: => Unit): Unit = {
     if (recoveryRunning) {
       // When recovering the event is already persisted no need to persist it again.
       handler
-    } else {
-      persist(event) { _ =>
-        log.debug(withLogPrefix(s"Persisted ${event.getClass.getSimpleName}."))
-        handler
-      }
+    } else persist(event) { _ =>
+      log.debug(withLogPrefix(logMessage))
+      handler
     }
   }
   
@@ -269,19 +269,19 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   
   final def unstarted: Actor.Receive = {
     case m @ StartOrchestrator(id) =>
-      recoveryAwarePersist(m) {
+      recoveryAwarePersist(m, s"Persisted $m") {
         _startId = id
-        log.info(withLogPrefix(s"Started with StardId=$id"))
+        log.info(withLogPrefix(s"Started with StardId = $id"))
         if (tasks.isEmpty) {
           onFinish()
         } else if (!recoveryRunning) {
-          // Every task adds itself to `_tasks`. If it has no dependencies then it will also be added to `_waitingTasks`.
+          // Every task adds itself to `tasks`. If it has no dependencies then it will also be added to `waitingTasks`.
           // So in order to start the orchestrator we only need to start the tasks in the `waitingTasks`.
           // With this ruse we don't have to iterate through `tasks` in order to compute which ones are ready to start.
           // Once a task finishes it will notify every task that depend on it that it was finished. When all the dependencies
           // of a task finish a StartTask is scheduled.
           waitingTasks.values.foreach(_.start())
-          // If recovery is running we don't need to start the tasks because we will eventually handle a MessageSent
+          // If recovery is running we don't need to start the tasks because we will eventually handle a TaskStarted
           // which will start the task(s).
         }
       }
@@ -290,7 +290,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     case Status =>
       sender() ! StatusResponse(tasks.map(_.report))
     case SaveSnapshot =>
-      saveSnapshot(_state)
+      saveSnapshot(state)
     case ShutdownOrchestrator =>
       context stop self
   }
@@ -304,18 +304,22 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   
   def receiveRecover: Actor.Receive = unstarted orElse {
     case SnapshotOffer(_, offeredSnapshot: State) =>
-      state = offeredSnapshot.asInstanceOf[S]
-    case MessageSent(taskIndex) =>
+      _state = offeredSnapshot.asInstanceOf[S]
+    case Event.TaskStarted(taskIndex) =>
       val task = tasks(taskIndex)
-      log.info(task.withLogPrefix("Recovering MessageSent."))
+      log.info(task.withOrchestratorAndTaskPrefix("Recovering TaskStarted."))
       task.start()
-    case MessageReceived(taskIndex, message) =>
+    case f @ Event.TaskFinished(taskIndex, _) =>
+      val task: Task[_] = waitingTasks(taskIndex)
+      log.info(task.withOrchestratorAndTaskPrefix("Recovering TaskFinished."))
+      f.finish(task)
+    case Event.TaskAborted(taskIndex, cause) =>
       val task = waitingTasks(taskIndex)
-      log.info(task.withLogPrefix("Recovering MessageReceived."))
-      task.behaviorHandlingTimeout(message)
+      log.info(task.withOrchestratorAndTaskPrefix("Recovering TaskAborted."))
+      task.abort(cause)
     case RecoveryCompleted =>
       if (tasks.nonEmpty) {
-        val tasksString = tasks.map(t => t.withLogPrefix(t.state.toString)).mkString("\n\t")
+        val tasksString = tasks.map(t => t.withTaskPrefix(t.state.toString)).mkString("\n\t")
         log.debug(withLogPrefix(s"""Recovery completed:
                      |\t$tasksString
                      |\tNumber of unconfirmed messages: $numberOfUnconfirmed
@@ -334,20 +338,20 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
 abstract class Orchestrator[R](settings: Settings = new Settings()) extends AbstractOrchestrator[R](settings) {
   /** This orchestrator accepts any kind of State. */
   final type S = State
-  state = EmptyState
+  _state = EmptyState
   
   /** This orchestrator uses DeliveryId directly because the same sequence number (of the akka-persistence)
     * is used for all of its destinations. Which means the destinations of this orchestrator will see gaps
     * in the delivery ids of the received messages.*/
   final type ID = DeliveryId
   
-  override final implicit def toID(id: Long): DeliveryId = new DeliveryId(id)
+  final def toID(id: Long): DeliveryId = new DeliveryId(id)
   final def computeID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
   final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = id
   final def matchId(task: Task[_], id: ID): Boolean = {
     val matches = task.expectedID.contains(id)
     
-    log.debug(task.withLogPrefix{
+    log.debug(task.withOrchestratorAndTaskPrefix{
       String.format(
         s"""matchId:
             |          │ DeliveryId
@@ -376,18 +380,18 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
   */
 abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) extends AbstractOrchestrator[R](settings) {
   /** This orchestrator requires that the state includes DistinctIds. */
-  final type S = State with DistinctIds
-  state = MinimalState()
+  final type S = DistinctIdsState
+  _state = DistinctIdsState()
   
   /** This orchestrator uses CorrelationId for its ID. This ensures every destination sees an independent
     * sequence without gaps. */
   final type ID = CorrelationId
   
-  override final implicit def toID(id: Long): CorrelationId = new CorrelationId(id)
+  final def toID(id: Long): CorrelationId = new CorrelationId(id)
   final def computeID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
     val correlationId = state.nextCorrelationIdFor(destination)
     
-    state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
+    _state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
     log.debug(s"State for $destination is now:\n\t" + state.idsOf(destination).mkString("\n\t"))
     
     correlationId
@@ -396,15 +400,19 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
     state.deliveryIdOf(destination, id)
   }
   final def matchId(task: Task[_], id: ID): Boolean = {
-    lazy val (matchesSender, reason) = sender().path match {
-      case s if s == context.system.deadLetters.path && recoveryRunning => (true, " because recovery is running.")
-      case s if s == self.path => (true, " because we are handling a timeout.")
-      case s => (s == task.destination, "")
+    lazy val destinationPath = task.destination.toStringWithoutAddress
+    lazy val (matchesSender, expectedDestination, extraInfo) = sender().path match {
+      case s if s == context.system.deadLetters.path && recoveryRunning =>
+        (true, context.system.deadLetters.path, s"The expected SenderPath isn't $destinationPath because recovery is running\n")
+      case s if s == self.path =>
+        (true, self.path, s"The expected SenderPath isn't $destinationPath because this is a Timeout\n")
+      case s =>
+        (s == task.destination, task.destination, "")
     }
     val matches = task.expectedID.contains(id) && matchesSender
-    log.debug(task.withLogPrefix{
+    log.debug(task.withOrchestratorAndTaskPrefix{
       val senderPathString = sender().path.toStringWithoutAddress
-      val destinationString = task.destination.toStringWithoutAddress
+      val destinationString = expectedDestination.toStringWithoutAddress
       val length = senderPathString.length max destinationString.length
       String.format(
         s"""MatchId:
@@ -412,11 +420,11 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
            |──────────┼─%${length}s─┼──────────────────────────────
            |    VALUE │ %${length}s │ %s
            | EXPECTED │ %${length}s │ %s
-           | Matches: %s""".stripMargin,
+           | %sMatches: %s""".stripMargin,
         "SenderPath", "─" * length,
         senderPathString, Some(id),
         destinationString, task.expectedID,
-        matches.toString.toUpperCase + reason
+        extraInfo, matches.toString.toUpperCase
       )
     })
     matches

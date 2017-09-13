@@ -45,10 +45,9 @@ object Step6_TaskBundleSpec {
           FullTask(fruit).createTaskWith { case HNil =>
             new Task[Int](_) {
               val destination: ActorPath = destinations(i).ref.path
-              def createMessage(id: Long): Serializable = SimpleMessage(fruit, id)
+              def createMessage(id: Long): Serializable = SimpleMessage(id)
               def behavior: Receive = {
-                case m @ SimpleMessage(_, id) if matchId(id) =>
-                  finish(m, id, fruit.length)
+                case SimpleMessage(id) if matchId(id) => finish(fruit.length)
               }
             }
           }(o)
@@ -69,10 +68,10 @@ object Step6_TaskBundleSpec {
           FullTask(fruit).createTaskWith { case HNil =>
             new Task[Int](_) {
               val destination: ActorPath = destinations(i + 1).ref.path
-              def createMessage(id: Long): Serializable = SimpleMessage(fruit, id)
+              def createMessage(id: Long): Serializable = SimpleMessage(id)
               def behavior: Receive = {
-                case m @ SimpleMessage(_, id) if matchId(id) =>
-                  finish(m, id, fruit.length)
+                case SimpleMessage(id) if matchId(id) =>
+                  finish(fruit.length)
               }
             }
           }(o)
@@ -226,7 +225,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
             }, { fourthState =>
               // Note that even with the orchestrator crashing the inner orchestrator won't run again.
               // This is consistent with the orchestrator recovering since the task B (the task bundle) will
-              // recover the MessageReceived, thus it will never send the SpawnAndStart message.
+              // recover the TaskFinished, thus it will never send the SpawnAndStart message.
               // Which in turn means the inner orchestrator will never be created.
               fruits.indices.par.foreach { i =>
                 destinations(i + 1).expectNoMsg()

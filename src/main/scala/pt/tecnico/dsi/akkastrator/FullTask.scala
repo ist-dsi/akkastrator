@@ -47,7 +47,8 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
       message
     }
   }
-  def withLogPrefix(message: => String): String = withColor(s"[$description] $message")
+  def withTaskPrefix(message: => String): String = withColor(s"[$description] $message")
+  def withOrchestratorAndTaskPrefix(message: => String): String = orchestrator.withLogPrefix(withTaskPrefix(message))
   
   private def addDependent(dependent: FullTask[_, _]): Unit = dependents +:= dependent
   
@@ -102,8 +103,8 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
         orchestrator.self ! StartTask(index)
       }
       // When the orchestrator is recovering we do not send the StartTask for the following reasons:
-      //  · The MessageSent would always be handled before the StartTask in the receiveRecover of the orchestrator.
-      //  · The recover of MessageSent already invokes fulltask.start, which is the side-effect of handling the StartTask message
+      //  · The TaskStarted would always be handled before the StartTask in the receiveRecover of the orchestrator.
+      //  · The recover of TaskStarted already invokes fulltask.start, which is the side-effect of handling the StartTask message
       //    So if we also sent the StartTask then the task would be started again at a later time when it was already waiting.
     }
   }
