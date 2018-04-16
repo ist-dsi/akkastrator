@@ -23,13 +23,14 @@ class Bundle[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
 }
 
 /**
-  * TaskBundle:
-  *   Variable number of tasks
-  *   Task return type must be the same
-  *   Unrestrained message and destination
-  *
+  * A task that creates a variable number of tasks and succeeds when all the created tasks finish successfully.
+  * The return type of the tasks must be the same. Their messages and destinations are unrestrained.
+  * 
+  * This task is specially useful to create `n` tasks where `n` is computed from the result of another task.
+  * 
+  * @param task
   * @param tasksCreator
-  * @tparam R the return type of the inner tasks of this bundle.
+  * @tparam R the return type of the tasks created using `tasksCreator`. 
   */
 class TaskBundle[R](task: FullTask[_, _])(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[Seq[R], Bundle[R]](task)(

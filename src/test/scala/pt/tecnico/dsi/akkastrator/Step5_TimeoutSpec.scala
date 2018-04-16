@@ -9,7 +9,7 @@ import pt.tecnico.dsi.akkastrator.ActorSysSpec._
 import pt.tecnico.dsi.akkastrator.DSL.FullTask
 import pt.tecnico.dsi.akkastrator.Orchestrator.TaskAborted
 import pt.tecnico.dsi.akkastrator.Step5_TimeoutSpec._
-import pt.tecnico.dsi.akkastrator.Task.{Aborted, Timeout}
+import pt.tecnico.dsi.akkastrator.Task.{Aborted, Finished, Timeout}
 
 object Step5_TimeoutSpec {
   class ExplicitTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
@@ -52,7 +52,6 @@ class Step5_TimeoutSpec extends ActorSysSpec {
   // However all the other tests prove the timeout is not "thrown" when it is set as Duration.Inf
   
   "A orchestrator with timeouts" should {
-    /*
     "execute the behavior" when {
       "it handles the Timeout message" in {
         val testCase1 = new TestCase[ExplicitTimeoutHandling](1, Set("A")) {
@@ -70,7 +69,6 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         testCase1.testExpectedStatusWithRecovery()
       }
     }
-    */
     "abort" when {
       "behavior does not handle the Timeout message" in {
         val testCase2 = new TestCase[AutomaticTimeoutHandling](1, Set("A")) {

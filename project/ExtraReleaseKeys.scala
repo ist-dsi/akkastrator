@@ -3,7 +3,7 @@ import sbt.{IO, SettingKey, State, ThisBuild}
 import sbtrelease.ReleasePlugin.autoImport.{ReleaseStep, releaseUseGlobalVersion, releaseVersionFile}
 
 object ExtraReleaseKeys {
-  val latestReleasedVersion = SettingKey[String]("Latest released version")
+  val latestReleasedVersion = SettingKey[String]("latest released version")
   
   lazy val writeVersions: ReleaseStep = { st: State =>
     import sbtrelease.ReleasePlugin.autoImport.ReleaseKeys.versions

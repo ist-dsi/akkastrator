@@ -8,13 +8,23 @@ import pt.tecnico.dsi.akkastrator.Orchestrator.StartTask
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.HList
 
+// TODO: implement description in a much more awesome way (probably we will need scala.meta for it):
+//  1) Define the description just once with something like:
+//        d"Creating entry for user $userId" // userId is the result of a dependent task
+//  2) When the task is unstarted its description will be: "Creating entry for user $userId"
+//  3) When the task is finished its description will be: "Creating entry for user User(5, "Simão")"
+//  4) Make this work with internationalization, aka, allow description to be used as a MessageKey for
+//     a internationalization framework.
+
 /**
+  * A full task represents a task plus its dependencies. It ensures a Task is only created when all of its dependencies
+  * have finished.
   * @param description a text that describes this task in a human readable way, or a message key to be used in
   *                    internationalization. It will be used when the status of this task orchestrator is requested.
   * @param dependencies the tasks that must have finished in order for this task to be able to start.
-  * @param timeout NOTE: the timeout does not survive restarts!
+  * @param timeout the timeout after which the task will be aborted. The timeout does not survive restarts.
   * @param orchestrator the orchestrator upon which this task will be added and ran. This is like an ExecutionContext for this task.
-  * @param comapped
+  * @param comapped evidence proving DL is a HList of FullTasks. Also allows us to extract the results from the dependencies.
   * @tparam R the result type of this task.
   * @tparam DL the type of the dependencies HList.
   */
@@ -122,7 +132,7 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     case None => throw new IllegalStateException("A task only has a result if it finished.")
   }
   
-  /** The immutable TaskReport of this task. */
+  /** The TaskReport of this task. */
   final def report: Report[R] = Report(description, dependenciesIndexes, state,
     innerTask.map(_.destination), result)
   

@@ -6,6 +6,11 @@ import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
 import shapeless.ops.hlist.{At, Tupler}
 import shapeless.{Generic, HList, HNil, _0, ::}
 
+// TODO: the interplay of names between FullTask and Task is bad.
+//  1) Maybe we should do something like impromptu Task.after
+//  2) Or WithDependenciesTask and NoDependenciesTask
+//  3) Or WithDependencies and NoDependencies
+
 object DSL {
   type TaskBuilder[R] = FullTask[_, _] => Task[R]
   
@@ -14,11 +19,12 @@ object DSL {
                                                                       (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]) {
       // Ideally all of these methods would be called `createTask` but due to type erasure we cannot declare them so.
   
-      /*def createTask[R](f: TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_], ev: DL =:= HNil): FullTask[R, HNil] = {
+      /*def createTask[R](f: FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_], ev: DL =:= HNil): FullTask[R, HNil] = {
         new FullTask[R, HNil](description, dependencies, timeout)(orchestrator, TaskComapped[HNil]) {
           def createTask(results: comapped.ResultsList): Task[R] = f(this)
         }
       }*/
+      
       def createTaskWith[R](f: RL => TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
         new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
           def createTask(results: comapped.ResultsList): Task[R] = f(results.asInstanceOf[RL])(this)
@@ -27,7 +33,7 @@ object DSL {
       def createTask[R](f: RP => TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
         createTaskWith(resultsList => f(tupler(resultsList)))
       }
-      
+  
       import shapeless.ops.function.FnToProduct
       def createTaskF[F, T, R](builder: F)(implicit orchestrator: AbstractOrchestrator[_], fntp: FnToProduct.Aux[F, RL => T],
                                           ev: T <:< TaskBuilder[R]): FullTask[R, DL] = {

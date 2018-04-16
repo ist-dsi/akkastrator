@@ -35,7 +35,7 @@ class Step2_DependenciesSpec extends ActorSysSpec {
       for (i <- 0 until numberOfTasks) {
         val message = destinations(i).expectMsgType[SimpleMessage]
         for (j <- (i + 1) until numberOfTasks) {
-          destinations(j).expectNoMsg(100.millis.dilated)
+          destinations(j).expectNoMessage(100.millis.dilated)
         }
         destinations(i) reply SimpleMessage(message.id)
       }
@@ -102,11 +102,11 @@ class Step2_DependenciesSpec extends ActorSysSpec {
 
       withOrchestratorTermination(orchestrator) {
         val a0m = destinations(0).expectMsgType[SimpleMessage]
-        destinations(2).expectNoMsg(100.millis.dilated)
+        destinations(2).expectNoMessage(100.millis.dilated)
         destinations(0) reply SimpleMessage(a0m.id)
 
         val a1m = destinations(1).expectMsgType[SimpleMessage]
-        destinations(2).expectNoMsg(100.millis.dilated)
+        destinations(2).expectNoMessage(100.millis.dilated)
         destinations(1) reply SimpleMessage(a1m.id)
 
         val a2m = destinations(2).expectMsgType[SimpleMessage]

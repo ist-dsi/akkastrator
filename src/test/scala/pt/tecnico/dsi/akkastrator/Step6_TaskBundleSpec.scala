@@ -228,7 +228,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               // recover the TaskFinished, thus it will never send the SpawnAndStart message.
               // Which in turn means the inner orchestrator will never be created.
               fruits.indices.par.foreach { i =>
-                destinations(i + 1).expectNoMsg()
+                destinations(i + 1).expectNoMessage()
               }
               fourthState
             }
@@ -325,10 +325,10 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               // Since the task bundle B recovered its MessageReceive its tasks won't send any
               // message to their destination. This proves that is what happens.
               fruits.par.foreach { _ =>
-                destinations(1).expectNoMsg()
+                destinations(1).expectNoMessage()
               }
     
-              // D tasks. The previous expectNoMsg gave enough time for some of D tasks to start,
+              // D tasks. The previous expectNoMessage gave enough time for some of D tasks to start,
               // so we pingPong them to use up their messages. We say use up because the orchestrator
               // will crash right away and cause the sender() reference in the pingPong to become invalid.
               (0 until fruits.length * 2).par.foreach { _ =>
@@ -398,10 +398,10 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               // Since the task bundle C recovered its MessageReceive its tasks won't send any
               // message to their destination. This proves that is what happens.
               fruits.par.foreach { _ =>
-                destinations(2).expectNoMsg()
+                destinations(2).expectNoMessage()
               }
     
-              // D tasks. The previous expectNoMsg gave enough time for some of D tasks to start,
+              // D tasks. The previous expectNoMessage gave enough time for some of D tasks to start,
               // so we pingPong them to use up their messages. We say use up because the orchestrator
               // will crash right away and cause the sender() reference in the pingPong to become invalid.
               (0 until fruits.length * 2).par.foreach { _ =>
@@ -485,7 +485,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               // While recovering the bundle A will handle the MessageReceive. Or in other words its
               // spawner won't create the inner orchestrator and therefor the inner tasks will never send their messages.
               fruits.indices.par.foreach { i =>
-                destinations(i).expectNoMsg()
+                destinations(i).expectNoMessage()
               }
               
               parentProbe expectMsg OrchestratorAborted

@@ -11,8 +11,7 @@ case object QuorumNotAchieved extends Exception
 /** Signals that the quorum is impossible to achieve since enough tasks have aborted that prevent the orchestrator
   * from achieving enough votes to satisfy the minimumVotes function. */
 case object QuorumImpossibleToAchieve extends Exception
-/** The quorum has already achieved however some tasks were still waiting. In this case the waiting tasks
-  * are aborted with this cause.*/
+/** Exception used to abort waiting tasks when the quorum was already achieved. */
 case object QuorumAlreadyAchieved extends Exception
 
 class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], minimumVotes: MinimumVotes,
@@ -47,7 +46,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   /**
     * Tolerance = how many votes the quorum can afford to not obtain/lose (due to an aborted task) such that
     * its not necessary to terminate the quorum.
-    * For example: if the quorum has 5 tasks and minimumVotes = Majority then at most 2 tasks can abort/not answer
+    * For example: if the quorum has 5 tasks and minimumVotes = Majority = 3 then at most 2 tasks can abort/not answer
     * if 3 tasks abort then we need to abort the orchestrator.
     */
   final var tolerance: Int = tasks.length - votesToAchieveQuorum
@@ -76,7 +75,8 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
     
     if (winningResultCount >= votesToAchieveQuorum) {
       log.info(withLogPrefix("Achieved quorum."))
-      abortWaitingTasks(cause = QuorumAlreadyAchieved)(
+      abortWaitingTasks(
+        cause = QuorumAlreadyAchieved,
         afterAllAborts = onFinish()
       )
     }
@@ -104,7 +104,8 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
     
     if (tolerance < 0) {
       log.info(withLogPrefix("Tolerance surpassed."))
-      abortWaitingTasks(QuorumImpossibleToAchieve)(
+      abortWaitingTasks(
+        cause = QuorumImpossibleToAchieve,
         afterAllAborts = onAbort(Aborted(QuorumImpossibleToAchieve, startId))
       )
     }
@@ -118,35 +119,28 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   
   /** Aborts all tasks that are still waiting, but does not cause the orchestrator to abort.
     * Then invokes the continuation `afterAllAborts`. If there are no waiting tasks simply invokes the continuation.*/
-  final def abortWaitingTasks(cause: Exception)(afterAllAborts: => Unit): Unit = {
+  final def abortWaitingTasks(cause: Exception, afterAllAborts: => Unit): Unit = {
     if (waitingTasks.isEmpty) {
       afterAllAborts
     } else {
       // We abort every waiting task to ensure that if this orchestrator crashes and is restarted
       // then it will correctly be restored to the correct state. And no messages are sent to the destinations.
-      waitingTasks.values.foreach { task =>
-        task.innerAbort(cause) {
-          if (waitingTasks.isEmpty) {
-            afterAllAborts
-          }
+      waitingTasks.values.foreach(
+        _.innerAbort(cause) {
+          if (waitingTasks.isEmpty) afterAllAborts
         }
-      }
+      )
     }
   }
 }
 
 /**
-  * The quorum is obtained when X tasks finish and produce the same result.
-  * X is calculated with the minimumVotes function.
-  *
-  * TaskQuorum:
-  *   Variable number of tasks
-  *   Task return type must be the same
-  *   Different destinations
-  *   Fixed message
+  * A task that creates a variable number of tasks and succeeds when `n` tasks finish producing the same result.
+  * `n` is calculated with the minimumVotes function.
+  * The return type and the message of the tasks must be the same. And their destinations must be different.
   */
 class TaskQuorum[R](task: FullTask[_, _])(minimumVotes: MinimumVotes,
-                                          tasksCreator: (AbstractOrchestrator[_]) => Seq[FullTask[R, HNil]])
+                                          tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[R, Quorum[R]](task)(
     Props(classOf[Quorum[R]], tasksCreator, minimumVotes, task.orchestrator.persistenceId)
   )

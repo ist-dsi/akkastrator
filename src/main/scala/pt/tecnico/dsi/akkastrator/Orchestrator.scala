@@ -1,8 +1,7 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.collection.immutable
+import scala.collection.{immutable, mutable}
 import scala.collection.immutable.HashMap
-import scala.collection.mutable
 
 import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful}
 import akka.persistence._
@@ -63,7 +62,7 @@ object Orchestrator {
   * @tparam R the type of result this orchestrator returns when it finishes.
   */
 sealed abstract class AbstractOrchestrator[R](val settings: Settings)
-  extends PersistentActor with AtLeastOnceDelivery with ActorLogging {
+  extends PersistentActor with AtLeastOnceDelivery with ActorLogging with IdImplicits {
   import Orchestrator._
   
   /** The type of the state this orchestrator maintains. */
@@ -133,13 +132,12 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   
   def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
   
-  def toID(id: Long): ID
   /** Computes ID from the deliveryId of akka-persistence. Also updates this orchestrator state if necessary. */
   def computeID(destination: ActorPath, deliveryId: DeliveryId): ID
   /** Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence. */
   def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId
   /** Ensures the received message was in fact destined to be received by `task`. */
-  def matchId(task: Task[_], id: ID): Boolean
+  def matchId(task: Task[_], id: Long): Boolean
   
   
   /**
@@ -250,9 +248,11 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     if (recoveryRunning) {
       // When recovering the event is already persisted no need to persist it again.
       handler
-    } else persist(event) { _ =>
-      log.debug(withLogPrefix(logMessage))
-      handler
+    } else {
+      persist(event) { _ =>
+        log.debug(withLogPrefix(logMessage))
+        handler
+      }
     }
   }
   
@@ -345,11 +345,11 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
     * in the delivery ids of the received messages.*/
   final type ID = DeliveryId
   
-  final def toID(id: Long): DeliveryId = new DeliveryId(id)
   final def computeID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
   final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = id
-  final def matchId(task: Task[_], id: ID): Boolean = {
-    val matches = task.expectedID.contains(id)
+  final def matchId(task: Task[_], id: Long): Boolean = {
+    val deliveryId: DeliveryId = id
+    val matches = task.expectedID.contains(deliveryId)
     
     log.debug(task.withOrchestratorAndTaskPrefix{
       String.format(
@@ -359,7 +359,7 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
             |    VALUE │ %s
             | EXPECTED │ %s
             | Matches: %s""".stripMargin,
-        Some(id), task.expectedID,
+        Some(deliveryId), task.expectedID,
         matches.toString.toUpperCase
       )
     })
@@ -387,7 +387,6 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
     * sequence without gaps. */
   final type ID = CorrelationId
   
-  final def toID(id: Long): CorrelationId = new CorrelationId(id)
   final def computeID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
     val correlationId = state.nextCorrelationIdFor(destination)
     
@@ -399,7 +398,8 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
   final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = {
     state.deliveryIdOf(destination, id)
   }
-  final def matchId(task: Task[_], id: ID): Boolean = {
+  final def matchId(task: Task[_], id: Long): Boolean = {
+    val correlationId: CorrelationId = id
     lazy val destinationPath = task.destination.toStringWithoutAddress
     lazy val (matchesSender, expectedDestination, extraInfo) = sender().path match {
       case s if s == context.system.deadLetters.path && recoveryRunning =>
@@ -409,7 +409,7 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
       case s =>
         (s == task.destination, task.destination, "")
     }
-    val matches = task.expectedID.contains(id) && matchesSender
+    val matches = task.expectedID.contains(correlationId) && matchesSender
     log.debug(task.withOrchestratorAndTaskPrefix{
       val senderPathString = sender().path.toStringWithoutAddress
       val destinationString = expectedDestination.toStringWithoutAddress
@@ -422,7 +422,7 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
            | EXPECTED │ %${length}s │ %s
            | %sMatches: %s""".stripMargin,
         "SenderPath", "─" * length,
-        senderPathString, Some(id),
+        senderPathString, Some(correlationId),
         destinationString, task.expectedID,
         extraInfo, matches.toString.toUpperCase
       )

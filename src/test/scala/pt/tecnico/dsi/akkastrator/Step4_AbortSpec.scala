@@ -107,7 +107,7 @@ class Step4_AbortSpec extends ActorSysSpec {
     
             // This confirms the method `onFinish` will NEVER be called even if the only tasks needed to finish
             // the orchestrator (aka Task B) are already waiting and its response is received.
-            parentProbe.expectNoMsg()
+            parentProbe.expectNoMessage()
           }, { _ =>
             // Confirm that the orchestrator has indeed aborted
             parentProbe.expectMsgPF() {
@@ -137,7 +137,7 @@ class Step4_AbortSpec extends ActorSysSpec {
             parentProbe expectMsg OrchestratorAborted
 
             // This confirms that every unstarted task that depends on the aborted task will never be started
-            testProbeOfTask("B").expectNoMsg()
+            testProbeOfTask("B").expectNoMessage()
   
             // Confirm A -> Aborted and B -> Unstarted
             testStatus(thirdState)

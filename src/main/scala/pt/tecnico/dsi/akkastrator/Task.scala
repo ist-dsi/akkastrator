@@ -37,7 +37,7 @@ object Task {
 
 /**
   * A task corresponds to sending a message to an actor, handling its response and possibly
-  * mutate the internal _state of the Orchestrator.
+  * mutate the internal state of its Orchestrator.
   *
   * The answer(s) to the sent message must be handled in `behavior`. `behavior` must invoke `finish` when
   * no further processing is necessary. Or `abort` if the received message will prevent subsequent
@@ -46,27 +46,27 @@ object Task {
   * The pattern matching inside `behavior` must invoke `matchId` to ensure the received message
   * is in fact the one that this task its waiting to receive.
   *
-  * The internal _state of the orchestrator might be mutated inside `behavior`.
+  * The internal state of the orchestrator might be mutated inside `behavior`.
   *
   * This class is very tightly coupled with Orchestrator and the reverse is also true. See [[AbstractOrchestrator]] for
   * more details on why that is the case.
+  * @param task
+  * @tparam R the return type of this Task. 
   */
 abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot make the DSL work with `val task: FullTask[R, _]`
-  //This field exists to allow mutating the internal state of the orchestrator easily from inside behavior.
-  val orchestrator: AbstractOrchestrator[_] = task.orchestrator
-  
-  import orchestrator.log
-  import orchestrator.ID
+  import task.orchestrator
+  import task.orchestrator.{log, ID}
   import IdImplicits._
   
   private[this] var _expectedID: ID = _ // Can you see the null? Blink and you'll miss it.
-  def expectedID: Option[ID] = Option(_expectedID) // Ensure the null does not escape
+  final def expectedID: Option[ID] = Option(_expectedID) // Ensure the null does not escape
   
   private[this] var _state: Task.State = Unstarted
-  def state: Task.State = _state
+  final def state: Task.State = _state
   
   /** The ActorPath to whom this task will send the message(s). This must be a val because the destination cannot change. */
   val destination: ActorPath
+  // It would be awesome if `id` had the type ID. But unfortunately that breaks the reusability of Task inside either a Orchestrator or a DistinctIdsOrchestrator.
   /** The constructor of the message to be sent. It must always return the same message, only the id must be different.
     * If this Task is to be used inside a TaskQuorum then the created message should also implement `equals`. */
   def createMessage(id: Long): Serializable
@@ -85,7 +85,7 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
   
         log.debug(withOrchestratorAndTaskPrefix(if (orchestrator.recoveryRunning) {
           // "Possibly" because when recovering the deliver handler will be run but the message won't be delivered every time
-          "Possibly delivering message. Possibly because we are recovering."
+          "Possibly (because we are recovering) delivering message."
         } else {
           "Delivering message."
         }))
@@ -107,10 +107,11 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
         // The exception is matching the sender against `orchestrator.self.path` which signals we are handling a timeout.
         orchestrator.self.tell(Timeout(id.self), orchestrator.self)
       }(system.dispatcher)
-    case _ => // We do nothing because the timeout is either negative, 0, or infinite.
+    case _ => // We do nothing because the timeout is either negative or infinite.
   }
   
-  final def matchId(id: Long): Boolean = orchestrator.matchId(this, orchestrator.toID(id))
+  // It would be awesome if `id` had the type ID. But unfortunately that breaks the reusability of Task inside either a Orchestrator or a DistinctIdsOrchestrator.
+  final def matchId(id: Long): Boolean = orchestrator.matchId(this, id)
   
   /**
     * The behavior of this task. This is akin to the receive method of an actor with the following exceptions:
@@ -122,16 +123,16 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     *  · Either `finish`, `abort` or `timeout` must be invoked after handling each response.
     *    However `timeout` cannot be invoked when handling the `Timeout` message.
     *  · The internal state of the orchestrator might be changed while handling each response using
-    *    `orchestrator.state = //Your new _state`
+    *    `orchestrator.state = // New state`
     *
     * Example of a well formed behavior: {{{
-    *   case m @ Success(result, id) if matchId(id) =>
-    *     orchestrator.state = //A new _state
-    *     finish(m, id, result = "This task result") // The result is the value that the tasks that depend on this one will see.
-    *   case m @ SomethingWentWrong(why, id) if matchId(id) =>
-    *     abort(m, id, why)
-    *   case m @ Timeout(id) =>
-    *     abort(m, id, anError)
+    *   case Success(result, id) if matchId(id) =>
+    *     orchestrator.state = // a new state
+    *     finish("This task result") // The result is the value that the tasks that depend on this one will see.
+    *   case SomethingWentWrong(why, id) if matchId(id) =>
+    *     abort(why)
+    *   case Timeout(id) =>
+    *     abort(anError)
     * }}}
     *
     */
@@ -151,16 +152,13 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     }
   }
 
-  // TODO: we could make finish/abort idempotent, aka lift the contract stating:
-  //       "Finishing/Aborting an already finished/aborted task will throw an exception."
-  
   /**
     * Finishes this task, which implies:
     *
     *  1. This task will change its state to `Finished`.
     *  2. Tasks that depend on this one will be started.
-    *  3. Re-sends from `destination` will no longer be handled by `behavior`. If destinations re-sends its answer
-    *     it will be logged as an unhandled message.
+    *  3. Re-sends from `destination` will no longer be handled by the orchestrator.
+    *     If destinations re-sends its answer it will be logged as an unhandled message.
     *  4. The method `onTaskFinish` will be invoked on the orchestrator.
     *
     *  Finishing an already finished task will throw an exception.
@@ -178,6 +176,7 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
   
       // TODO: maybe we could keep a list of finished/aborted tasks in order to catch the re-sends and ignore them like:
       //   final def behaviorIgnoringResends: Actor.Receive = { case m if behavior.isDefinedAt(m) => /* Ignore the message */ }
+      // To make this work matchId cannot check the state of the task!
       // Is it really worth it to store an additional list in the orchestrator just to filter some messages from the log?
   
       // Notify the tasks that depend on this one that this task has finished.
@@ -221,8 +220,8 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
   }
   
   // These are shortcuts
-  def withTaskPrefix(message: => String): String = task.withTaskPrefix(message)
-  def withOrchestratorAndTaskPrefix(message: => String): String = task.withOrchestratorAndTaskPrefix(message)
+  final def withTaskPrefix(message: => String): String = task.withTaskPrefix(message)
+  final def withOrchestratorAndTaskPrefix(message: => String): String = task.withOrchestratorAndTaskPrefix(message)
   
   override def toString: String = s"Task($expectedID, $state, $destination)"
 }

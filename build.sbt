@@ -10,7 +10,7 @@ name := "akkastrator"
 //==== Compile Options =================================================================================================
 //======================================================================================================================
 javacOptions ++= Seq("-Xlint", "-encoding", "UTF-8", "-Dfile.encoding=utf-8")
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.5"
 scalacOptions ++= Seq(
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -30,11 +30,11 @@ scalacOptions ++= Seq(
   "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
   "-Ywarn-numeric-widen",              // Warn when numerics are widened.
   "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
-  "-Ywarn-unused:privates",            // Warn if a private member is unused.
-  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+  //"-Ywarn-unused:privates",            // Warn if a private member is unused.
+  //"-Ywarn-unused:locals",              // Warn if a local definition is unused.
+  //"-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
   //"-Ywarn-unused:params",              // Warn if a value parameter is unused.
-  "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+  //"-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
   //"-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
 )
 // These lines ensure that in sbt console or sbt test:console the -Ywarn* and the -Xfatal-warning are not bothersome.
@@ -44,30 +44,32 @@ scalacOptions in (Compile, console) ~= (_ filterNot { option =>
 })
 scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value
 
+// crossScalaVersions := Seq("2.11.11", "2.12.2")
+
 //======================================================================================================================
 //==== Dependencies ====================================================================================================
 //======================================================================================================================
-val akkaVersion = "2.5.4"
+val akkaVersion = "2.5.12"
 libraryDependencies ++= Seq(
   //Config
-  "com.typesafe" % "config" % "1.3.1",
+  "com.typesafe" % "config" % "1.3.3",
   //Shapeless
-  "com.chuusai" %% "shapeless" % "2.3.2",
+  "com.chuusai" %% "shapeless" % "2.3.3",
   //Akka
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   //Persistence
   "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
-  "org.iq80.leveldb" % "leveldb" % "0.9" % Test,
+  "org.iq80.leveldb" % "leveldb" % "0.10" % Test,
   "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8" % Test,
   //Logging
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2" % Test,
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0" % Test,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
   "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
   //Testing
-  "org.scalatest" %% "scalatest" % "3.0.4" % Test,
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
 
-  "commons-io" % "commons-io" % "2.5" % Test
+  "commons-io" % "commons-io" % "2.6" % Test
 )
 // Good advice for Scala compiler errors: tells you when you need to provide implicit instances
 /*addSbtPlugin("com.softwaremill.clippy" % "plugin-sbt" % "0.3.5")

@@ -1,6 +1,6 @@
 package pt.tecnico.dsi.akkastrator
 
-/** A function that calculates how many votes are needed to achieve a quorum, given the number of destinations (nodes). */
+/** A function that calculates how many votes are needed to achieve a quorum, given the number of destinations. */
 trait MinimumVotes extends (Int => Int) {
   def apply(numberOfDestinations: Int): Int
 }
@@ -11,14 +11,14 @@ object Majority extends MinimumVotes {
 }
 
 /**
-  * A MinimumVotes function where at least `x` votes are needed to achieve a quorum.
-  * If `x` is bigger than the number of destinations this function will behave like the `All` function.
+  * A MinimumVotes function where at least `n` votes are needed to achieve a quorum.
+  * If `n` is bigger than the number of destinations this function will behave like the `All` function.
   */
-case class AtLeast(x: Int) extends MinimumVotes {
-  def apply(numberOfDestinations: Int): Int = Math.min(x, numberOfDestinations)
+case class AtLeast(n: Int) extends MinimumVotes {
+  def apply(numberOfDestinations: Int): Int = Math.min(n, numberOfDestinations)
 }
 
-/** A MinimumVotes function where every destination must give the same answer (vote) in order for the quorum to be achieved. */
+/** A MinimumVotes function where all the votes are needed to achieve a quorum. */
 object All extends MinimumVotes {
   def apply(numberOfDestinations: Int): Int = numberOfDestinations
 }

@@ -27,8 +27,9 @@ class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
       
       context watch innerOrchestrator
       
-      log.debug(task.withOrchestratorAndTaskPrefix(s"Sending StartOrchestrator($startId) to $innerOrchestrator"))
-      innerOrchestrator ! StartOrchestrator(startId)
+      val startMessage = StartOrchestrator(startId)
+      log.debug(task.withOrchestratorAndTaskPrefix(s"Sending $startMessage to $innerOrchestrator"))
+      innerOrchestrator ! startMessage
       
       context become innerSpawned(innerOrchestrator)
     case Timeout(_) if sender() == context.parent =>
@@ -67,8 +68,9 @@ class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
   *  · Or the method behavior must be overridden to handle the messages the inner orchestrator sends when it terminates or
   *    aborts.
   *
+  * @param task
   * @param props
-  * @tparam R the type the to be created AbstractOrchestrator returns.
+  * @tparam R the return type of this Task. Also the return type of the spawned orchestrator. 
   * @tparam O the type of AbstractOrchestrator the Props must create.
   */
 class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: FullTask[_, _])(props: Props) extends Task[R](task) {
@@ -77,8 +79,8 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
     "TaskSpawnOrchestrator props.actorClass must conform to <: AbstractOrchestrator[R]")
   
-  final val innerOrchestratorId: Int = orchestrator.nextInnerOrchestratorId()
-  final val spawner: ActorRef = orchestrator.context.actorOf(Props(classOf[Spawner], task), s"spawner-$innerOrchestratorId")
+  final val innerOrchestratorId: Int = task.orchestrator.nextInnerOrchestratorId()
+  final val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"spawner-$innerOrchestratorId")
   final val destination: ActorPath = spawner.path
   final def createMessage(id: Long): Serializable = SpawnAndStart(props, innerOrchestratorId, id)
   
@@ -88,7 +90,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
     case m: Failure if matchId(m.id) =>
       abort(m.cause)
     case m @ Timeout(id) if matchId(id) =>
-      spawner.tell(m, orchestrator.self)
+      spawner.tell(m, task.orchestrator.self)
       // Make it look like the timeout is automatically handled
       abort(new TimeoutException())
   }
