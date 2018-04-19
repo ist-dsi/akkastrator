@@ -9,7 +9,7 @@ import pt.tecnico.dsi.akkastrator.DSL._
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import shapeless.{::, HNil}
 
-class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with ImplicitSender {
+class Step1_RefactoringSpec extends ActorSysSpec {
   trait SimpleTasks { self: Orchestrator[_] =>
     val theOneTask: FullTask[Unit, HNil] = FullTask("the One") createTask { _ =>
       new Task[Unit](_) {
@@ -76,8 +76,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     }
   
     case class PingTask(ip: String)(ft: FullTask[Unit, _]) extends Task[Unit](ft) {
-      //Dummy destination
-      val destination: ActorPath = ActorPath.fromString("akka://user/f")
+      val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
       def createMessage(id: Long): Serializable = SimpleMessage(id)
   
       def behavior: Receive = {
@@ -85,8 +84,6 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
     
-    // Since we are always using ping where the location is a FullTask[String, HNil] this would also work:
-    //  def ping(location: FullTask[String, HNil] :: HNil)
     def ping(location: FullTask[String, _] :: HNil): FullTask[Unit, _] = {
       FullTask("Ping", location) createTaskF PingTask.apply _
     }
@@ -141,7 +138,6 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           val c: FullTask[Unit, _] = post(getHiggs :: where :: HNil)
           
           def post2(someParam: String)(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
-            
             FullTask("demo", dependencies) createTask { case (_, tb) =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString(s"akka://user/dummy/$someParam")

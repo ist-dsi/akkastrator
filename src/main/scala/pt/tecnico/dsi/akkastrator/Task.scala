@@ -19,8 +19,8 @@ object Task {
 }
 
 // TODO: maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
-
-// TODO: the requires inside Task.{start, finish, innerAbort} and TaskSpawnOrchestrator might be troublesome since they will crash the orchestrator.
+// Task could be a inner class of FullTask. This would simplify a lot the usability of FullTask and Task. Prototype how it would influence refactoring of Tasks 
+// The requires inside Task.{start, finish, innerAbort} and TaskSpawnOrchestrator might be troublesome since they will crash the orchestrator.
 
 /**
   * A task corresponds to sending a message to an actor, handling its response and possibly
@@ -112,8 +112,6 @@ abstract class Task[R](val task: FullTask[R, _]) {
     *    is responsible for extracting the `id` from the message.
     *  · Either `finish`, `abort` or `timeout` must be invoked after handling each response.
     *    However `timeout` cannot be invoked when handling the `Timeout` message.
-    *  · The internal state of the orchestrator might be changed while handling each response using
-    *    `orchestrator.state = // New state`
     *
     * Example of a well formed behavior: {{{
     *   case Success(result, id) if matchId(id) =>
@@ -154,9 +152,7 @@ abstract class Task[R](val task: FullTask[R, _]) {
     }
   }
   
-  // TODO: maybe we could keep a list of finished/aborted tasks inside orchestrator in order to catch the re-sends and ignore them like:
-  //   final def behaviorIgnoringResends: Actor.Receive = { case m if behavior.isDefinedAt(m) => /* Ignore the message */ }
-  // To make this work matchId cannot check the state of the task!
+  // TODO: maybe we could keep a list of finished/aborted tasks inside orchestrator in order to catch the re-sends and ignore them
   // Is it really worth it to store an additional list in the orchestrator just to filter some messages from the log?
     
   /**

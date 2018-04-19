@@ -151,7 +151,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   
     onTaskFinish(task)
     
-    //TODO: does invoking onFinish inside the persistHandler cause any problem?
     if (finishedTasks == tasks.size) {
       onFinish()
     }
