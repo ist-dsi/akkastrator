@@ -7,29 +7,29 @@ import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.HNil
 
 object Step3_RecoverSpec {
-  class NoTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator()
+  class NoTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations)
   /**
     * A
     */
-  class SingleTask(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    simpleMessageFulltask("A", destinations(0))
+  class SingleTask(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    simpleMessageFulltask("A", 0)
   }
   /**
     * A
     * B
     * Both tasks have the same destination.
     */
-  class TwoTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    simpleMessageFulltask("A", destinations(0))
-    simpleMessageFulltask("B", destinations(0))
+  class TwoTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    simpleMessageFulltask("A", 0)
+    simpleMessageFulltask("B", 0)
   }
   /**
     * A → B
     * Both tasks have the same destination.
     */
-  class TwoLinearTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0))
-    simpleMessageFulltask("B", destinations(0), dependencies = a :: HNil)
+  class TwoLinearTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0)
+    simpleMessageFulltask("B", 0, dependencies = a :: HNil)
   }
   /**
     * A
@@ -37,10 +37,10 @@ object Step3_RecoverSpec {
     * B
     * All tasks have distinct destinations.
     */
-  class TasksInT(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(1))
-    simpleMessageFulltask("C", destinations(2), dependencies = a :: b :: HNil)
+  class TasksInT(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0)
+    val b = simpleMessageFulltask("B", 1)
+    simpleMessageFulltask("C", 2, dependencies = a :: b :: HNil)
   }
   /**
     *     B
@@ -50,11 +50,11 @@ object Step3_RecoverSpec {
     *     D
     * All tasks have distinct destinations.
     */
-  class FanOutTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(1), dependencies = a :: HNil)
-    val c = simpleMessageFulltask("C", destinations(2), dependencies = a :: HNil)
-    simpleMessageFulltask("D", destinations(3), dependencies = a :: HNil)
+  class FanOutTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0)
+    val b = simpleMessageFulltask("B", 1, dependencies = a :: HNil)
+    val c = simpleMessageFulltask("C", 2, dependencies = a :: HNil)
+    simpleMessageFulltask("D", 3, dependencies = a :: HNil)
   }
   /**
     *   B
@@ -62,10 +62,10 @@ object Step3_RecoverSpec {
     * A → C
     * A and B have the same destination.
     */
-  class TasksInTriangle(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(0), dependencies = a :: HNil)
-    simpleMessageFulltask("C", destinations(1), dependencies = a :: b :: HNil)
+  class TasksInTriangle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0)
+    val b = simpleMessageFulltask("B", 0, dependencies = a :: HNil)
+    simpleMessageFulltask("C", 1, dependencies = a :: b :: HNil)
   }
   /**
     * A → C
@@ -73,12 +73,12 @@ object Step3_RecoverSpec {
     * B → D
     * All tasks have distinct destinations.
     */
-  class FiveTasksNoDepsB(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(1))
-    val c = simpleMessageFulltask("C", destinations(2), dependencies = a :: HNil)
-    val d = simpleMessageFulltask("D", destinations(3), dependencies = a :: b :: HNil)
-    simpleMessageFulltask("E", destinations(4), dependencies = c :: d :: HNil)
+  class FiveTasksNoDepsB(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0)
+    val b = simpleMessageFulltask("B", 1)
+    val c = simpleMessageFulltask("C", 2, dependencies = a :: HNil)
+    val d = simpleMessageFulltask("D", 3, dependencies = a :: b :: HNil)
+    simpleMessageFulltask("E", 4, dependencies = c :: d :: HNil)
   }
   /**
     * A → B
@@ -86,12 +86,12 @@ object Step3_RecoverSpec {
     * C → D
     * All tasks have distinct destinations.
     */
-  class FiveTasksNoDepsC(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0))
-    val b = simpleMessageFulltask("B", destinations(2), dependencies = a :: HNil)
-    val c = simpleMessageFulltask("C", destinations(1))
-    val d = simpleMessageFulltask("D", destinations(3), dependencies = a :: c :: HNil)
-    simpleMessageFulltask("E", destinations(4), dependencies = b :: d :: HNil)
+  class FiveTasksNoDepsC(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0)
+    val b = simpleMessageFulltask("B", 2, dependencies = a :: HNil)
+    val c = simpleMessageFulltask("C", 1)
+    val d = simpleMessageFulltask("D", 3, dependencies = a :: c :: HNil)
+    simpleMessageFulltask("E", 4, dependencies = b :: d :: HNil)
   }
 }
 class Step3_RecoverSpec extends ActorSysSpec {
@@ -104,7 +104,7 @@ class Step3_RecoverSpec extends ActorSysSpec {
     "recover the correct state" when {
       "there is no tasks" in {
         val testCase0 = new TestCase[NoTasks](0, Set.empty) {
-          // Purposefully left with any additional transformation
+          // Purposefully left without any additional transformation
           val transformations = withStartAndFinishTransformations()
         }
         testCase0.testExpectedStatusWithRecovery()
@@ -116,7 +116,7 @@ class Step3_RecoverSpec extends ActorSysSpec {
               pingPong("A")
               /**
                 * In the transition from the 1st state to the 2nd state we send a StartOrchestrator to the orchestrator.
-                * This will cause Task A to start and therefor to send a message to the destination(0).
+                * This will cause Task A to start and therefor to send a message to its destination.
                 * Before task A receives the response we crash the orchestrator, which will cause it to restart and recover.
                 * In the recover the task A will resend the message again since the delivery hasn't been confirmed yet.
                 * So destination(0) gets a resend. And that is why we have an handleResend here.

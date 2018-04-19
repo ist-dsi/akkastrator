@@ -23,6 +23,7 @@ import shapeless.HList
   *                    internationalization. It will be used when the status of this task orchestrator is requested.
   * @param dependencies the tasks that must have finished in order for this task to be able to start.
   * @param timeout the timeout after which the task will be aborted. The timeout does not survive restarts.
+  *                It should be `Duration.Inf` or a positive duration greater then zero.
   * @param orchestrator the orchestrator upon which this task will be added and ran. This is like an ExecutionContext for this task.
   * @param comapped evidence proving DL is a HList of FullTasks. Also allows us to extract the results from the dependencies.
   * @tparam R the result type of this task.
@@ -69,15 +70,15 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   }
   //From here on the dependents and dependenciesIndexes are no longer changed. They are just iterated over.
   
-  def createTask(results: comapped.ResultsList): Task[R]
+  def createTask(results: comapped.Results): Task[R]
   
   protected final def allDependenciesFinished: Boolean = finishedDependencies == dependenciesIndexes.length
   
   /** Computes the results HList from the dependencies HList.
     * Every dependency must have finished, otherwise an exception will be thrown. */
-  protected final def buildResults(): comapped.ResultsList = {
+  protected final def buildResults(): comapped.Results = {
     require(allDependenciesFinished, "All dependencies must have finished to be able to build their results.")
-    comapped.buildResultsList(dependencies)
+    comapped.results(dependencies)
   }
   
   /**
@@ -133,11 +134,11 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   }
   
   /** The TaskReport of this task. */
-  final def report: Report[R] = Report(description, dependenciesIndexes, state,
+  final def report: Report[R] = Report(index, description, dependenciesIndexes, state,
     innerTask.map(_.destination), result)
   
   override def toString: String =
-    f"""Task [$index%03d - $description]:
+    f"""FullTask [$index%03d - $description]:
         |Destination: ${innerTask.map(_.destination.toString).getOrElse("Unavailable, since dependencies haven't finished.")}
         |State: $state""".stripMargin //State will contain the result
 }

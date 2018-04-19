@@ -49,7 +49,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
     }
   
     def postTask(what: String, where: String): TaskBuilder[Unit] = new Task[Unit](_) {
-      val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
+      val destination: ActorPath = ActorPath.fromString(s"akka://user/$what/$where")
   
       def createMessage(id: Long): Serializable = SimpleMessage(id)
   
@@ -102,12 +102,12 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
   "An orchestrator with refactored tasks" should {
     "not typecheck" when {
       "a distinctIds orchestrator refactored tasks are added to a simple orchestrator" in {
-        """class MyFailingOrchestrator extends Orchestrator() with DistinctIdsTasks {
+        """class FailingOrchestrator extends Orchestrator() with DistinctIdsTasks {
           def persistenceId: String = "failing"
         }""" shouldNot typeCheck
       }
-      "a simples orchestrator refactored tasks are added to a distinctIds orchestrator" in {
-        """class MyFailingOrchestrator extends DistinctIdsOrchestrator() with SimpleTasks {
+      "a simple orchestrator refactored tasks are added to a distinctIds orchestrator" in {
+        """class FailingOrchestrator extends DistinctIdsOrchestrator() with SimpleTasks {
           def persistenceId: String = "failing"
         }""" shouldNot typeCheck
       }
@@ -142,7 +142,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
           
           def post2(someParam: String)(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
             
-            FullTask("demo", dependencies) createTask { case (_, tb: String) =>
+            FullTask("demo", dependencies) createTask { case (_, tb) =>
               new Task[String](_){
                 val destination: ActorPath = ActorPath.fromString(s"akka://user/dummy/$someParam")
                 def createMessage(id: Long): Serializable = SimpleMessage(id)

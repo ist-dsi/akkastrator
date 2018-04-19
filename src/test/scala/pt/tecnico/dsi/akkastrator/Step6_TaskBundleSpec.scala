@@ -1,7 +1,6 @@
 package pt.tecnico.dsi.akkastrator
 
-import java.util.concurrent.TimeoutException
-
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.Random
 
@@ -14,34 +13,35 @@ import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{::, HNil}
 
 object Step6_TaskBundleSpec {
-  class DummyActor(i: Int) extends Actor {
+  class DummyActor extends Actor {
     def receive: Receive = Actor.emptyBehavior
   }
   
-  class InvalidTaskSpawnOrchestrator(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class InvalidTaskSpawnOrchestrator(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     FullTask("A") createTask { _ =>
       // We are stating that TaskSpawnOrchestrator will create a Bundle[Int] orchestrator
       // which satisfies the type constraints of the TaskSpawnOrchestrator, but then we provide
       // it with a Props class that creates a different actor which does not satisfies the type constraints.
       // This test serves to catch this error.
-      new TaskSpawnOrchestrator[Seq[Int], Bundle[Int]](_)(Props(classOf[DummyActor], 5))
+      new TaskSpawnOrchestrator[Seq[Int], Bundle[Int]](_)(Props[DummyActor])
     }
   }
   
-  val fruits = Seq("Farfalhi", "Kunami", "Funini", "Katuki", "Maracaté")
+  val startingFruits = Seq("Farfalhi", "Kunami", "Funini", "Katuki", "Maracaté")
   
   // N*B
-  class SingleTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class SingleTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     // In practice an orchestrator with a single TaskBundle like this one is useless.
-    // We created it because it serves us as a sort of incremental test, ramping up to a "complex" orchestrator.
+    // We created it because it serves us as a sort of incremental test ramping up to a "complex" orchestrator.
     // If this test fails then there is a problem that is inherent to task bundles and not to some sort of
     // interplay between some other akkastrator abstraction.
     
     FullTask("A") createTask { _ =>
       new TaskBundle(_)(o =>
-        fruits.zipWithIndex.map { case (fruit, i) =>
-          //Declaring the inner task directly in the body of the task bundle.
-          //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
+        startingFruits.zipWithIndex.map { case (fruit, i) =>
+          // Declaring the inner task directly in the body of the task bundle.
+          // NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
+          // With implicit function types this will no longer be necessary
           FullTask(fruit).createTaskWith { case HNil =>
             new Task[Int](_) {
               val destination: ActorPath = destinations(i).ref.path
@@ -57,10 +57,10 @@ object Step6_TaskBundleSpec {
   }
   
   // A -> N*B
-  class TaskBundleDependency(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0), fruits)
+  class TaskBundleDependency(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0, startingFruits)
   
-    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+    val b = FullTask("B", a) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
           //Declaring the inner task directly in the body of the task bundle.
@@ -83,28 +83,28 @@ object Step6_TaskBundleSpec {
   //     N*B
   // A →⟨   ⟩→ 2N*D
   //     N*C
-  class ComplexTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0), fruits)
-    val b = FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+  class ComplexTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0, startingFruits)
+    val b = FullTask("B", a) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
           //Using a method that creates a full task.
           //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
-          simpleMessageFulltask(s"B-$fruit", destinations(1), fruit)(o)
+          simpleMessageFulltask(s"B-$fruit", 1, fruit)(o)
         }
       )
     }
-    val c = FullTask("C", a, Duration.Inf) createTaskWith { case fruits :: HNil =>
+    val c = FullTask("C", a :: HNil, Duration.Inf) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.map { fruit =>
-          simpleMessageFulltask(s"C-$fruit", destinations(2), fruit)(o)
+          simpleMessageFulltask(s"C-$fruit", 2, fruit)(o)
         }
       )
     }
-    val d = FullTask("D", (b, c), Duration.Inf) createTask { case (fruitsB, fruitsC) =>
+    val d = FullTask("D", (b, c)) createTask { case (fruitsB, fruitsC) =>
       new TaskBundle(_)(o =>
         (fruitsB ++ fruitsC).map { fruit =>
-          simpleMessageFulltask(s"D-$fruit", destinations(3), fruit)(o)
+          simpleMessageFulltask(s"D-$fruit", 3, fruit)(o)
         }
       )
     }
@@ -113,25 +113,25 @@ object Step6_TaskBundleSpec {
   class ComplexCFirstTaskBundle(destinations: Array[TestProbe]) extends ComplexTaskBundle(destinations)
   
   // A -> N*B (one of B aborts)
-  class InnerTaskAbortingTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
-    val a = simpleMessageFulltask("A", destinations(0), fruits)
+  class InnerTaskAbortingTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
+    val a = simpleMessageFulltask("A", 0, startingFruits)
   
     val abortingTask = Random.nextInt(5)
     
-    FullTask("B", a :: HNil) createTaskWith { case fruits :: HNil =>
+    FullTask("B", a) createTaskWith { case fruits :: HNil =>
       new TaskBundle(_)(o =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"B-$fruit", destinations(i + 1), fruit, abortOnReceive = i == abortingTask)(o)
+          simpleMessageFulltask(s"B-$fruit", i + 1, fruit, abortOnReceive = i == abortingTask)(o)
         }
       )
     }
   }
   // N*A (A timeouts)
-  class OuterTaskAbortingTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class OuterTaskAbortingTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     FullTask("A", timeout = 50.millis) createTaskWith { _ =>
       new TaskBundle(_)(o =>
-        fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"A-$fruit", destinations(i), fruit)(o)
+        startingFruits.zipWithIndex.map { case (fruit, i) =>
+          simpleMessageFulltask(s"A-$fruit", i, fruit)(o)
         }
       )
     }
@@ -157,21 +157,20 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
     }
   }
   */
-  
   "An orchestrator with task bundles" should {
     "execute the tasks of the inner orchestrator" when {
       //N*A
       "there's a single bundle" in {
-        val testCase = new TestCase[SingleTaskBundle](numberOfDestinations = 5, Set("A")) {
+        val testCase = new TestCase[SingleTaskBundle](numberOfDestinations = 5, startingTasks = Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               // In parallel why not
-              fruits.indices.par.foreach { i =>
+              startingFruits.indices.par.foreach { i =>
                 pingPong(destinations(i))
               }
               
               secondState.updatedStatuses(
-                "A" -> Waiting or Finished(fruits.map(_.length))
+                "A" -> Waiting or Finished(startingFruits.map(_.length))
               )
             }, { thirdState =>
               // By this time some of the inner tasks of A might have already finished (we don't know which, if any).
@@ -182,14 +181,14 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               //  If we try to pingPong for the finished ones the expectMsg will timeout and throw an exception
               //   causing the test to erroneously fail.
               // To get out of this pickle we pingPong every destination but ignore any timeout error.
-              fruits.indices.par.foreach { i =>
+              startingFruits.indices.par.foreach { i =>
                 pingPong(destinations(i), ignoreTimeoutError = true)
               }
               
               expectInnerOrchestratorTermination("A")
               
               thirdState.updatedStatuses(
-                "A" -> Finished(fruits.map(_.length))
+                "A" -> Finished(startingFruits.map(_.length))
               )
             }
           )
@@ -198,21 +197,21 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
       }
       
       //A -> N*B
-      "there's a single bundle as a dependency" in {
+      "there's a single bundle with a dependency" in {
         val testCase = new TestCase[TaskBundleDependency](numberOfDestinations = 6, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
               
               secondState.updatedStatuses(
-                "A" -> Finished(fruits),
+                "A" -> Finished(startingFruits),
                 "B" -> Unstarted or Waiting
               )
             }, { thirdState =>
               handleResend("A")
               
               // Destinations of B tasks
-              fruits.indices.par.foreach { i =>
+              startingFruits.indices.par.foreach { i =>
                 // See the first test in this suite to understand why the timeout error is being ignored
                 pingPong(destinations(i + 1), ignoreTimeoutError = true)
               }
@@ -220,14 +219,14 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               expectInnerOrchestratorTermination("B")
               
               thirdState.updatedStatuses(
-                "B" -> Finished(fruits.map(_.length))
+                "B" -> Finished(startingFruits.map(_.length))
               )
             }, { fourthState =>
               // Note that even with the orchestrator crashing the inner orchestrator won't run again.
               // This is consistent with the orchestrator recovering since the task B (the task bundle) will
               // recover the TaskFinished, thus it will never send the SpawnAndStart message.
               // Which in turn means the inner orchestrator will never be created.
-              fruits.indices.par.foreach { i =>
+              startingFruits.indices.par.foreach { i =>
                 destinations(i + 1).expectNoMessage()
               }
               fourthState
@@ -247,14 +246,14 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               pingPong("A")
           
               secondState.updatedStatuses(
-                "A" -> Finished(fruits),
+                "A" -> Finished(startingFruits),
                 "B" -> Unstarted or Waiting,
                 "C" -> Unstarted or Waiting
               )
             }, { thirdState =>
               handleResend("A")
               
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 // See the first test in this suite to understand why the timeout error is being ignored
                 pingPong(destinations(1), ignoreTimeoutError = true) // Destinations of B tasks
                 pingPong(destinations(2), ignoreTimeoutError = true) // Destinations of C tasks
@@ -264,19 +263,19 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               expectInnerOrchestratorTermination("B")
               
               thirdState.updatedStatuses(
-                "B" -> Finished(fruits),
-                "C" -> Finished(fruits),
+                "B" -> Finished(startingFruits),
+                "C" -> Finished(startingFruits),
                 "D" -> Unstarted or Waiting
               )
             }, { fourthState =>
-              (0 until fruits.length * 2).par.foreach { _ =>
+              (0 until startingFruits.length * 2).par.foreach { _ =>
                 pingPong(destinations(3)) // Destinations of D tasks
               }
     
               expectInnerOrchestratorTermination("D")
               
               fourthState.updatedStatuses(
-                "D" -> Finished(fruits ++ fruits)
+                "D" -> Finished(startingFruits ++ startingFruits)
               )
             }
           )
@@ -290,7 +289,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               pingPong("A")
           
               secondState.updatedStatuses(
-                "A" -> Finished(fruits),
+                "A" -> Finished(startingFruits),
                 "B" -> Unstarted or Waiting,
                 "C" -> Unstarted or Waiting
               )
@@ -298,25 +297,25 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               handleResend("A")
     
               // B tasks
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 pingPong(destinations(1))
               }
           
               expectInnerOrchestratorTermination("B")
     
               // C tasks
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 pingPong(destinations(2))
               }
               
               thirdState.updatedStatuses(
-                "B" -> Finished(fruits),
+                "B" -> Finished(startingFruits),
                 "C" -> Waiting,
                 "D" -> Unstarted
               )
             }, { fourthState =>
               // C tasks
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 handleResend(destinations(2), ignoreTimeoutError = true)
               }
               
@@ -324,24 +323,24 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               
               // Since the task bundle B recovered its MessageReceive its tasks won't send any
               // message to their destination. This proves that is what happens.
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 destinations(1).expectNoMessage()
               }
     
               // D tasks. The previous expectNoMessage gave enough time for some of D tasks to start,
               // so we pingPong them to use up their messages. We say use up because the orchestrator
               // will crash right away and cause the sender() reference in the pingPong to become invalid.
-              (0 until fruits.length * 2).par.foreach { _ =>
+              (0 until startingFruits.length * 2).par.foreach { _ =>
                 pingPong(destinations(3))
               }
               
               fourthState.updatedStatuses(
-                "C" -> Finished(fruits),
+                "C" -> Finished(startingFruits),
                 "D" -> Waiting
               )
             }, { fifthState =>
               // D tasks
-              (0 until fruits.length * 2).par.foreach { _ =>
+              (0 until startingFruits.length * 2).par.foreach { _ =>
                 pingPong(destinations(3), ignoreTimeoutError = true)
                 handleResend(destinations(3), ignoreTimeoutError = true)
               }
@@ -349,7 +348,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               expectInnerOrchestratorTermination("D")
               
               fifthState.updatedStatuses(
-                "D" -> Finished(fruits ++ fruits)
+                "D" -> Finished(startingFruits ++ startingFruits)
               )
             }
           )
@@ -363,7 +362,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               pingPong("A")
           
               secondState.updatedStatuses(
-                "A" -> Finished(fruits),
+                "A" -> Finished(startingFruits),
                 "B" -> Unstarted or Waiting,
                 "C" -> Unstarted or Waiting
               )
@@ -371,25 +370,25 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               handleResend("A")
     
               // C tasks
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 pingPong(destinations(2))
               }
     
               expectInnerOrchestratorTermination("C")
     
               // B tasks
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 pingPong(destinations(1))
               }
     
               thirdState.updatedStatuses(
                 "B" -> Waiting,
-                "C" -> Finished(fruits),
+                "C" -> Finished(startingFruits),
                 "D" -> Unstarted
               )
             }, { fourthState =>
               // B tasks
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 handleResend(destinations(1), ignoreTimeoutError = true)
               }
     
@@ -397,24 +396,24 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
     
               // Since the task bundle C recovered its MessageReceive its tasks won't send any
               // message to their destination. This proves that is what happens.
-              fruits.par.foreach { _ =>
+              startingFruits.par.foreach { _ =>
                 destinations(2).expectNoMessage()
               }
     
               // D tasks. The previous expectNoMessage gave enough time for some of D tasks to start,
               // so we pingPong them to use up their messages. We say use up because the orchestrator
               // will crash right away and cause the sender() reference in the pingPong to become invalid.
-              (0 until fruits.length * 2).par.foreach { _ =>
+              (0 until startingFruits.length * 2).par.foreach { _ =>
                 pingPong(destinations(3))
               }
     
               fourthState.updatedStatuses(
-                "B" -> Finished(fruits),
+                "B" -> Finished(startingFruits),
                 "D" -> Unstarted or Waiting
               )
             }, { fifthState =>
               // D tasks
-              (0 until fruits.length * 2).par.foreach { _ =>
+              (0 until startingFruits.length * 2).par.foreach { _ =>
                 pingPong(destinations(3))
                 handleResend(destinations(3), ignoreTimeoutError = true)
               }
@@ -422,7 +421,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
               expectInnerOrchestratorTermination("D")
               
               fifthState.updatedStatuses(
-                "D" -> Finished(fruits ++ fruits)
+                "D" -> Finished(startingFruits ++ startingFruits)
               )
             }
           )
@@ -431,21 +430,21 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
       }
     }
     "should abort" when {
+      // A -> N*B one of B aborts
       "when an inner task aborts" in {
-        // A -> N*B (one of B aborts)
         val testCase = new TestCase[InnerTaskAbortingTaskBundle](numberOfDestinations = 6, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               pingPong("A")
               
               secondState.updatedStatuses(
-                "A" -> Finished(fruits),
+                "A" -> Finished(startingFruits),
                 "B" -> Unstarted or Waiting
               )
             }, { thirdState =>
               handleResend("A")
               
-              fruits.indices.par.foreach { i =>
+              startingFruits.indices.par.foreach { i =>
                 pingPong(destinations(i + 1))
               }
               
@@ -463,33 +462,37 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
         }
         testCase.testExpectedStatusWithRecovery()
       }
-    }
-    "terminate" when {
-      "the outer task (the bundle) times out" in {
-        // N*A (A timeouts)
+      // N*A the bundle timeouts
+      "the bundle timeouts" in {
         val testCase = new TestCase[OuterTaskAbortingTaskBundle](numberOfDestinations = 5, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              // We don't answer to ensure that the orchestrator timeouts
-              fruits.indices.par.foreach { i =>
-                destinations(i).expectMsgType[SimpleMessage]
+              startingFruits.indices.par.foreach { i =>
+                // Just receive the messages without answering to ensure the outer task timeouts
+                // We are ignoring the expectMsgType timeout. See the test "there's a single bundle" to understand why.
+                try {
+                  destinations(i).expectMsgType[SimpleMessage]
+                } catch {
+                  case e: AssertionError if e.getMessage.contains("timeout") =>
+                  // Purposefully ignored
+                }
               }
-  
+          
               // Ensure the timeout is triggered
               Thread.sleep(100)
-        
+          
               secondState.updatedStatuses(
                 "A" -> Aborted(new TimeoutException())
               )
             }, { thirdState =>
               // While recovering the bundle A will handle the MessageReceive. Or in other words its
               // spawner won't create the inner orchestrator and therefor the inner tasks will never send their messages.
-              fruits.indices.par.foreach { i =>
+              startingFruits.indices.par.foreach { i =>
                 destinations(i).expectNoMessage()
               }
-              
+          
               parentProbe expectMsg OrchestratorAborted
-              
+          
               thirdState
             }
           )

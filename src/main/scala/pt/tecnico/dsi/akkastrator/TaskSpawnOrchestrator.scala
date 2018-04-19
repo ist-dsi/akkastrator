@@ -17,18 +17,18 @@ case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
 //  · When the outer orchestrator is recovering the inner orchestrator is not created if it already
 //    had finished before the crash.
 class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
-  log.debug(task.withOrchestratorAndTaskPrefix(s"Created Spawner: $self"))
+  log.debug(task.orchestrator.withLogPrefix(s"Created ${self.path.name}: $self"))
   
   def receive: Receive = {
     case SpawnAndStart(props, innerOrchestratorId, startId) =>
-      val innerOrchestrator = context.actorOf(props, s"${props.actorClass().getSimpleName.toLowerCase}-$innerOrchestratorId")
+      val innerOrchestrator = context.actorOf(props, s"${props.actorClass().getSimpleName}-$innerOrchestratorId")
   
-      log.debug(task.withOrchestratorAndTaskPrefix(s"Created inner orchestrator: $innerOrchestrator"))
+      log.debug(task.orchestrator.withLogPrefix(s"[${self.path.name}] Created ${innerOrchestrator.path.name}: $innerOrchestrator"))
       
       context watch innerOrchestrator
       
       val startMessage = StartOrchestrator(startId)
-      log.debug(task.withOrchestratorAndTaskPrefix(s"Sending $startMessage to $innerOrchestrator"))
+      log.debug(task.orchestrator.withLogPrefix(s"[${self.path.name}] Sending $startMessage to $innerOrchestrator"))
       innerOrchestrator ! startMessage
       
       context become innerSpawned(innerOrchestrator)
@@ -79,9 +79,9 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
     "TaskSpawnOrchestrator props.actorClass must conform to <: AbstractOrchestrator[R]")
   
-  final val innerOrchestratorId: Int = task.orchestrator.nextInnerOrchestratorId()
-  final val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"spawner-$innerOrchestratorId")
-  final val destination: ActorPath = spawner.path
+  final lazy val innerOrchestratorId: Int = task.orchestrator.nextInnerOrchestratorId()
+  final lazy val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"Spawner-$innerOrchestratorId")
+  final lazy val destination: ActorPath = spawner.path
   final def createMessage(id: Long): Serializable = SpawnAndStart(props, innerOrchestratorId, id)
   
   def behavior: Receive = {

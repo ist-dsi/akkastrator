@@ -4,7 +4,7 @@ import scala.concurrent.duration.Duration
 
 import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
 import shapeless.ops.hlist.{At, Tupler}
-import shapeless.{Generic, HList, HNil, _0, ::}
+import shapeless.{::, =:!=, Generic, HList, HNil, _0}
 
 // TODO: the interplay of names between FullTask and Task is bad.
 //  1) Maybe we should do something like impromptu Task.after
@@ -15,19 +15,12 @@ object DSL {
   type TaskBuilder[R] = FullTask[_, _] => Task[R]
   
   object FullTask {
-    class PartialTask[DL <: HList, RL <: HList, RP] private[FullTask] (description: String, dependencies: DL, timeout: Duration)
-                                                                      (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]) {
+    class PartialTask[DL <: HList, RL <: HList, RP] (description: String, dependencies: DL, timeout: Duration)
+                                                    (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]) {
       // Ideally all of these methods would be called `createTask` but due to type erasure we cannot declare them so.
-  
-      /*def createTask[R](f: FullTask[_, _] => Task[R])(implicit orchestrator: AbstractOrchestrator[_], ev: DL =:= HNil): FullTask[R, HNil] = {
-        new FullTask[R, HNil](description, dependencies, timeout)(orchestrator, TaskComapped[HNil]) {
-          def createTask(results: comapped.ResultsList): Task[R] = f(this)
-        }
-      }*/
-      
       def createTaskWith[R](f: RL => TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
         new FullTask[R, DL](description, dependencies, timeout)(orchestrator, cm) {
-          def createTask(results: comapped.ResultsList): Task[R] = f(results.asInstanceOf[RL])(this)
+          def createTask(results: comapped.Results): Task[R] = f(results.asInstanceOf[RL])(this)
         }
       }
       def createTask[R](f: RP => TaskBuilder[R])(implicit orchestrator: AbstractOrchestrator[_]): FullTask[R, DL] = {
@@ -39,32 +32,6 @@ object DSL {
                                           ev: T <:< TaskBuilder[R]): FullTask[R, DL] = {
         createTaskWith(fntp(builder) andThen ev)
       }
-    }
-  
-    /**
-      * Simplifies the creation of a FullTask with a single dependency:
-      * {{{
-      *   FullTask("some description", a, Duration.Inf) createTaskWith { case aResult :: HNil =>
-      *     // Task creation
-      *   }
-      * }}}
-      */
-    def apply[DR, DDL <: HList](description: String, dependency: FullTask[DR, DDL],
-                                timeout: Duration): PartialTask[FullTask[DR, DDL] :: HNil, DR :: HNil, Tuple1[DR]] = {
-      new PartialTask(description, dependency :: HNil, timeout)
-    }
-    /**
-      * Allows creating a FullTask using tuple syntax:
-      * {{{
-      *   FullTask("some description", (a, b), Duration.Inf) createTaskWith { case aResult :: bResult :: HNil =>
-      *     // Task creation
-      *   }
-      * }}}
-      */
-    def apply[DP, DL <: HList, RL <: HList, RP](description: String, dependencies: DP, timeout: Duration)
-                                               (implicit gen: Generic.Aux[DP, DL], cm: TaskComapped.Aux[DL, RL],
-                                                tupler: Tupler.Aux[RL, RP]): PartialTask[DL, RL, RP] = {
-      new PartialTask(description, gen.to(dependencies), timeout)
     }
     /**
       * Allows creating a FullTask using HList syntax:
@@ -78,8 +45,72 @@ object DSL {
                                            (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]): PartialTask[DL, RL, RP] = {
       new PartialTask(description, dependencies, timeout)
     }
-  }
+    // We need this apply in order for it to win over the (description: String, dependencies: DP)
+    /**
+      * Allows creating a FullTask using HList syntax:
+      * {{{
+      *   FullTask("some description", a :: b :: HNil) createTaskWith { case aResult :: bResult :: HNil =>
+      *     // Task creation
+      *   }
+      * }}}
+      */
+    def apply[DL <: HList, RL <: HList, RP](description: String, dependencies: DL)
+                                           (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]): PartialTask[DL, RL, RP] = {
+      new PartialTask(description, dependencies, Duration.Inf)
+    }
   
+    /**
+      * Allows creating a FullTask using tuple syntax with a timeout:
+      * {{{
+      *   FullTask("some description", (a, b), Duration.Inf) createTaskWith { case aResult :: bResult :: HNil =>
+      *     // Task creation
+      *   }
+      * }}}
+      */
+    def apply[DP, DL <: HList, RL <: HList, RP](description: String, dependencies: DP, timeout: Duration)
+                                               (implicit ev: DP =:!= HList, gen: Generic.Aux[DP, DL],
+                                                cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]): PartialTask[DL, RL, RP] = {
+      implicitly[DP =:!= HList] // NOP to ensure ev is used and -Ywarn-unused:params does not trip
+      new PartialTask(description, gen.to(dependencies), timeout)
+    }
+    /**
+      * Allows creating a FullTask using tuple syntax:
+      * {{{
+      *   FullTask("some description", (a, b)) createTaskWith { case aResult :: bResult :: HNil =>
+      *     // Task creation
+      *   }
+      * }}}
+      */
+    def apply[DP, DL <: HList, RL <: HList, RP](description: String, dependencies: DP)
+                                               (implicit ev: DP =:!= HList, gen: Generic.Aux[DP, DL],
+                                                cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]): PartialTask[DL, RL, RP] = {
+      implicitly[DP =:!= HList] // NOP to ensure ev is used and -Ywarn-unused:params does not trip
+      new PartialTask(description, gen.to(dependencies), Duration.Inf)
+    }
+    
+    /**
+      * Simplifies the creation of a FullTask with a single dependency and a timeout:
+      * {{{
+      *   FullTask("some description", a, Duration.Inf) createTaskWith { case aResult :: HNil =>
+      *     // Task creation
+      *   }
+      * }}}
+      */
+    def apply[DR, DDL <: HList](description: String, dependency: FullTask[DR, DDL], timeout: Duration): PartialTask[FullTask[DR, DDL] :: HNil, DR :: HNil, Tuple1[DR]] = {
+      new PartialTask(description, dependency :: HNil, timeout)
+    }
+    /**
+      * Simplifies the creation of a FullTask with a single dependency:
+      * {{{
+      *   FullTask("some description", a) createTaskWith { case aResult :: HNil =>
+      *     // Task creation
+      *   }
+      * }}}
+      */
+    def apply[DR, DDL <: HList](description: String, dependency: FullTask[DR, DDL]): PartialTask[FullTask[DR, DDL] :: HNil, DR :: HNil, Tuple1[DR]] = {
+      new PartialTask(description, dependency :: HNil, Duration.Inf)
+    }
+  }
   
   // Allows dependency isDependencyOf otherTaskMethod
   implicit class richFullTask[DR, DDL <: HList](val dependency: FullTask[DR, DDL]) extends AnyVal {

@@ -12,9 +12,9 @@ import pt.tecnico.dsi.akkastrator.Step5_TimeoutSpec._
 import pt.tecnico.dsi.akkastrator.Task.{Aborted, Finished, Timeout}
 
 object Step5_TimeoutSpec {
-  class ExplicitTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class ExplicitTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     destinationProbes += "A" -> destinations(0)
-    FullTask("A", timeout = 0.millis) createTaskWith { _ =>
+    FullTask("A", timeout = 50.millis) createTaskWith { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
         def createMessage(id: Long): Serializable = SimpleMessage(id)
@@ -27,9 +27,9 @@ object Step5_TimeoutSpec {
       }
     }
   }
-  class AutomaticTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class AutomaticTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     destinationProbes += "A" -> destinations(0)
-    FullTask("A", timeout = 0.millis) createTaskWith { _ =>
+    FullTask("A", timeout = 50.millis) createTaskWith { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
         def createMessage(id: Long): Serializable = SimpleMessage(id)
@@ -59,6 +59,9 @@ class Step5_TimeoutSpec extends ActorSysSpec {
             { secondState =>
               testProbeOfTask("A").expectMsgType[SimpleMessage]
               // We purposefully do not reply causing the task to timeout
+  
+              // Ensure the timeout is triggered
+              Thread.sleep(100)
               
               secondState.updatedStatuses(
                 "A" -> Finished("A special error message")
@@ -76,6 +79,9 @@ class Step5_TimeoutSpec extends ActorSysSpec {
             { secondState =>
               testProbeOfTask("A").expectMsgType[SimpleMessage]
               // We purposefully do not reply  causing the task to timeout
+  
+              // Ensure the timeout is triggered
+              Thread.sleep(100)
               
               secondState.updatedStatuses(
                 "A" -> Aborted(new TimeoutException())
@@ -102,7 +108,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
           }, { _ =>
             // Confirm that the orchestrator has indeed aborted
             parentProbe.expectMsgPF() {
-              case TaskAborted(Task.Report("A", Seq(), Aborted(_: TimeoutException), _, None), _: TimeoutException, _) => true
+              case TaskAborted(Report(0, "A", Seq(), Aborted(_: TimeoutException), _, None), _: TimeoutException, _) => true
             }
           }
         )

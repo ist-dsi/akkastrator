@@ -20,6 +20,8 @@ import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting}
 import shapeless.ops.hlist.Tupler
 import shapeless.{HList, HNil}
 
+// TODO: we are identifying tasks by their description. This looks brittle. Maybe we should use the task Id to identify tasks
+
 object ActorSysSpec {
   case object FinishOrchestrator
   case object OrchestratorFinished
@@ -29,20 +31,20 @@ object ActorSysSpec {
   
   val testsAbortReason = new Exception()
   
-  abstract class ControllableOrchestrator(startAndTerminateImmediately: Boolean = false)
+  abstract class ControllableOrchestrator(destinations: Array[TestProbe], startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
     var destinationProbes = Map.empty[String, TestProbe]
   
-    def fulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe, message: Long => Serializable,
+    def fulltask[R, DL <: HList, RL <: HList, RP](description: String, destinationIndex: Int, message: Long => Serializable,
                                                   result: R, dependencies: DL = HNil: HNil,
                                                   timeout: Duration = Duration.Inf, abortOnReceive: Boolean = false)
                                                  (implicit orchestrator: AbstractOrchestrator[_],
                                                   cm: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
                                                   tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
-      destinationProbes += description -> dest
+      destinationProbes += description -> destinations(destinationIndex)
       FullTask(description, dependencies, timeout) createTaskWith { _ =>
         new Task[R](_) {
-          val destination: ActorPath = dest.ref.path
+          val destination: ActorPath = destinations(destinationIndex).ref.path
           def createMessage(id: Long): Serializable = message(id)
           def behavior: Receive =  {
             case SimpleMessage(id) if matchId(id) =>
@@ -56,14 +58,14 @@ object ActorSysSpec {
       }
     }
     
-    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, dest: TestProbe,
+    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, destinationIndex: Int,
                                                                result: R = "finished", dependencies: DL = HNil: HNil,
                                                                timeout: Duration = Duration.Inf,
                                                                abortOnReceive: Boolean = false)
                                                               (implicit orchestrator: AbstractOrchestrator[_],
                                                                tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
                                                                tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
-      fulltask(description, dest, SimpleMessage, result, dependencies, timeout, abortOnReceive)
+      fulltask(description, destinationIndex, SimpleMessage, result, dependencies, timeout, abortOnReceive)
     }
   
     override def persistenceId: String = this.getClass.getSimpleName
@@ -105,7 +107,7 @@ object ActorSysSpec {
     }
   }
   
-  // Quite ugly but makes the tests prettier
+  // Quite ugly but makes the tests more readable
   implicit def state2SetOfState[S <: Task.State](s: S): Set[Task.State] = Set(s)
   implicit class RichTaskState(val tuple: (String, Task.State)) extends AnyVal {
     def or(other: Task.State): (String, Set[Task.State]) = {
@@ -202,6 +204,7 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
     }
     def pingPong(taskDescription: String): Unit = pingPong(testProbeOfTask(taskDescription))
     /** Alias to pingPong. But makes it obvious that we are handling a resend. */
+    // TODO shouldn't handling a resend only be expecting the message? As opposed to expecting the message, then give an answer.
     def handleResend(destination: TestProbe, ignoreTimeoutError: Boolean = false): Unit = pingPong(destination, ignoreTimeoutError)
     def handleResend(taskDescription: String): Unit = pingPong(taskDescription)
     
@@ -258,9 +261,9 @@ abstract class ActorSysSpec extends TestKit(ActorSystem())
       // so we cannot use the testProbeOfTask map to get the destination of the task
       orchestratorActor.tell(Status, probe.ref)
       probe.expectMsgType[StatusResponse].tasks.foreach {
-        case Task.Report(`description`, _, Task.Unstarted, _, _) =>
+        case Report(_, `description`, _, Task.Unstarted, _, _) =>
           throw new IllegalStateException("Cannot expect for inner orchestrator termination if the inner orchestrator hasn't started.")
-        case Task.Report(`description`, _, Task.Waiting, Some(destination), _) =>
+        case Report(_, `description`, _, Task.Waiting, Some(destination), _) =>
           // To be able to watch an actor we need its ActorRef first
           system.actorSelection(destination).tell(Identify(1L), probe.ref)
           probe.expectMsgType[ActorIdentity] match {

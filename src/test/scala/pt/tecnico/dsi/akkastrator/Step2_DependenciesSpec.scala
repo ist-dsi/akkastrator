@@ -13,14 +13,14 @@ class Step2_DependenciesSpec extends ActorSysSpec {
     val destinations = Array.fill(numberOfTasks)(TestProbe())
     
     val letters = 'A' to 'Z'
-    val orchestrator = system.actorOf(Props(new ControllableOrchestrator(startAndTerminateImmediately = true) {
+    val orchestrator = system.actorOf(Props(new ControllableOrchestrator(destinations, startAndTerminateImmediately = true) {
       override def persistenceId: String = s"$numberOfTasks-chained-orchestrator"
       
-      var last: FullTask[String, _ <: HList] = simpleMessageFulltask(letters(0).toString, destinations(0))
-  
+      var last: FullTask[String, _ <: HList] = simpleMessageFulltask(letters(0).toString, 0)
+      
       import scala.language.existentials
       for (i <- 1 until numberOfTasks) {
-        val current = simpleMessageFulltask(letters(i).toString, destinations(i), dependencies = last :: HNil)
+        val current = simpleMessageFulltask(letters(i).toString, i, dependencies = last :: HNil)
         last = current
       }
     }))
@@ -50,26 +50,26 @@ class Step2_DependenciesSpec extends ActorSysSpec {
   
   "An Orchestrator" should {
     "Send one message, handle the response and finish" in {
-      val destinationActor0 = TestProbe()
+      val destination0 = TestProbe()
       
-      val orchestrator = system.actorOf(Props(new ControllableOrchestrator(startAndTerminateImmediately = true) {
+      val orchestrator = system.actorOf(Props(new ControllableOrchestrator(Array(destination0), startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-single-task"
-        simpleMessageFulltask("A", destinationActor0)
+        simpleMessageFulltask("A", 0)
       }))
       
       withOrchestratorTermination(orchestrator) {
-        val a0m = destinationActor0.expectMsgType[SimpleMessage]
-        destinationActor0 reply SimpleMessage(a0m.id)
+        val a0m = destination0.expectMsgType[SimpleMessage]
+        destination0 reply SimpleMessage(a0m.id)
       }
     }
     "Send two messages, handle the response with the same type and finish" in {
       val destinations = Array.fill(2)(TestProbe())
       
-      val orchestrator = system.actorOf(Props(new ControllableOrchestrator(startAndTerminateImmediately = true) {
+      val orchestrator = system.actorOf(Props(new ControllableOrchestrator(destinations, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-two-tasks"
         
-        simpleMessageFulltask("A", destinations(0))
-        simpleMessageFulltask("B", destinations(1))
+        simpleMessageFulltask("A", 0)
+        simpleMessageFulltask("B", 1)
       }))
       
       withOrchestratorTermination(orchestrator) {
@@ -93,11 +93,11 @@ class Step2_DependenciesSpec extends ActorSysSpec {
     "Handle dependencies: (A, B) → C" in {
       val destinations = Array.fill(3)(TestProbe())
 
-      val orchestrator = system.actorOf(Props(new ControllableOrchestrator(startAndTerminateImmediately = true) {
+      val orchestrator = system.actorOf(Props(new ControllableOrchestrator(destinations, startAndTerminateImmediately = true) {
         override def persistenceId: String = "dependencies-tasks-in-T"
-        val a = simpleMessageFulltask("A", destinations(0))
-        val b = simpleMessageFulltask("B", destinations(1))
-        simpleMessageFulltask("C", destinations(2), dependencies = a :: b :: HNil)
+        val a = simpleMessageFulltask("A", 0)
+        val b = simpleMessageFulltask("B", 1)
+        simpleMessageFulltask("C", 2, dependencies = a :: b :: HNil)
       }))
 
       withOrchestratorTermination(orchestrator) {

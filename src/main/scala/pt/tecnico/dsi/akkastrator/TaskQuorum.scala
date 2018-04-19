@@ -15,7 +15,7 @@ case object QuorumImpossibleToAchieve extends Exception
 case object QuorumAlreadyAchieved extends Exception
 
 class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], minimumVotes: MinimumVotes,
-                outerOrchestratorPersistenceId: String) extends DistinctIdsOrchestrator[R] {
+                outerOrchestratorPersistenceId: String) extends Orchestrator[R] {
   def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
   
   // Create the tasks and add them to this orchestrator
@@ -55,11 +55,19 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   protected var winningResult: R = _ // The result which has most votes so far
   protected var winningResultCount: Int = 0 // The number of votes of the winning result
   
-  log.info(withLogPrefix(s"${tasks.size} tasks, need $votesToAchieveQuorum votes to get a quorum, $tolerance tasks can fail."))
+  override def onStart(startId: Long): Unit = {
+    super.onStart(startId)
+    log.info(withLogPrefix(s"${tasks.size} tasks, need $votesToAchieveQuorum votes to get a quorum, $tolerance tasks can fail."))
+  }
+  
+  protected def pluralize(word: String, count: Int): String = s"$word${if (count > 1) "s" else ""}"
+  protected def quorumStatus: String = 
+    s"""
+       |\tWinning Result (with $winningResultCount ${pluralize("vote", winningResultCount)}: $winningResult
+       |\tExpecting ${waitingTasks.size} more ${pluralize("vote", waitingTasks.size)}, $tolerance ${pluralize("tasks", tolerance)} can fail""".stripMargin
   
   override def onTaskFinish(task: FullTask[_, _]): Unit = {
-    // Since the task has finished we know that there will be a result
-    val result = task.unsafeResult.asInstanceOf[R]
+    val result = task.unsafeResult.asInstanceOf[R] // unsafeResult will be safe because the task has finished
     val newCount = resultsCount.getOrElse(result, 0) + 1
     resultsCount(result) = newCount
     
@@ -69,16 +77,41 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
       winningResultCount = newCount
     }
     
-    log.debug(withLogPrefix(task.withOrchestratorAndTaskPrefix(s"""Finished.
-                                                  |\tWinning Result: $winningResult (with $winningResultCount votes)
-                                                  |\tWaiting for ${waitingTasks.size} more votes, $tolerance task can fail""".stripMargin)))
+    super.onTaskFinish(task)
+    
+    log.debug(withLogPrefix(quorumStatus))
     
     if (winningResultCount >= votesToAchieveQuorum) {
       log.info(withLogPrefix("Achieved quorum."))
-      abortWaitingTasks(
-        cause = QuorumAlreadyAchieved,
-        afterAllAborts = onFinish()
-      )
+      // We abort the waiting tasks to ensure that if this orchestrator crashes and is restarted, then it will
+      // be restored to the correct state, and no messages are sent to the destinations.
+      waitingTasks.values.foreach(_.abort(QuorumAlreadyAchieved))
+      onFinish()
+    }
+  }
+  
+  override def onTaskAbort(task: FullTask[_, _], cause: Throwable): Unit = {
+    if (winningResultCount >= votesToAchieveQuorum || tolerance < 0) {
+      // task was aborted either because we already achieved quorum or because the tolerance was surpassed.
+      // For these cases we dont run the tolerance logic.
+    } else {
+      tolerance -= 1
+      // We cant do `super.onTaskAbort(task, cause)` because that would abort the orchestrator
+      log.debug(task.withOrchestratorAndTaskPrefix("Aborted."))
+  
+      log.debug(withLogPrefix(quorumStatus))
+      
+      if (tolerance < 0) {
+        log.info(withLogPrefix("Tolerance surpassed."))
+        // We abort the waiting tasks to ensure that if this orchestrator crashes and is restarted, then it will
+        // be restored to the correct state, and no messages are sent to the destinations.
+        waitingTasks.values.foreach(_.abort(QuorumImpossibleToAchieve))
+        onAbort(Aborted(QuorumImpossibleToAchieve, startId))
+      } else if (tolerance == 0 && waitingTasks.isEmpty) {
+        // This was the last task and the tolerance has not surpassed.
+        // So onFinish is invoked directly, it will terminate the Quorum with a QuorumNotAchieved.
+        onFinish()
+      }
     }
   }
   
@@ -93,44 +126,6 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
     }
     
     context stop self
-  }
-  
-  override def onTaskAbort(task: FullTask[_, _], cause: Throwable): Unit = {
-    tolerance -= 1
-    
-    log.debug(withLogPrefix(task.withOrchestratorAndTaskPrefix(s"""Aborted.
-                                                  |\tWinning Result: $winningResult, with $winningResultCount vote(s)
-                                                  |\tWaiting for ${waitingTasks.size} more votes, $tolerance task can fail""".stripMargin)))
-    
-    if (tolerance < 0) {
-      log.info(withLogPrefix("Tolerance surpassed."))
-      abortWaitingTasks(
-        cause = QuorumImpossibleToAchieve,
-        afterAllAborts = onAbort(Aborted(QuorumImpossibleToAchieve, startId))
-      )
-    }
-    
-    if (tolerance == 0 && waitingTasks.isEmpty) {
-      // This was the last task, however the tolerance has not surpassed.
-      // So onFinish is invoked directly, it will terminate the Quorum with a QuorumNotAchieved.
-      onFinish()
-    }
-  }
-  
-  /** Aborts all tasks that are still waiting, but does not cause the orchestrator to abort.
-    * Then invokes the continuation `afterAllAborts`. If there are no waiting tasks simply invokes the continuation.*/
-  final def abortWaitingTasks(cause: Exception, afterAllAborts: => Unit): Unit = {
-    if (waitingTasks.isEmpty) {
-      afterAllAborts
-    } else {
-      // We abort every waiting task to ensure that if this orchestrator crashes and is restarted
-      // then it will correctly be restored to the correct state. And no messages are sent to the destinations.
-      waitingTasks.values.foreach(
-        _.innerAbort(cause) {
-          if (waitingTasks.isEmpty) afterAllAborts
-        }
-      )
-    }
   }
 }
 

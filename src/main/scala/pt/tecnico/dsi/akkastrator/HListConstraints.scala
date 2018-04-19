@@ -5,37 +5,34 @@ import scala.annotation.tailrec
 import shapeless.{::, HList, HNil}
 
 object HListConstraints {
-  trait TaskComapped[DependenciesList <: HList] {
-    type ResultsList <: HList
-    def buildResultsList(l: DependenciesList): ResultsList
+  trait TaskComapped[Dependencies <: HList] {
+    type Results <: HList
+    def results(l: Dependencies): Results
   }
   object TaskComapped {
-    type Aux[DL <: HList, RL <: HList] = TaskComapped[DL] { type ResultsList = RL }
-    
-    // Summoner, see https://github.com/underscoreio/shapeless-guide for more info
-    def apply[T <: HList](implicit tc: TaskComapped[T]): Aux[T, tc.ResultsList] = tc
+    type Aux[DL <: HList, RL <: HList] = TaskComapped[DL] { type Results = RL }
     
     implicit def nil: Aux[HNil, HNil] = new TaskComapped[HNil]{
-      type ResultsList = HNil
-      def buildResultsList(l: HNil): HNil = HNil
+      type Results = HNil
+      def results(l: HNil): HNil = HNil
     }
   
-    implicit def cons[H, T <: HList, DL <: HList](implicit tc: TaskComapped[T]): Aux[FullTask[H, DL] :: T, H :: tc.ResultsList] =
+    implicit def cons[H, T <: HList, DL <: HList](implicit tc: TaskComapped[T]): Aux[FullTask[H, DL] :: T, H :: tc.Results] =
       new TaskComapped[FullTask[H, DL] :: T] {
-        type ResultsList = H :: tc.ResultsList
-        def buildResultsList(l: FullTask[H, DL] :: T): ResultsList = l.head.unsafeResult :: tc.buildResultsList(l.tail)
+        type Results = H :: tc.Results
+        def results(l: FullTask[H, DL] :: T): Results = l.head.unsafeResult :: tc.results(l.tail)
       }
     
     /** This definition using existentials is needed for some methods of the DSL.
-      * It states that the dependencies of each FullTask in the DependenciesList are irrelevant.
+      * It states that the dependencies of each FullTask in the Dependencies are irrelevant.
       * Or more concretely the induction case is defined for:
       *  `FullTask[H, _] :: T`
       *    as opposed to
       *  `FullTask[H, DL] :: T` */
-    implicit def consExistential[H, T <: HList](implicit tc: TaskComapped[T]): Aux[FullTask[H, _] :: T, H :: tc.ResultsList] =
+    implicit def consExistential[H, T <: HList](implicit tc: TaskComapped[T]): Aux[FullTask[H, _] :: T, H :: tc.Results] =
       new TaskComapped[FullTask[H, _] :: T] {
-        type ResultsList = H :: tc.ResultsList
-        def buildResultsList(l: FullTask[H, _] :: T): ResultsList = l.head.unsafeResult :: tc.buildResultsList(l.tail)
+        type Results = H :: tc.Results
+        def results(l: FullTask[H, _] :: T): Results = l.head.unsafeResult :: tc.results(l.tail)
       }
   }
   

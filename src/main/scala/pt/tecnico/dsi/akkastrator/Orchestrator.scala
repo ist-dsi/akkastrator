@@ -21,10 +21,10 @@ object Orchestrator {
     def cause: Throwable
   }
   case class Aborted(cause: Throwable, id: Long) extends Failure
-  case class TaskAborted[R](instigatorReport: Task.Report[R], cause: Throwable, id: Long) extends Failure
+  case class TaskAborted[R](instigatorReport: Report[R], cause: Throwable, id: Long) extends Failure
   
   case object Status
-  case class StatusResponse(tasks: Seq[Task.Report[_]])
+  case class StatusResponse(tasks: Seq[Report[_]])
   
   case object SaveSnapshot
   case object ShutdownOrchestrator extends PossiblyHarmful
@@ -102,8 +102,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   protected def startId: Long = _startId
   
   //Used to ensure inner orchestrators have different names and persistent ids
-  // TODO: should this be @volatile or an AtomicInt?
-  private[this] final var _innerOrchestratorsNextId: Int = 0
+  final var _innerOrchestratorsNextId: Int = 0
   protected[akkastrator] final def nextInnerOrchestratorId(): Int = {
     val id = _innerOrchestratorsNextId
     _innerOrchestratorsNextId += 1
@@ -122,13 +121,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     * By setting this to 0 and sending `SaveSnapshot` messages you can manually choose when to save snapshots.
     */
   def saveSnapshotRoughlyEveryXMessages: Int = settings.saveSnapshotRoughlyEveryXMessages
-  def scheduleSnapshotIfNeeded(): Unit = {
-    // It is lastSequenceNr % (saveSnapshotEveryXMessages * 2) because we persist TaskStarted and TaskFinished,
-    // however we are only interested in TaskFinished. This will roughly correspond to every X TaskFinished.
-    if (saveSnapshotRoughlyEveryXMessages > 0 && lastSequenceNr % (saveSnapshotRoughlyEveryXMessages * 2) == 0) {
-      self ! SaveSnapshot
-    }
-  }
   
   def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
   
@@ -138,7 +130,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId
   /** Ensures the received message was in fact destined to be received by `task`. */
   def matchId(task: Task[_], id: Long): Boolean
-  
   
   /**
     * INTERNAL API
@@ -154,10 +145,31 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     }
     index
   }
-  
+      
   private[akkastrator] def taskStarted(task: FullTask[_, _], innerTask: Task[_]): Unit = {
     _waitingTasks += task.index -> innerTask
     context become computeCurrentBehavior()
+    
+    onTaskStart(task, innerTask)
+  }
+  /**
+    * User overridable callback. Its called every time a task starts.
+    *
+    * By default just logs the `task` as started.
+    *
+    * { @see onTaskFinish} for a callback when a task finishes.
+    * { @see onTaskAbort} for a callback when a task aborts.
+    */
+  def onTaskStart(task: FullTask[_, _], innerTask: Task[_]): Unit = {
+    log.debug(task.withOrchestratorAndTaskPrefix(s"Started $innerTask."))
+  }
+  /**
+    * User overridable callback. Its called after the orchestrator starts but before any of the tasks start.
+    *
+    * By default logs that the Orchestrator has started.
+    */
+  def onStart(startId: Long): Unit = {
+    log.info(withLogPrefix(s"Started with StardId = $startId"))
   }
   
   
@@ -165,8 +177,12 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     _waitingTasks -= task.index
     _finishedTasks += 1
     context become computeCurrentBehavior()
-    
-    scheduleSnapshotIfNeeded()
+  
+    // It is lastSequenceNr % (saveSnapshotEveryXMessages * 2) because we persist TaskStarted and TaskFinished,
+    // however we are only interested in TaskFinished. This will roughly correspond to every X TaskFinished.
+    if (saveSnapshotRoughlyEveryXMessages > 0 && lastSequenceNr % (saveSnapshotRoughlyEveryXMessages * 2) == 0) {
+      self ! SaveSnapshot
+    }
     
     onTaskFinish(task)
     
@@ -180,11 +196,14 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     *
     * You can use this to implement very refined termination strategies.
     *
-    * By default does nothing.
+    * By default just logs the `task` as finished.
     *
+    * { @see onTaskStart} for a callback when a task starts.
     * { @see onTaskAbort} for a callback when a task aborts.
     */
-  def onTaskFinish(task: FullTask[_, _]): Unit = ()
+  def onTaskFinish(task: FullTask[_, _]): Unit = {
+    log.debug(task.withOrchestratorAndTaskPrefix("Finished."))
+  }
   /**
     * User overridable callback. Its called after every task finishes.
     * If a task aborts then it will prevent this method from being invoked.
@@ -202,10 +221,12 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   }
   
   
-  private[akkastrator] def taskAborted(task: FullTask[_, _]): Unit = {
+  private[akkastrator] def taskAborted(task: FullTask[_, _], cause: Throwable): Unit = {
     _waitingTasks -= task.index
     // We do not increment finishedTasks because the task did not finish
     context become computeCurrentBehavior()
+    
+    onTaskAbort(task, cause)
   }
   /**
     * User overridable callback. Its called every time a task aborts.
@@ -226,6 +247,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     * @param task the task that aborted.
     */
   def onTaskAbort(task: FullTask[_, _], cause: Throwable): Unit = {
+    log.debug(task.withOrchestratorAndTaskPrefix("Aborted."))
     onAbort(TaskAborted(task.report, cause, startId))
   }
   /**
@@ -243,20 +265,19 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     context stop self
   }
   
-  
-  final def recoveryAwarePersist(event: Any, logMessage: String)(handler: => Unit): Unit = {
+  final def recoveryAwarePersist(event: Any)(handler: => Unit): Unit = {
     if (recoveryRunning) {
-      // When recovering the event is already persisted no need to persist it again.
+      // When recovering, the event is already persisted no need to persist it again.
+      log.info(withLogPrefix(s"Recovering $event."))
       handler
     } else {
-      persist(event) { _ =>
-        log.debug(withLogPrefix(logMessage))
+      persist(event) { persistedEvent =>
+        log.debug(withLogPrefix(s"Persisted $persistedEvent."))
         handler
       }
     }
   }
-  
-  
+    
   final def computeCurrentBehavior(): Receive = {
     val baseCommands: Actor.Receive = alwaysAvailableCommands orElse {
       case StartTask(index) => tasks(index).start()
@@ -269,9 +290,9 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   
   final def unstarted: Actor.Receive = {
     case m @ StartOrchestrator(id) =>
-      recoveryAwarePersist(m, s"Persisted $m") {
+      recoveryAwarePersist(m) {
         _startId = id
-        log.info(withLogPrefix(s"Started with StardId = $id"))
+        onStart(_startId)
         if (tasks.isEmpty) {
           onFinish()
         } else if (!recoveryRunning) {
@@ -306,17 +327,11 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     case SnapshotOffer(_, offeredSnapshot: State) =>
       _state = offeredSnapshot.asInstanceOf[S]
     case Event.TaskStarted(taskIndex) =>
-      val task = tasks(taskIndex)
-      log.info(task.withOrchestratorAndTaskPrefix("Recovering TaskStarted."))
-      task.start()
+      tasks(taskIndex).start()
     case f @ Event.TaskFinished(taskIndex, _) =>
-      val task: Task[_] = waitingTasks(taskIndex)
-      log.info(task.withOrchestratorAndTaskPrefix("Recovering TaskFinished."))
-      f.finish(task)
+      f.finish(waitingTasks(taskIndex))
     case Event.TaskAborted(taskIndex, cause) =>
-      val task = waitingTasks(taskIndex)
-      log.info(task.withOrchestratorAndTaskPrefix("Recovering TaskAborted."))
-      task.abort(cause)
+      waitingTasks(taskIndex).abort(cause)
     case RecoveryCompleted =>
       if (tasks.nonEmpty) {
         val tasksString = tasks.map(t => t.withTaskPrefix(t.state.toString)).mkString("\n\t")

@@ -8,20 +8,20 @@ import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.HNil
 
 object Step4_AbortSpec {
-  class AbortSingleTask(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class AbortSingleTask(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     // A
-    simpleMessageFulltask("A", destinations(0), abortOnReceive = true)
+    simpleMessageFulltask("A", 0, abortOnReceive = true)
   }
-  class AbortTwoIndependentTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class AbortTwoIndependentTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     // A
     // B
-    simpleMessageFulltask("A", destinations(0), abortOnReceive = true)
-    simpleMessageFulltask("B", destinations(1))
+    simpleMessageFulltask("A", 0, abortOnReceive = true)
+    simpleMessageFulltask("B", 1)
   }
-  class AbortTwoLinearTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator() {
+  class AbortTwoLinearTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     // A → B
-    val a = simpleMessageFulltask("A", destinations(0), abortOnReceive = true)
-    simpleMessageFulltask("B", destinations(1), dependencies = a :: HNil)
+    val a = simpleMessageFulltask("A", 0, abortOnReceive = true)
+    simpleMessageFulltask("B", 1, dependencies = a :: HNil)
   }
 }
 class Step4_AbortSpec extends ActorSysSpec {
@@ -64,7 +64,7 @@ class Step4_AbortSpec extends ActorSysSpec {
           }, { _ =>
             // Confirm that the orchestrator has indeed aborted
             parentProbe.expectMsgPF() {
-              case TaskAborted(Task.Report("A", Seq(), Aborted(`testsAbortReason`), _, None), `testsAbortReason`, _) => true
+              case TaskAborted(Report(0, "A", Seq(), Aborted(`testsAbortReason`), _, None), `testsAbortReason`, _) => true
             }
           }
         )
@@ -111,7 +111,7 @@ class Step4_AbortSpec extends ActorSysSpec {
           }, { _ =>
             // Confirm that the orchestrator has indeed aborted
             parentProbe.expectMsgPF() {
-              case TaskAborted(Task.Report("A", Seq(), Aborted(`testsAbortReason`), _, None), `testsAbortReason`, _) => true
+              case TaskAborted(Report(0, "A", Seq(), Aborted(`testsAbortReason`), _, None), `testsAbortReason`, _) => true
             }
           }
         )
@@ -144,7 +144,7 @@ class Step4_AbortSpec extends ActorSysSpec {
           }, { _ =>
             // Confirm that the orchestrator has indeed aborted
             parentProbe.expectMsgPF() {
-              case TaskAborted(Task.Report("A", Seq(), Aborted(`testsAbortReason`), _, None), `testsAbortReason`, _) => true
+              case TaskAborted(Report(0, "A", Seq(), Aborted(`testsAbortReason`), _, None), `testsAbortReason`, _) => true
             }
           }
         )

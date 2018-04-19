@@ -16,22 +16,9 @@ object Task {
   case class Finished[R](result: R) extends State
   
   case class Timeout(id: Long) extends PossiblyHarmful
-  
-  // TODO: maybe this class should be in FullTask companion object
-  /**
-    * An immutable representation (a report) of a Task in a given moment of time.
-    *
-    * @param description a text that describes the task in a human readable way. Or a message key to be used in internationalization.
-    * @param dependencies the indexes of the tasks that must have finished in order for the task to be able to start.
-    * @param state the current state of the task.
-    * @param destination the destination of the task. If the task hasn't started this will be a None.
-    * @param result the result of the task. If the task hasn't finished this will be a None.
-    * @tparam R the type of the result.
-    */
-  case class Report[R](description: String, dependencies: Seq[Int], state: Task.State, destination: Option[ActorPath], result: Option[R])
 }
 
-// Maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
+// TODO: maybe we could leverage the Task.State and implement task in a more functional way, aka, remove its internal state.
 
 // TODO: the requires inside Task.{start, finish, innerAbort} and TaskSpawnOrchestrator might be troublesome since they will crash the orchestrator.
 
@@ -53,7 +40,7 @@ object Task {
   * @param task
   * @tparam R the return type of this Task. 
   */
-abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot make the DSL work with `val task: FullTask[R, _]`
+abstract class Task[R](val task: FullTask[_, _]) { // TODO unfortunately we cannot make the DSL work with `val task: FullTask[R, _]`
   import task.orchestrator
   import task.orchestrator.{log, ID}
   import IdImplicits._
@@ -76,12 +63,10 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     log.info(withOrchestratorAndTaskPrefix(s"Starting."))
     
     val taskStarted = TaskStarted(task.index)
-    orchestrator.recoveryAwarePersist(taskStarted, withTaskPrefix(s"Persisted $taskStarted")) {
+    recoveryAwarePersist(taskStarted) {
       orchestrator.deliver(destination) { deliveryId =>
         _expectedID = orchestrator.computeID(destination, deliveryId)
         _state = Waiting
-        // The next line makes sure the orchestrator is ready to deal with the answers from destination.
-        orchestrator.taskStarted(task, this)
   
         log.debug(withOrchestratorAndTaskPrefix(if (orchestrator.recoveryRunning) {
           // "Possibly" because when recovering the deliver handler will be run but the message won't be delivered every time
@@ -90,6 +75,9 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
           "Delivering message."
         }))
   
+        // The next line makes sure the orchestrator is ready to deal with the answers from destination (and the timeout).
+        orchestrator.taskStarted(task, this)
+  
         scheduleTimeout(_expectedID)
         
         createMessage(_expectedID.self)
@@ -97,7 +85,7 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     }
   }
   final def scheduleTimeout(id: ID): Unit = task.timeout match {
-    case f: FiniteDuration if f >= Duration.Zero =>
+    case f: FiniteDuration if f > Duration.Zero =>
       import orchestrator.context.system
       system.scheduler.scheduleOnce(f) {
         // We would like to do `orchestrator.self.tell(Timeout(id.self), destination)` however
@@ -107,7 +95,9 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
         // The exception is matching the sender against `orchestrator.self.path` which signals we are handling a timeout.
         orchestrator.self.tell(Timeout(id.self), orchestrator.self)
       }(system.dispatcher)
-    case _ => // We do nothing because the timeout is either negative or infinite.
+    case f: FiniteDuration =>
+      log.warning(withOrchestratorAndTaskPrefix(s"Invalid timeout = $f. Expected a finite duration > 0. Interpreting as Duration.Inf."))
+    case _ => // We do nothing because the timeout is infinite.
   }
   
   // It would be awesome if `id` had the type ID. But unfortunately that breaks the reusability of Task inside either a Orchestrator or a DistinctIdsOrchestrator.
@@ -143,15 +133,32 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     case Timeout(id) if matchId(id) => abort(new TimeoutException())
   }
   
-  private final def persistAndConfirmDelivery(event: Event)(continuation: => Unit): Unit = {
-    // This method is only invoked from inside finish and abort. These methods are only invoked if
-    // matchId returned true. So we already validated the id and can safely use _expectedID.
-    orchestrator.recoveryAwarePersist(event, withTaskPrefix(s"Persisted $event")) {
-      orchestrator.confirmDelivery(orchestrator.deliveryIdOf(destination, _expectedID).self)
-      continuation
+  final def recoveryAwarePersist(event: Any)(handler: => Unit): Unit = {
+    if (orchestrator.recoveryRunning) {
+      // When recovering the event is already persisted no need to persist it again.
+      log.info(withOrchestratorAndTaskPrefix(s"Recovering $event."))
+      handler
+    } else {
+      orchestrator.persist(event) { _ =>
+        log.debug(withOrchestratorAndTaskPrefix(s"Persisted $event."))
+        handler
+      }
     }
   }
-
+  private final def persistAndConfirmDelivery(event: Event)(handler: => Unit): Unit = {
+    // This method is only invoked from inside finish and abort. These methods are only invoked if
+    // matchId returned true. So we already validated the id and can safely use _expectedID.
+    recoveryAwarePersist(event) {
+      orchestrator.confirmDelivery(orchestrator.deliveryIdOf(destination, _expectedID).self)
+      handler
+    }
+  }
+  
+  // TODO: maybe we could keep a list of finished/aborted tasks inside orchestrator in order to catch the re-sends and ignore them like:
+  //   final def behaviorIgnoringResends: Actor.Receive = { case m if behavior.isDefinedAt(m) => /* Ignore the message */ }
+  // To make this work matchId cannot check the state of the task!
+  // Is it really worth it to store an additional list in the orchestrator just to filter some messages from the log?
+    
   /**
     * Finishes this task, which implies:
     *
@@ -174,11 +181,6 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
       // This means that if destination re-sends an answer the orchestrator will treat it as an unhandled message.
       orchestrator.taskFinished(task)
   
-      // TODO: maybe we could keep a list of finished/aborted tasks in order to catch the re-sends and ignore them like:
-      //   final def behaviorIgnoringResends: Actor.Receive = { case m if behavior.isDefinedAt(m) => /* Ignore the message */ }
-      // To make this work matchId cannot check the state of the task!
-      // Is it really worth it to store an additional list in the orchestrator just to filter some messages from the log?
-  
       // Notify the tasks that depend on this one that this task has finished.
       task.notifyDependents()
     }
@@ -200,28 +202,22 @@ abstract class Task[R](val task: FullTask[_, _]) { // Unfortunately we cannot ma
     *  
     * @param cause what caused the abort to be invoked.
     */
-  final def abort(cause: Throwable): Unit = innerAbort(cause) {
-    orchestrator.onTaskAbort(task, cause)
-  }
-  
-  private[akkastrator] final def innerAbort(cause: Throwable)(afterAbortContinuation: => Unit): Unit = {
+  final def abort(cause: Throwable): Unit = {
     require(state == Waiting, "Abort can only be invoked when this task is Waiting.")
     log.info(withOrchestratorAndTaskPrefix(s"Aborting due to exception: $cause."))
     persistAndConfirmDelivery(TaskAborted(task.index, cause)) {
       _state = Aborted(cause)
-      
-      orchestrator.taskAborted(task)
-      
+      // The next line makes sure the orchestrator no longer deals with the answers from destination.
+      // This means that if destination re-sends an answer the orchestrator will treat it as an unhandled message.
+      orchestrator.taskAborted(task, cause)
+    
       // We do not invoke task.notifyDependents which guarantees the contract that
       // "Every unstarted task that depends on this one will never be started."
-      
-      afterAbortContinuation
     }
   }
   
-  // These are shortcuts
-  final def withTaskPrefix(message: => String): String = task.withTaskPrefix(message)
+  // This is a shortcut
   final def withOrchestratorAndTaskPrefix(message: => String): String = task.withOrchestratorAndTaskPrefix(message)
   
-  override def toString: String = s"Task($expectedID, $state, $destination)"
+  override def toString: String = s"Task(${task.index}, $expectedID, $state, $destination)"
 }
