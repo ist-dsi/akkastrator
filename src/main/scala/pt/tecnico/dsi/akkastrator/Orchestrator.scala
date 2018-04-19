@@ -1,7 +1,7 @@
 package pt.tecnico.dsi.akkastrator
 
 import scala.collection.{immutable, mutable}
-import scala.collection.immutable.HashMap
+import scala.collection.immutable.{HashMap, SortedMap}
 
 import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful}
 import akka.persistence._
@@ -26,7 +26,6 @@ object Orchestrator {
   case object Status
   case class StatusResponse(tasks: Seq[Report[_]])
   
-  case object SaveSnapshot
   case object ShutdownOrchestrator extends PossiblyHarmful
   
   protected[akkastrator] case class StartTask(index: Int)
@@ -65,8 +64,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   extends PersistentActor with AtLeastOnceDelivery with ActorLogging with IdImplicits {
   import Orchestrator._
   
-  /** The type of the state this orchestrator maintains. */
-  type S <: State
   /** The type of Id this orchestrator handles. */
   type ID <: Id
   
@@ -91,40 +88,14 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   /** How many tasks of this orchestrator have successfully finished. Aborted tasks do not count as a finished task. */
   final def finishedTasks: Int = _finishedTasks
   
-  // The state this orchestrator is storing. Starts out empty.
-  protected final var _state: S = _
-  /** Gets the state this orchestrator currently has. */
-  final def state: S = _state
-  
   // The id obtained in the StartOrchestrator message which prompted the execution of this orchestrator tasks
   // This is mainly used for TaskSpawnOrchestrator
   private[this] final var _startId: Long = _
   protected def startId: Long = _startId
   
-  //Used to ensure inner orchestrators have different names and persistent ids
-  final var _innerOrchestratorsNextId: Int = 0
-  protected[akkastrator] final def nextInnerOrchestratorId(): Int = {
-    val id = _innerOrchestratorsNextId
-    _innerOrchestratorsNextId += 1
-    id
-  }
-  
-  /**
-    * Roughly every X messages a snapshot will be saved. Set to 0 to disable automatic saving of snapshots.
-    * By default this method returns the value defined in the configuration.
-    *
-    * This is just a rough value because the orchestrator will not save it in the snapshots.
-    * In fact it will not save it at all. Instead the value of `lastSequenceNr` will be used to estimate
-    * how many messages have been processed.
-    *
-    * You can trigger a save snapshot manually by sending a `SaveSnapshot` message to this orchestrator.
-    * By setting this to 0 and sending `SaveSnapshot` messages you can manually choose when to save snapshots.
-    */
-  def saveSnapshotRoughlyEveryXMessages: Int = settings.saveSnapshotRoughlyEveryXMessages
-  
   def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
   
-  /** Computes ID from the deliveryId of akka-persistence. Also updates this orchestrator state if necessary. */
+  /** Computes ID from the deliveryId of akka-persistence. */
   def computeID(destination: ActorPath, deliveryId: DeliveryId): ID
   /** Converts ID to the deliveryId needed for the confirmDelivery method of akka-persistence. */
   def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId
@@ -178,12 +149,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     _finishedTasks += 1
     context become computeCurrentBehavior()
   
-    // It is lastSequenceNr % (saveSnapshotEveryXMessages * 2) because we persist TaskStarted and TaskFinished,
-    // however we are only interested in TaskFinished. This will roughly correspond to every X TaskFinished.
-    if (saveSnapshotRoughlyEveryXMessages > 0 && lastSequenceNr % (saveSnapshotRoughlyEveryXMessages * 2) == 0) {
-      self ! SaveSnapshot
-    }
-    
     onTaskFinish(task)
     
     //TODO: does invoking onFinish inside the persistHandler cause any problem?
@@ -310,8 +275,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   final def alwaysAvailableCommands: Actor.Receive = {
     case Status =>
       sender() ! StatusResponse(tasks.map(_.report))
-    case SaveSnapshot =>
-      saveSnapshot(state)
     case ShutdownOrchestrator =>
       context stop self
   }
@@ -324,8 +287,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   def extraCommands: Actor.Receive = PartialFunction.empty[Any, Unit]
   
   def receiveRecover: Actor.Receive = unstarted orElse {
-    case SnapshotOffer(_, offeredSnapshot: State) =>
-      _state = offeredSnapshot.asInstanceOf[S]
     case Event.TaskStarted(taskIndex) =>
       tasks(taskIndex).start()
     case f @ Event.TaskFinished(taskIndex, _) =>
@@ -337,8 +298,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
         val tasksString = tasks.map(t => t.withTaskPrefix(t.state.toString)).mkString("\n\t")
         log.debug(withLogPrefix(s"""Recovery completed:
                      |\t$tasksString
-                     |\tNumber of unconfirmed messages: $numberOfUnconfirmed
-                     |\tInner orchestrator next ID: ${_innerOrchestratorsNextId}""".stripMargin))
+                     |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin))
       }
   }
 }
@@ -351,10 +311,6 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   * as that will be enough information to disambiguate which task should handle the response.
   */
 abstract class Orchestrator[R](settings: Settings = new Settings()) extends AbstractOrchestrator[R](settings) {
-  /** This orchestrator accepts any kind of State. */
-  final type S = State
-  _state = EmptyState
-  
   /** This orchestrator uses DeliveryId directly because the same sequence number (of the akka-persistence)
     * is used for all of its destinations. Which means the destinations of this orchestrator will see gaps
     * in the delivery ids of the received messages.*/
@@ -387,31 +343,45 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
   * @inheritdoc
   *
   * In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.
-  * To be able to achieve this, an extra state is needed: the DistinctIds.
   * In this orchestrator the delivery id is not sufficient to disambiguate which task should handle the message,
   * so the ID = CorrelationId and the matchId also needs to check the sender.
   * There is also the added necessity of being able to compute the correlation id for a given (sender, deliveryId)
   * as well as translating a correlation id back to a delivery id.
   */
 abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) extends AbstractOrchestrator[R](settings) {
-  /** This orchestrator requires that the state includes DistinctIds. */
-  final type S = DistinctIdsState
-  _state = DistinctIdsState()
-  
   /** This orchestrator uses CorrelationId for its ID. This ensures every destination sees an independent
     * sequence without gaps. */
   final type ID = CorrelationId
   
+  protected val idsPerDestination: mutable.Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = mutable.Map.empty
+  
+  /** @return the relations between CorrelationId and DeliveryId for the given `destination`. */
+  protected def idsOf(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
+    idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId])
+  }
+  
   final def computeID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
-    val correlationId = state.nextCorrelationIdFor(destination)
+    val correlationId: CorrelationId = idsOf(destination)
+      .keySet.lastOption
+      .map[CorrelationId](_.self + 1L)
+      .getOrElse(0L)
+  
+    idsPerDestination(destination) = idsOf(destination) + (correlationId -> deliveryId)
     
-    _state = state.updatedIdsPerDestination(destination, correlationId -> deliveryId)
-    log.debug(s"State for $destination is now:\n\t" + state.idsOf(destination).mkString("\n\t"))
+    log.debug(s"State for $destination is now:\n\t" + idsOf(destination).mkString("\n\t"))
     
     correlationId
   }
   final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = {
-    state.deliveryIdOf(destination, id)
+    // While a Jedi waves his hand in the air: you cannot see a Option.get here.
+    idsPerDestination.get(destination).flatMap(_.get(id)) match {
+      case Some(deliveryId) => deliveryId
+        // It seems these lines of code are not being covered. Yay :D
+      case None => throw new IllegalArgumentException(
+        s"""Could not obtain the delivery id for:
+           |\tDestination: $destination
+           |\tCorrelationId: $id""".stripMargin)
+    }
   }
   final def matchId(task: Task[_], id: Long): Boolean = {
     val correlationId: CorrelationId = id

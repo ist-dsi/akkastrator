@@ -17,7 +17,7 @@ object Settings {
     }
     import akkastratorConfig._
     
-    Settings(getInt("save-snapshot-roughly-every-X-messages"), getBoolean("use-task-colors"))
+    Settings(getBoolean("use-task-colors"))
   }
 }
 
@@ -26,16 +26,14 @@ object Settings {
   *
   * If you would like to create an instance of settings from a typesafe config invoke `Settings.fromConfig`.
   *
-  * @param saveSnapshotRoughlyEveryXMessages
   * @param useTaskColors
   * @param taskColors
   */
-final case class Settings(saveSnapshotRoughlyEveryXMessages: Int = 200, useTaskColors: Boolean = true,
-                          taskColors: Seq[String] = Vector(
-                            Console.MAGENTA,
-                            Console.CYAN,
-                            Console.GREEN,
-                            Console.BLUE,
-                            Console.YELLOW,
-                            Console.WHITE
-                          ))
+final case class Settings(useTaskColors: Boolean = true, taskColors: Seq[String] = Vector(
+  Console.MAGENTA,
+  Console.CYAN,
+  Console.GREEN,
+  Console.BLUE,
+  Console.YELLOW,
+  Console.WHITE
+))

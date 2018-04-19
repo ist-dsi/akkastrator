@@ -70,9 +70,6 @@ object ActorSysSpec {
   
     override def persistenceId: String = this.getClass.getSimpleName
     
-    //No automatic snapshots
-    override def saveSnapshotRoughlyEveryXMessages: Int = 0
-  
     if (startAndTerminateImmediately) {
       self ! StartOrchestrator(1L)
     }

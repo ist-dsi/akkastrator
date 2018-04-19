@@ -79,7 +79,7 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
     "TaskSpawnOrchestrator props.actorClass must conform to <: AbstractOrchestrator[R]")
   
-  final lazy val innerOrchestratorId: Int = task.orchestrator.nextInnerOrchestratorId()
+  final lazy val innerOrchestratorId: Int = task.index
   final lazy val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"Spawner-$innerOrchestratorId")
   final lazy val destination: ActorPath = spawner.path
   final def createMessage(id: Long): Serializable = SpawnAndStart(props, innerOrchestratorId, id)
