@@ -9,7 +9,7 @@ import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef, Props, Terminated}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.Task.Timeout
 
-case class SpawnAndStart(props: Props, innerOrchestratorId: Int, startId: Long)
+case class SpawnAndStart(props: Props, startId: Long)
 
 // This actor ensures:
 //  · The inner orchestrator is only created when the task is started.
@@ -20,8 +20,8 @@ class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
   log.debug(task.orchestrator.withLogPrefix(s"Created ${self.path.name}: $self"))
   
   def receive: Receive = {
-    case SpawnAndStart(props, innerOrchestratorId, startId) =>
-      val innerOrchestrator = context.actorOf(props, s"${props.actorClass().getSimpleName}-$innerOrchestratorId")
+    case SpawnAndStart(props, startId) =>
+      val innerOrchestrator = context.actorOf(props, s"${props.actorClass().getSimpleName}-${task.index}")
   
       log.debug(task.orchestrator.withLogPrefix(s"[${self.path.name}] Created ${innerOrchestrator.path.name}: $innerOrchestrator"))
       
@@ -73,16 +73,16 @@ class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
   * @tparam R the return type of this Task. Also the return type of the spawned orchestrator. 
   * @tparam O the type of AbstractOrchestrator the Props must create.
   */
-class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: FullTask[_, _])(props: Props) extends Task[R](task) {
+class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: FullTask[R, _])(props: Props) extends Task[R](task) {
   // Props only imposes the restriction that the class it creates must be <: Actor.
   // However we have a more refined restriction that the class it creates must be <: AbstractOrchestrator[R]
   require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
     "TaskSpawnOrchestrator props.actorClass must conform to <: AbstractOrchestrator[R]")
   
-  final lazy val innerOrchestratorId: Int = task.index
-  final lazy val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"Spawner-$innerOrchestratorId")
+  // TODO if these two val are not lazy the TaskSpawnOrchestrator, TaskBundle and TaskQuorum fail. Debug why!
+  final lazy val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"Spawner-${task.index}")
   final lazy val destination: ActorPath = spawner.path
-  final def createMessage(id: Long): Serializable = SpawnAndStart(props, innerOrchestratorId, id)
+  final def createMessage(id: Long): Serializable = SpawnAndStart(props, id)
   
   def behavior: Receive = {
     case m: Success[R] if matchId(m.id) =>

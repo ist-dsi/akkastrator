@@ -1,7 +1,7 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.collection.{immutable, mutable}
 import scala.collection.immutable.{HashMap, SortedMap}
+import scala.collection.{immutable, mutable}
 
 import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful}
 import akka.persistence._
@@ -374,10 +374,9 @@ abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) e
   }
   final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = {
     // While a Jedi waves his hand in the air: you cannot see a Option.get here.
-    idsPerDestination.get(destination).flatMap(_.get(id)) match {
-      case Some(deliveryId) => deliveryId
-        // It seems these lines of code are not being covered. Yay :D
-      case None => throw new IllegalArgumentException(
+    idsPerDestination.get(destination).flatMap(_.get(id)).getOrElse {
+      // It seems these lines of code are not being covered. Yay :D
+      throw new IllegalArgumentException(
         s"""Could not obtain the delivery id for:
            |\tDestination: $destination
            |\tCorrelationId: $id""".stripMargin)

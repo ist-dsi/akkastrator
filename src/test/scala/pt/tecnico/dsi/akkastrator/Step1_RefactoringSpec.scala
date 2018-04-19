@@ -75,7 +75,7 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       }
     }
   
-    case class PingTask(ip: String)(ft: FullTask[_, _]) extends Task[Unit](ft) {
+    case class PingTask(ip: String)(ft: FullTask[Unit, _]) extends Task[Unit](ft) {
       //Dummy destination
       val destination: ActorPath = ActorPath.fromString("akka://user/f")
       def createMessage(id: Long): Serializable = SimpleMessage(id)
@@ -163,17 +163,16 @@ class Step1_RefactoringSpec extends ActorSysSpec with ScalaFutures with Implicit
       "AbstractTasks are added to a simple orchestrator" in {
         class Simple2Orchestrator extends Orchestrator() with SimpleTasks with AbstractTasks {
           def persistenceId: String = "Simple2"
-          obtainLocation -> ping
           obtainLocation isDependencyOf ping
         }
-        // 4 because: theOneTask, obtainLocation and the 2 pings which depend on obtainLocation
-        testNumberOfTasks(new Simple2Orchestrator(), numberOfTasks = 4)
+        // 4 because: theOneTask, obtainLocation and the ping which depend on obtainLocation
+        testNumberOfTasks(new Simple2Orchestrator(), numberOfTasks = 3)
       }
       "AbstractTasks are added to a distinctIds orchestrator" in {
         class DistinctIds2Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with AbstractTasks {
           def persistenceId: String = "DistinctIds2"
   
-          (getHiggs, obtainLocation) -> post
+          (getHiggs, obtainLocation) areDependenciesOf post
         }
         // 3 because: getHiggs, obtainLocation and post which depends on the previous ones
         testNumberOfTasks(new DistinctIds2Orchestrator(), numberOfTasks = 3)

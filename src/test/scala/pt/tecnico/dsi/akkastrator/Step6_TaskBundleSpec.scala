@@ -1,13 +1,12 @@
 package pt.tecnico.dsi.akkastrator
 
-import scala.concurrent.TimeoutException
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.Random
 
 import akka.actor.{Actor, ActorPath, Props}
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec._
-import pt.tecnico.dsi.akkastrator.DSL.FullTask
+import pt.tecnico.dsi.akkastrator.DSL.{FullTask, TaskBundle, TaskSpawnOrchestrator}
 import pt.tecnico.dsi.akkastrator.Step6_TaskBundleSpec._
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.{::, HNil}
@@ -23,7 +22,7 @@ object Step6_TaskBundleSpec {
       // which satisfies the type constraints of the TaskSpawnOrchestrator, but then we provide
       // it with a Props class that creates a different actor which does not satisfies the type constraints.
       // This test serves to catch this error.
-      new TaskSpawnOrchestrator[Seq[Int], Bundle[Int]](_)(Props[DummyActor])
+      TaskSpawnOrchestrator[Seq[Int], Bundle[Int]](Props[DummyActor])
     }
   }
   
@@ -37,22 +36,28 @@ object Step6_TaskBundleSpec {
     // interplay between some other akkastrator abstraction.
     
     FullTask("A") createTask { _ =>
-      new TaskBundle(_)(o =>
+      // The implicit must be called `orchestrator` to shadow the variable `orchestrator` in AbstractOrchestrator.
+      // Otherwise (lets say you call it `myOrchestrator`) we would get ambiguous implicit values:
+      //  both value orchestrator in class AbstractOrchestrator of type => pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]
+      //  and value myOrchestrator of type pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]
+      // Alternatively you can pass the orchestrator explicitly see the `TaskBundleDependency` orchestrator below
+      TaskBundle { implicit orchestrator =>
         startingFruits.zipWithIndex.map { case (fruit, i) =>
           // Declaring the inner task directly in the body of the task bundle.
           // NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
           // With implicit function types this will no longer be necessary
-          FullTask(fruit).createTaskWith { case HNil =>
+          FullTask(fruit).createTaskWith[Int] { case HNil =>
             new Task[Int](_) {
               val destination: ActorPath = destinations(i).ref.path
               def createMessage(id: Long): Serializable = SimpleMessage(id)
+  
               def behavior: Receive = {
                 case SimpleMessage(id) if matchId(id) => finish(fruit.length)
               }
             }
-          }(o)
+          }
         }
-      )
+      }
     }
   }
   
@@ -61,11 +66,9 @@ object Step6_TaskBundleSpec {
     val a = simpleMessageFulltask("A", 0, startingFruits)
   
     val b = FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      new TaskBundle(_)(o =>
+      TaskBundle { implicit orchestrator =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          //Declaring the inner task directly in the body of the task bundle.
-          //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
-          FullTask(fruit).createTaskWith { case HNil =>
+          FullTask(fruit).createTaskWith[Int] { case HNil =>
             new Task[Int](_) {
               val destination: ActorPath = destinations(i + 1).ref.path
               def createMessage(id: Long): Serializable = SimpleMessage(id)
@@ -74,9 +77,9 @@ object Step6_TaskBundleSpec {
                   finish(fruit.length)
               }
             }
-          }(o)
+          }
         }
-      )
+      }
     }
   }
   
@@ -86,27 +89,25 @@ object Step6_TaskBundleSpec {
   class ComplexTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     val a = simpleMessageFulltask("A", 0, startingFruits)
     val b = FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      new TaskBundle(_)(o =>
+      TaskBundle { implicit orchestrator =>
         fruits.map { fruit =>
-          //Using a method that creates a full task.
-          //NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
-          simpleMessageFulltask(s"B-$fruit", 1, fruit)(o)
+          simpleMessageFulltask(s"B-$fruit", 1, fruit)
         }
-      )
+      }
     }
     val c = FullTask("C", a :: HNil, Duration.Inf) createTaskWith { case fruits :: HNil =>
-      new TaskBundle(_)(o =>
+      TaskBundle { implicit orchestrator =>
         fruits.map { fruit =>
-          simpleMessageFulltask(s"C-$fruit", 2, fruit)(o)
+          simpleMessageFulltask(s"C-$fruit", 2, fruit)
         }
-      )
+      }
     }
     val d = FullTask("D", (b, c)) createTask { case (fruitsB, fruitsC) =>
-      new TaskBundle(_)(o =>
+      TaskBundle { implicit orchestrator =>
         (fruitsB ++ fruitsC).map { fruit =>
-          simpleMessageFulltask(s"D-$fruit", 3, fruit)(o)
+          simpleMessageFulltask(s"D-$fruit", 3, fruit)
         }
-      )
+      }
     }
   }
   class ComplexBFirstTaskBundle(destinations: Array[TestProbe]) extends ComplexTaskBundle(destinations)
@@ -119,21 +120,21 @@ object Step6_TaskBundleSpec {
     val abortingTask = Random.nextInt(5)
     
     FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      new TaskBundle(_)(o =>
+      TaskBundle { implicit orchestrator =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"B-$fruit", i + 1, fruit, abortOnReceive = i == abortingTask)(o)
+          simpleMessageFulltask(s"B-$fruit", i + 1, fruit, abortOnReceive = i == abortingTask)
         }
-      )
+      }
     }
   }
   // N*A (A timeouts)
   class OuterTaskAbortingTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     FullTask("A", timeout = 50.millis) createTaskWith { _ =>
-      new TaskBundle(_)(o =>
+      TaskBundle { implicit orchestrator =>
         startingFruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"A-$fruit", i, fruit)(o)
+          simpleMessageFulltask(s"A-$fruit", i, fruit)
         }
-      )
+      }
     }
   }
 }
@@ -480,7 +481,8 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
           
               // Ensure the timeout is triggered
               Thread.sleep(100)
-          
+  
+              import scala.concurrent.TimeoutException
               secondState.updatedStatuses(
                 "A" -> Aborted(new TimeoutException())
               )

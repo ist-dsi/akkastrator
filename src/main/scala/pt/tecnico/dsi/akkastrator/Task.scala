@@ -40,7 +40,7 @@ object Task {
   * @param task
   * @tparam R the return type of this Task. 
   */
-abstract class Task[R](val task: FullTask[_, _]) { // TODO unfortunately we cannot make the DSL work with `val task: FullTask[R, _]`
+abstract class Task[R](val task: FullTask[R, _]) {
   import task.orchestrator
   import task.orchestrator.{log, ID}
   import IdImplicits._

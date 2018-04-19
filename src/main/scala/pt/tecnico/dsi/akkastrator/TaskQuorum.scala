@@ -129,13 +129,14 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   }
 }
 
+// tasksCreator should be of type `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
+// but unfortunately only Dotty has implicit function types)
 /**
   * A task that creates a variable number of tasks and succeeds when `n` tasks finish producing the same result.
   * `n` is calculated with the minimumVotes function.
   * The return type and the message of the tasks must be the same. And their destinations must be different.
   */
-class TaskQuorum[R](task: FullTask[_, _])(minimumVotes: MinimumVotes,
-                                          tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
+class TaskQuorum[R](task: FullTask[R, _], minimumVotes: MinimumVotes)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[R, Quorum[R]](task)(
     Props(classOf[Quorum[R]], tasksCreator, minimumVotes, task.orchestrator.persistenceId)
   )

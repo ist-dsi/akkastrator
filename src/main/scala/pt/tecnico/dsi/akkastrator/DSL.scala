@@ -1,7 +1,9 @@
 package pt.tecnico.dsi.akkastrator
 
 import scala.concurrent.duration.Duration
+import scala.reflect.ClassTag
 
+import akka.actor.Props
 import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
 import shapeless.ops.hlist.{At, Tupler}
 import shapeless.{::, =:!=, Generic, HList, HNil, _0}
@@ -12,7 +14,7 @@ import shapeless.{::, =:!=, Generic, HList, HNil, _0}
 //  3) Or WithDependencies and NoDependencies
 
 object DSL {
-  type TaskBuilder[R] = FullTask[_, _] => Task[R]
+  type TaskBuilder[R] = FullTask[R, _] => Task[R]
   
   object FullTask {
     class PartialTask[DL <: HList, RL <: HList, RP] (description: String, dependencies: DL, timeout: Duration)
@@ -112,15 +114,30 @@ object DSL {
     }
   }
   
+  object TaskSpawnOrchestrator {
+    def apply[R, O <: AbstractOrchestrator[R]: ClassTag](props: Props): TaskBuilder[R] = {
+      new TaskSpawnOrchestrator[R, O](_)(props)
+    }
+  }
+  object TaskBundle {
+    // tasksCreator should be of type `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
+    // but unfortunately only Dotty has implicit function types)
+    def apply[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[Seq[R]] = {
+      new TaskBundle(_)(tasksCreator)
+    }
+  }
+  object TaskQuorum {
+    // tasksCreator should be of type `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
+    // but unfortunately only Dotty has implicit function types)
+    def apply[R](minimumVotes: MinimumVotes)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[R] = {
+      new TaskQuorum(_, minimumVotes)(tasksCreator)
+    }
+  }
+  
   // Allows dependency isDependencyOf otherTaskMethod
   implicit class richFullTask[DR, DDL <: HList](val dependency: FullTask[DR, DDL]) extends AnyVal {
     def isDependencyOf[R](task: FullTask[DR, DDL] :: HNil => FullTask[R, _]): FullTask[R, _] = {
       task(dependency :: HNil)
-    }
-  
-    // REVIEW: this method might lead to some confusion due to any2ArrowAssoc
-    def ->[R](task: FullTask[DR, DDL] :: HNil => FullTask[R, _]): FullTask[R, _] = {
-      isDependencyOf(task)
     }
   }
 
@@ -129,9 +146,6 @@ object DSL {
   implicit class hlist2TaskWithDependencies[DL <: HList](dependencies: DL)
                                                         (implicit ev: TaskComapped[DL], at: At[DL, _0]) {
     def areDependenciesOf[R](task: DL => FullTask[R, _]): FullTask[R, _] = task(dependencies)
-  
-    // REVIEW: this method might lead to some confusion due to any2ArrowAssoc
-    def ->[R](task: DL => FullTask[R, _]): FullTask[R, _] = areDependenciesOf(task)
   }
 
   // Allows (task1, task2) areDependenciesOf otherTaskMethod

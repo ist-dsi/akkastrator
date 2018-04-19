@@ -22,6 +22,8 @@ class Bundle[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   //The default implementation of onTaskAbort and onAbort is sufficient to handle the case when a task aborts.
 }
 
+// tasksCreator should be of type `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
+// but unfortunately only Dotty has implicit function types)
 /**
   * A task that creates a variable number of tasks and succeeds when all the created tasks finish successfully.
   * The return type of the tasks must be the same. Their messages and destinations are unrestrained.
@@ -32,7 +34,7 @@ class Bundle[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   * @param tasksCreator
   * @tparam R the return type of the tasks created using `tasksCreator`. 
   */
-class TaskBundle[R](task: FullTask[_, _])(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
+class TaskBundle[R](task: FullTask[Seq[R], _])(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
   extends TaskSpawnOrchestrator[Seq[R], Bundle[R]](task)(
     Props(classOf[Bundle[R]], tasksCreator, task.orchestrator.persistenceId)
   )

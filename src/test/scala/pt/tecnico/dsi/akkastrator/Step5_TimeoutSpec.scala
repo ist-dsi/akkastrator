@@ -14,7 +14,7 @@ import pt.tecnico.dsi.akkastrator.Task.{Aborted, Finished, Timeout}
 object Step5_TimeoutSpec {
   class ExplicitTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     destinationProbes += "A" -> destinations(0)
-    FullTask("A", timeout = 50.millis) createTaskWith { _ =>
+    FullTask("A", timeout = 50.millis) createTaskWith[String] { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
         def createMessage(id: Long): Serializable = SimpleMessage(id)
@@ -29,7 +29,7 @@ object Step5_TimeoutSpec {
   }
   class AutomaticTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     destinationProbes += "A" -> destinations(0)
-    FullTask("A", timeout = 50.millis) createTaskWith { _ =>
+    FullTask("A", timeout = 50.millis) createTaskWith[String] { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
         def createMessage(id: Long): Serializable = SimpleMessage(id)
