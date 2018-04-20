@@ -2,6 +2,7 @@ package pt.tecnico.dsi.akkastrator
 
 import scala.concurrent.duration.Duration
 
+import akka.actor.ActorPath
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec._
 import pt.tecnico.dsi.akkastrator.DSL._
@@ -28,7 +29,15 @@ object Step7_TaskQuorumSpec {
       TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
         Seq(
           simpleMessageFulltask("0", 0, "0"),
-          fulltask("1", 1, AnotherMessage("1", _), "1")
+          FullTask("1").createTask[String] { _ =>
+            new Task[String](_) {
+              val destination: ActorPath = destinations(1).ref.path
+              def createMessage(id: Long): Serializable = AnotherMessage("1", id)
+              def behavior: Receive = {
+                case SimpleMessage(id) if matchId(id) => finish("1")
+              }
+            }
+          }
         )
       }
     }
@@ -46,16 +55,15 @@ object Step7_TaskQuorumSpec {
     FullTask("A") createTask { _ =>
       TaskQuorum(minimumVotes = AtLeast(2)) { implicit orchestrator =>
         startingFruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"A-$fruit", i, SimpleMessage.apply, fruit.length)
+          simpleMessageFulltask(s"A-$fruit", i, fruit.length)
         }
       }
     }
   }
   
   // 5*A the destinations of two random inner tasks won't send an answer
-  class SingleTaskQuorumWithoutSomeAnswers(destinations: Array[TestProbe]) extends SingleTaskQuorum(destinations) {
-    // We created a new class just to ensure the persistenceId is different
-  }
+  // We created a new class just to ensure the persistenceId is different
+  class SingleTaskQuorumWithoutSomeAnswers(destinations: Array[TestProbe]) extends SingleTaskQuorum(destinations)
   
   // 5*A QuorumNotAchieved
   class QuorumNotAchieved(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
@@ -63,7 +71,7 @@ object Step7_TaskQuorumSpec {
       TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
         // Every inner task will give a different answer
         Seq.tabulate(5)("a" * _).zipWithIndex.map { case (string, i) =>
-          fulltask(s"A-$string", i, SimpleMessage.apply, string.length)
+          simpleMessageFulltask(s"A-$string", i, string.length)
         }
       }
     }
@@ -75,7 +83,7 @@ object Step7_TaskQuorumSpec {
     FullTask("B", a) createTaskWith { case fruits :: HNil =>
       TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"B-$fruit", i + 1, SimpleMessage.apply, fruit.length)
+          simpleMessageFulltask(s"B-$fruit", i + 1, fruit.length)
         }
       }
     }
@@ -87,7 +95,7 @@ object Step7_TaskQuorumSpec {
     FullTask("B", a) createTaskWith { case fruits :: HNil =>
       TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"B-$fruit", i + 1, SimpleMessage.apply, fruit.length, abortOnReceive = i < 2)
+          simpleMessageFulltask(s"B-$fruit", i + 1, fruit.length, abortOnReceive = i < 2)
         }
       }
     }
@@ -101,14 +109,14 @@ object Step7_TaskQuorumSpec {
     val b = FullTask("B", a, Duration.Inf) createTaskWith { case fruits :: HNil =>
       TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"B-$fruit", i + 6, SimpleMessage.apply, fruit.length)
+          simpleMessageFulltask(s"B-$fruit", i + 6, fruit.length)
         }
       }
     }
     val c = FullTask("C", a, Duration.Inf) createTaskWith { case fruits :: HNil =>
       TaskQuorum(AtLeast(2)) { implicit orchestrator =>
         fruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"C-$fruit", i + 1, SimpleMessage.apply, fruit.length)
+          simpleMessageFulltask(s"C-$fruit", i + 1, fruit.length)
         }
       }
     }
@@ -116,8 +124,8 @@ object Step7_TaskQuorumSpec {
     FullTask("D", (b, c), Duration.Inf) createTask { case (fruitsLengthB, fruitsLengthC) =>
       TaskQuorum(All) { implicit orchestrator =>
         Seq(
-          fulltask("D-B", 11, SimpleMessage.apply, fruitsLengthB),
-          fulltask("D-C", 12, SimpleMessage.apply, fruitsLengthC)
+          simpleMessageFulltask("D-B", 11, fruitsLengthB),
+          simpleMessageFulltask("D-C", 12, fruitsLengthC)
         )
       }
     }
@@ -130,7 +138,7 @@ object Step7_TaskQuorumSpec {
       // Given that one of the tasks aborts so should the Quorum
       TaskQuorum(minimumVotes = All) { implicit orchestrator =>
         (0 to 2) map { i =>
-          fulltask(s"B-$i", i, SimpleMessage.apply, "result", abortOnReceive = i == abortingTaskId)
+          simpleMessageFulltask(s"B-$i", i, "result", abortOnReceive = i == abortingTaskId)
         }
       }
     }
@@ -148,7 +156,7 @@ object Step7_TaskQuorumSpec {
     FullTask("A") createTask { _ =>
       TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
         startingFruits.zipWithIndex.map { case (fruit, i) =>
-          fulltask(s"A-$fruit", i, SimpleMessage.apply, fruit.length, abortOnReceive = i > 2)
+          simpleMessageFulltask(s"A-$fruit", i, fruit.length, abortOnReceive = i > 2)
         }
       }
     }

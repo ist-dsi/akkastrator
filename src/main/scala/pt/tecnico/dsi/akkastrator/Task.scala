@@ -53,7 +53,7 @@ abstract class Task[R](val task: FullTask[R, _]) {
   
   /** The ActorPath to whom this task will send the message(s). This must be a val because the destination cannot change. */
   val destination: ActorPath
-  // It would be awesome if `id` had the type ID. But unfortunately that breaks the reusability of Task inside either a Orchestrator or a DistinctIdsOrchestrator.
+  // It would be awesome if `id` had type ID. Unfortunately that breaks the reusability of Task.
   /** The constructor of the message to be sent. It must always return the same message, only the id must be different.
     * If this Task is to be used inside a TaskQuorum then the created message should also implement `equals`. */
   def createMessage(id: Long): Serializable
@@ -100,7 +100,7 @@ abstract class Task[R](val task: FullTask[R, _]) {
     case _ => // We do nothing because the timeout is infinite.
   }
   
-  // It would be awesome if `id` had the type ID. But unfortunately that breaks the reusability of Task inside either a Orchestrator or a DistinctIdsOrchestrator.
+  // It would be awesome if `id` had type ID. Unfortunately that breaks the reusability of Task.
   final def matchId(id: Long): Boolean = orchestrator.matchId(this, id)
   
   /**

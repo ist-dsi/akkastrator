@@ -4,29 +4,27 @@ import scala.reflect.ClassTag
 
 import akka.actor.{ActorPath, Props}
 import akka.testkit.ImplicitSender
-import org.scalatest.concurrent.ScalaFutures
 import pt.tecnico.dsi.akkastrator.DSL._
 import pt.tecnico.dsi.akkastrator.Orchestrator._
+import pt.tecnico.dsi.akkastrator.Step1_RefactoringSpec._
 import shapeless.{::, HNil}
 
-class Step1_RefactoringSpec extends ActorSysSpec {
+object Step1_RefactoringSpec {
   trait SimpleTasks { self: Orchestrator[_] =>
     val theOneTask: FullTask[Unit, HNil] = FullTask("the One") createTask { _ =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
         def createMessage(id: Long): Serializable = SimpleMessage(id)
-      
         def behavior: Receive = {
           case SimpleMessage(id) if matchId(id) => finish(())
         }
       }
     }
-  
+    
     def deleteUser(user: String): FullTask[Unit, HNil] = FullTask(s"Delete user $user") createTaskWith { case HNil =>
       new Task[Unit](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
         def createMessage(id: Long): Serializable = SimpleMessage(id)
-  
         def behavior: Receive = {
           case SimpleMessage(id) if matchId(id) => finish(())
         }
@@ -38,21 +36,21 @@ class Step1_RefactoringSpec extends ActorSysSpec {
     val getHiggs: FullTask[String, HNil] = FullTask("find the higgs boson") createTaskWith { case HNil =>
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-  
+        
         def createMessage(id: Long): Serializable = SimpleMessage(id)
-  
+        
         def behavior: Receive = {
           case SimpleMessage(id) if matchId(id) =>
             finish("a non-zero constant value almost everywhere")
         }
       }
     }
-  
+    
     def postTask(what: String, where: String): TaskBuilder[Unit] = new Task[Unit](_) {
       val destination: ActorPath = ActorPath.fromString(s"akka://user/$what/$where")
-  
+      
       def createMessage(id: Long): Serializable = SimpleMessage(id)
-  
+      
       def behavior: Receive = {
         case SimpleMessage(id) if matchId(id) => finish(())
       }
@@ -68,17 +66,17 @@ class Step1_RefactoringSpec extends ActorSysSpec {
       new Task[String](_) {
         val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
         def createMessage(id: Long): Serializable = SimpleMessage(id)
-      
+        
         def behavior: Receive = {
           case SimpleMessage(id) if matchId(id) => finish("::1")
         }
       }
     }
-  
+    
     case class PingTask(ip: String)(ft: FullTask[Unit, _]) extends Task[Unit](ft) {
       val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
       def createMessage(id: Long): Serializable = SimpleMessage(id)
-  
+      
       def behavior: Receive = {
         case SimpleMessage(id) if matchId(id) => finish(())
       }
@@ -89,11 +87,64 @@ class Step1_RefactoringSpec extends ActorSysSpec {
     }
   }
   
-  def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](creator: => O, numberOfTasks: Int): Unit = {
-    val orchestrator = system.actorOf(Props(creator))
+  class Simple1Orchestrator extends Orchestrator() with SimpleTasks {
+    def persistenceId: String = "Simple1"
+    
+    deleteUser("a")
+  }
+  
+  class DistinctIds1Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks {
+    def persistenceId: String = "DistinctIds1"
+    
+    val where: FullTask[String, HNil] = FullTask("get where") createTaskWith { case HNil =>
+      new Task[String](_) {
+        val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
+        def createMessage(id: Long): Serializable = SimpleMessage(id)
+        
+        def behavior: Receive = {
+          case SimpleMessage(id) if matchId(id) => finish("http://example.com")
+        }
+      }
+    }
+    
+    val c: FullTask[Unit, _] = post(getHiggs :: where :: HNil)
+    
+    def post2(someParam: String)(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
+      FullTask("demo", dependencies) createTask { case (_, tb) =>
+        new Task[String](_){
+          val destination: ActorPath = ActorPath.fromString(s"akka://user/dummy/$someParam")
+          def createMessage(id: Long): Serializable = SimpleMessage(id)
+          
+          def behavior: Receive = {
+            case SimpleMessage(id) if matchId(id) => finish(tb)
+          }
+        }
+      }
+    }
+    
+    // Two levels nesting
+    //val d = (c, where) -> post2("someValue")
+  }
+  
+  class Simple2Orchestrator extends Orchestrator() with SimpleTasks with AbstractTasks {
+    def persistenceId: String = "Simple2"
+    obtainLocation isDependencyOf ping
+  }
+  
+  class DistinctIds2Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with AbstractTasks {
+    def persistenceId: String = "DistinctIds2"
+    
+    (getHiggs, obtainLocation) areDependenciesOf post
+  }
+}
+
+class Step1_RefactoringSpec extends ActorSysSpec with ImplicitSender {
+  def testNumberOfTasks[O <: AbstractOrchestrator[_]: ClassTag](numberOfTasks: Int): Unit = {
+    val orchestrator = system.actorOf(Props[O])
     orchestrator ! Status
     val tasks = expectMsgType[StatusResponse].tasks
     tasks.length shouldBe numberOfTasks
+    orchestrator ! ShutdownOrchestrator
   }
   
   "An orchestrator with refactored tasks" should {
@@ -112,66 +163,20 @@ class Step1_RefactoringSpec extends ActorSysSpec {
     
     "add the refactored tasks to the orchestrator" when {
       "SimpleTasks are added to a simple orchestrator" in {
-        class Simple1Orchestrator extends Orchestrator() with SimpleTasks {
-          def persistenceId: String = "Simple1"
-          
-          deleteUser("a")
-        }
         // 2 because: theOneTask and deleteUser("a")
-        testNumberOfTasks(new Simple1Orchestrator(), numberOfTasks = 2)
+        testNumberOfTasks[Simple1Orchestrator](numberOfTasks = 2)
       }
       "DistinctIdsTasks are added to a distinctIds orchestrator" in {
-        class DistinctIds1Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks {
-          def persistenceId: String = "DistinctIds1"
-          
-          val where: FullTask[String, HNil] = FullTask("get where") createTaskWith { case HNil =>
-            new Task[String](_) {
-              val destination: ActorPath = ActorPath.fromString("akka://user/dummy")
-              def createMessage(id: Long): Serializable = SimpleMessage(id)
-      
-              def behavior: Receive = {
-                case SimpleMessage(id) if matchId(id) => finish("http://example.com")
-              }
-            }
-          }
-          
-          val c: FullTask[Unit, _] = post(getHiggs :: where :: HNil)
-          
-          def post2(someParam: String)(dependencies: FullTask[Unit, _] :: FullTask[String, _] :: HNil): FullTask[String, _] = {
-            FullTask("demo", dependencies) createTask { case (_, tb) =>
-              new Task[String](_){
-                val destination: ActorPath = ActorPath.fromString(s"akka://user/dummy/$someParam")
-                def createMessage(id: Long): Serializable = SimpleMessage(id)
-        
-                def behavior: Receive = {
-                  case SimpleMessage(id) if matchId(id) => finish(tb)
-                }
-              }
-            }
-          }
-          
-          // Two levels nesting
-          //val d = (c, where) -> post2("someValue")
-        }
         // 4 because: getHiggs, where, c and d
-        testNumberOfTasks(new DistinctIds1Orchestrator(), numberOfTasks = 3)
+        testNumberOfTasks[DistinctIds1Orchestrator](numberOfTasks = 3)
       }
       "AbstractTasks are added to a simple orchestrator" in {
-        class Simple2Orchestrator extends Orchestrator() with SimpleTasks with AbstractTasks {
-          def persistenceId: String = "Simple2"
-          obtainLocation isDependencyOf ping
-        }
         // 4 because: theOneTask, obtainLocation and the ping which depend on obtainLocation
-        testNumberOfTasks(new Simple2Orchestrator(), numberOfTasks = 3)
+        testNumberOfTasks[Simple2Orchestrator](numberOfTasks = 3)
       }
       "AbstractTasks are added to a distinctIds orchestrator" in {
-        class DistinctIds2Orchestrator extends DistinctIdsOrchestrator() with DistinctIdsTasks with AbstractTasks {
-          def persistenceId: String = "DistinctIds2"
-  
-          (getHiggs, obtainLocation) areDependenciesOf post
-        }
         // 3 because: getHiggs, obtainLocation and post which depends on the previous ones
-        testNumberOfTasks(new DistinctIds2Orchestrator(), numberOfTasks = 3)
+        testNumberOfTasks[DistinctIds2Orchestrator](numberOfTasks = 3)
       }
     }
   }

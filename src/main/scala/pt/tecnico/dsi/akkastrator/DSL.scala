@@ -98,7 +98,8 @@ object DSL {
       *   }
       * }}}
       */
-    def apply[DR, DDL <: HList](description: String, dependency: FullTask[DR, DDL], timeout: Duration): PartialTask[FullTask[DR, DDL] :: HNil, DR :: HNil, Tuple1[DR]] = {
+    def apply[DR, DDL <: HList](description: String, dependency: FullTask[DR, DDL],
+                                timeout: Duration): PartialTask[FullTask[DR, DDL] :: HNil, DR :: HNil, Tuple1[DR]] = {
       new PartialTask(description, dependency :: HNil, timeout)
     }
     /**
@@ -120,15 +121,13 @@ object DSL {
     }
   }
   object TaskBundle {
-    // tasksCreator should be of type `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
-    // but unfortunately only Dotty has implicit function types)
+    // In the future change tasksCreator to an implicit function type aka `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
     def apply[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[Seq[R]] = {
       new TaskBundle(_)(tasksCreator)
     }
   }
   object TaskQuorum {
-    // tasksCreator should be of type `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
-    // but unfortunately only Dotty has implicit function types)
+    // In the future change tasksCreator to an implicit function type aka `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
     def apply[R](minimumVotes: MinimumVotes)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[R] = {
       new TaskQuorum(_, minimumVotes)(tasksCreator)
     }

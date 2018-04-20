@@ -129,8 +129,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   }
 }
 
-// tasksCreator should be of type `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
-// but unfortunately only Dotty has implicit function types)
+// In the future change tasksCreator to an implicit function type aka `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
 /**
   * A task that creates a variable number of tasks and succeeds when `n` tasks finish producing the same result.
   * `n` is calculated with the minimumVotes function.

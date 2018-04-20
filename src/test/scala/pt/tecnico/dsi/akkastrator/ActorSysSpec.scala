@@ -35,17 +35,17 @@ object ActorSysSpec {
     extends DistinctIdsOrchestrator {
     var destinationProbes = Map.empty[String, TestProbe]
   
-    def fulltask[R, DL <: HList, RL <: HList, RP](description: String, destinationIndex: Int, message: Long => Serializable,
-                                                  result: R, dependencies: DL = HNil: HNil,
-                                                  timeout: Duration = Duration.Inf, abortOnReceive: Boolean = false)
-                                                 (implicit orchestrator: AbstractOrchestrator[_],
-                                                  cm: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
-                                                  tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
+    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, destinationIndex: Int,
+                                                               result: R = "finished", dependencies: DL = HNil: HNil,
+                                                               timeout: Duration = Duration.Inf, abortOnReceive: Boolean = false)
+                                                              (implicit orchestrator: AbstractOrchestrator[_],
+                                                               tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
+                                                               tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
       destinationProbes += description -> destinations(destinationIndex)
       FullTask(description, dependencies, timeout) createTaskWith { _ =>
         new Task[R](_) {
           val destination: ActorPath = destinations(destinationIndex).ref.path
-          def createMessage(id: Long): Serializable = message(id)
+          def createMessage(id: Long): Serializable = SimpleMessage(id)
           def behavior: Receive =  {
             case SimpleMessage(id) if matchId(id) =>
               if (abortOnReceive) {
@@ -56,16 +56,6 @@ object ActorSysSpec {
           }
         }
       }
-    }
-    
-    def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, destinationIndex: Int,
-                                                               result: R = "finished", dependencies: DL = HNil: HNil,
-                                                               timeout: Duration = Duration.Inf,
-                                                               abortOnReceive: Boolean = false)
-                                                              (implicit orchestrator: AbstractOrchestrator[_],
-                                                               tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
-                                                               tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
-      fulltask(description, destinationIndex, SimpleMessage, result, dependencies, timeout, abortOnReceive)
     }
   
     override def persistenceId: String = this.getClass.getSimpleName
