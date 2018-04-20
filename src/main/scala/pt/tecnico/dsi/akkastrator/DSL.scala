@@ -121,13 +121,13 @@ object DSL {
     }
   }
   object TaskBundle {
-    // In the future change tasksCreator to an implicit function type aka `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
+    // In the future change tasksCreator to an implicit function type
     def apply[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[Seq[R]] = {
       new TaskBundle(_)(tasksCreator)
     }
   }
   object TaskQuorum {
-    // In the future change tasksCreator to an implicit function type aka `implicit AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]`
+    // In the future change tasksCreator to an implicit function type
     def apply[R](minimumVotes: MinimumVotes)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[R] = {
       new TaskQuorum(_, minimumVotes)(tasksCreator)
     }
