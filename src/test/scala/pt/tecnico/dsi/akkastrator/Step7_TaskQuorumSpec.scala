@@ -14,32 +14,26 @@ object Step7_TaskQuorumSpec {
   class TasksWithSameDestinationQuorum(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     // A - error: tasks with same destination
     FullTask("A") createTaskWith { case HNil =>
-      TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
-        Seq(
-          simpleMessageFulltask("0", 0, "0"),
-          simpleMessageFulltask("1", 0, "1")
-        )
-      }
+      TaskQuorum(minimumVotes = Majority,
+        task(destinationIndex = 0, result = "0"),
+        task(destinationIndex = 0, result = "1")
+      )
     }
   }
   class TasksWithDifferentMessagesQuorum(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     case class AnotherMessage(s: String, id: Long)
     
     FullTask("A") createTaskWith { case HNil =>
-      TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
-        Seq(
-          simpleMessageFulltask("0", 0, "0"),
-          FullTask("1").createTask[String] { _ =>
-            new Task[String](_) {
-              val destination: ActorPath = destinations(1).ref.path
-              def createMessage(id: Long): Serializable = AnotherMessage("1", id)
-              def behavior: Receive = {
-                case SimpleMessage(id) if matchId(id) => finish("1")
-              }
-            }
+      TaskQuorum(minimumVotes = Majority,
+        task(destinationIndex = 0, result = "0"),
+        new Task[String](_: FullTask[String, _]) { // https://github.com/scala/bug/issues/10830
+          val destination: ActorPath = destinations(1).ref.path
+          def createMessage(id: Long): Serializable = AnotherMessage("1", id)
+          def behavior: Receive = {
+            case SimpleMessage(id) if matchId(id) => finish("1")
           }
-        )
-      }
+        }
+      )
     }
   }
   
@@ -53,11 +47,11 @@ object Step7_TaskQuorumSpec {
     // interplay between some other akkastrator abstraction.
     
     FullTask("A") createTask { _ =>
-      TaskQuorum(minimumVotes = AtLeast(2)) { implicit orchestrator =>
+      TaskQuorum(minimumVotes = AtLeast(2),
         startingFruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"A-$fruit", i, fruit.length)
+          task(destinationIndex = i, result = fruit.length)
         }
-      }
+      )
     }
   }
   
@@ -68,12 +62,12 @@ object Step7_TaskQuorumSpec {
   // 5*A QuorumNotAchieved
   class QuorumNotAchieved(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     FullTask("A") createTask { _ =>
-      TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
+      TaskQuorum(minimumVotes = Majority,
         // Every inner task will give a different answer
         Seq.tabulate(5)("a" * _).zipWithIndex.map { case (string, i) =>
-          simpleMessageFulltask(s"A-$string", i, string.length)
+          task(destinationIndex = i, result = string.length)
         }
-      }
+      )
     }
   }
   
@@ -81,11 +75,11 @@ object Step7_TaskQuorumSpec {
   class TaskQuorumDependency(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     val a = simpleMessageFulltask("A", 0, startingFruits)
     FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
+      TaskQuorum(minimumVotes = Majority,
         fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"B-$fruit", i + 1, fruit.length)
+          task(destinationIndex = i + 1, result = fruit.length)
         }
-      }
+      )
     }
   }
   
@@ -93,11 +87,11 @@ object Step7_TaskQuorumSpec {
   class TaskQuorumDependencyWithAborts(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     val a = simpleMessageFulltask("A", 0, startingFruits)
     FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
+      TaskQuorum(minimumVotes = Majority,
         fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"B-$fruit", i + 1, fruit.length, abortOnReceive = i < 2)
+          task(destinationIndex = i + 1, result = fruit.length, abortOnReceive = i < 2)
         }
-      }
+      )
     }
   }
   
@@ -107,27 +101,25 @@ object Step7_TaskQuorumSpec {
   class ComplexTaskQuorum(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     val a = simpleMessageFulltask("A", 0, startingFruits)
     val b = FullTask("B", a, Duration.Inf) createTaskWith { case fruits :: HNil =>
-      TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
+      TaskQuorum(minimumVotes = Majority,
         fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"B-$fruit", i + 6, fruit.length)
+          task(destinationIndex = i + 6, result = fruit.length)
         }
-      }
+      )
     }
     val c = FullTask("C", a, Duration.Inf) createTaskWith { case fruits :: HNil =>
-      TaskQuorum(AtLeast(2)) { implicit orchestrator =>
+      TaskQuorum(AtLeast(2),
         fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"C-$fruit", i + 1, fruit.length)
+          task(destinationIndex = i + 1, result = fruit.length)
         }
-      }
+      )
     }
     // Using tuple syntax makes it prettier
     FullTask("D", (b, c), Duration.Inf) createTask { case (fruitsLengthB, fruitsLengthC) =>
-      TaskQuorum(All) { implicit orchestrator =>
-        Seq(
-          simpleMessageFulltask("D-B", 11, fruitsLengthB),
-          simpleMessageFulltask("D-C", 12, fruitsLengthC)
-        )
-      }
+      TaskQuorum(All,
+        task(destinationIndex = 11, result = fruitsLengthB),
+        task(destinationIndex = 12, result = fruitsLengthC)
+      )
     }
   }
   
@@ -136,11 +128,11 @@ object Step7_TaskQuorumSpec {
     FullTask("A") createTaskWith { case HNil =>
       // Since minimumVotes = All the tolerance is 0.
       // Given that one of the tasks aborts so should the Quorum
-      TaskQuorum(minimumVotes = All) { implicit orchestrator =>
+      TaskQuorum(minimumVotes = All,
         (0 to 2) map { i =>
-          simpleMessageFulltask(s"B-$i", i, "result", abortOnReceive = i == abortingTaskId)
+          task(destinationIndex = i, result = "result", abortOnReceive = i == abortingTaskId)
         }
-      }
+      )
     }
   }
   
@@ -154,11 +146,11 @@ object Step7_TaskQuorumSpec {
   // 5*A QuorumNotAchieved in the last aborting task
   class QuorumNotAchievedInLastAbortingTask(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     FullTask("A") createTask { _ =>
-      TaskQuorum(minimumVotes = Majority) { implicit orchestrator =>
+      TaskQuorum(minimumVotes = Majority,
         startingFruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"A-$fruit", i, fruit.length, abortOnReceive = i > 2)
+          task(destinationIndex = i, result = fruit.length, abortOnReceive = i > 2)
         }
-      }
+      )
     }
   }
 }

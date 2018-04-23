@@ -32,8 +32,6 @@ class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
       innerOrchestrator ! startMessage
       
       context become innerSpawned(innerOrchestrator)
-    case Timeout(_) if sender() == context.parent =>
-      context stop self
   }
   
   def innerSpawned(innerOrchestrator: ActorRef): Receive = {

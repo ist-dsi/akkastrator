@@ -6,14 +6,14 @@ import scala.collection.immutable.SortedMap
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.reflect.ClassTag
 import scala.util.control.NoStackTrace
-
 import akka.actor.{Status => _, _}
 import akka.testkit.{TestKit, TestProbe}
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 import pt.tecnico.dsi.akkastrator.ActorSysSpec._
-import pt.tecnico.dsi.akkastrator.DSL.FullTask
+import pt.tecnico.dsi.akkastrator.DSL.{FullTask, TaskBuilder}
 import pt.tecnico.dsi.akkastrator.HListConstraints.TaskComapped
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting}
@@ -34,7 +34,22 @@ object ActorSysSpec {
   abstract class ControllableOrchestrator(destinations: Array[TestProbe], startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
     var destinationProbes = Map.empty[String, TestProbe]
-  
+
+    def task[R](destinationIndex: Int, result: R = "finished", abortOnReceive: Boolean = false): TaskBuilder[R] = {
+      new Task[R](_) {
+        val destination: ActorPath = destinations(destinationIndex).ref.path
+        def createMessage(id: Long): Serializable = SimpleMessage(id)
+        def behavior: Receive =  {
+          case SimpleMessage(id) if matchId(id) =>
+            if (abortOnReceive) {
+              abort(testsAbortReason)
+            } else {
+              finish(result)
+            }
+        }
+      }
+    }
+    
     def simpleMessageFulltask[R, DL <: HList, RL <: HList, RP](description: String, destinationIndex: Int,
                                                                result: R = "finished", dependencies: DL = HNil: HNil,
                                                                timeout: Duration = Duration.Inf, abortOnReceive: Boolean = false)
@@ -43,18 +58,7 @@ object ActorSysSpec {
                                                                tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
       destinationProbes += description -> destinations(destinationIndex)
       FullTask(description, dependencies, timeout) createTaskWith { _ =>
-        new Task[R](_) {
-          val destination: ActorPath = destinations(destinationIndex).ref.path
-          def createMessage(id: Long): Serializable = SimpleMessage(id)
-          def behavior: Receive =  {
-            case SimpleMessage(id) if matchId(id) =>
-              if (abortOnReceive) {
-                abort(testsAbortReason)
-              } else {
-                finish(result)
-              }
-          }
-        }
+        task(destinationIndex, result, abortOnReceive)
       }
     }
   
@@ -105,7 +109,7 @@ object ActorSysSpec {
   }
 }
 
-abstract class ActorSysSpec extends TestKit(ActorSystem())
+abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(ActorSystem("ActorSysSpec", config = config))
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll

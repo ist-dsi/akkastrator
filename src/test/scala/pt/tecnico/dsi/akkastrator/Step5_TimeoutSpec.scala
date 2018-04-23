@@ -29,14 +29,8 @@ object Step5_TimeoutSpec {
   }
   class AutomaticTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     destinationProbes += "A" -> destinations(0)
-    FullTask("A", timeout = 50.millis) createTaskWith[String] { _ =>
-      new Task[String](_) {
-        val destination: ActorPath = destinations(0).ref.path
-        def createMessage(id: Long): Serializable = SimpleMessage(id)
-        def behavior: Receive =  {
-          case SimpleMessage(id) if matchId(id) => finish("A Result")
-        }
-      }
+    FullTask("A", timeout = 50.millis) createTaskWith { _ =>
+      task(0)
     }
   }
 }
@@ -57,7 +51,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         val testCase1 = new TestCase[ExplicitTimeoutHandling](1, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              testProbeOfTask("A").expectMsgType[SimpleMessage]
+              destinations(0).expectMsgType[SimpleMessage]
               // We purposefully do not reply causing the task to timeout
   
               // Ensure the timeout is triggered
@@ -77,7 +71,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         val testCase2 = new TestCase[AutomaticTimeoutHandling](1, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              testProbeOfTask("A").expectMsgType[SimpleMessage]
+              destinations(0).expectMsgType[SimpleMessage]
               // We purposefully do not reply  causing the task to timeout
   
               // Ensure the timeout is triggered

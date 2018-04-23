@@ -38,14 +38,13 @@ object Orchestrator {
   *
   * The Orchestrator together with the Task is able to:
   *
-  *  - Handling the persistence of the internal state maintained by both the Orchestrator and the Tasks.
   *  - Delivering messages with at-least-once delivery guarantee. The `DistinctIdsOrchestrator` ensures each destination
   *    will see an independent strictly monotonically increasing sequence number without gaps.
   *  - Handling Status messages, that is, if some actor is interested in querying the Orchestrator for its current
   *    status, the Orchestrator will respond with the status of each task.
   *  - When all the dependencies of a task finish that task will be started and the Orchestrator will
   *    be prepared to handle the messages that the task destination sends.
-  *  - If the Orchestrator crashes, the state it maintains (including the state of each task) will be correctly restored.
+  *  - If the Orchestrator crashes, the state of each task will be correctly restored.
   *
   * NOTE: the responses that are received must be Serializable.
   *
@@ -80,7 +79,8 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   private[this] final val _tasks = mutable.Buffer.empty[FullTask[_, _]]
   final def tasks: immutable.Seq[FullTask[_, _]] = _tasks.toVector // To make sure the mutability does not escape
   
-  /** We use a HashMap to ensure remove/insert operations are very fast O(eC). The keys are the task index. */
+  /** We use a [[scala.collection.immutable.HashMap]] to ensure remove/insert operations are very fast O(eC).
+    * The keys are the task indexes. */
   protected[this] final var _waitingTasks = HashMap.empty[Int, Task[_]]
   final def waitingTasks: HashMap[Int, Task[_]] = _waitingTasks
   
@@ -91,7 +91,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   // The id obtained in the StartOrchestrator message which prompted the execution of this orchestrator tasks
   // This is mainly used for TaskSpawnOrchestrator
   private[this] final var _startId: Long = _
-  protected def startId: Long = _startId
+  final def startId: Long = _startId
   
   def withLogPrefix(message: => String): String = s"[${self.path.name}] $message"
   
@@ -160,7 +160,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     *
     * You can use this to implement very refined termination strategies.
     *
-    * By default just logs the `task` as finished.
+    * By default just logs the `task` has finished.
     *
     * { @see onTaskStart} for a callback when a task starts.
     * { @see onTaskAbort} for a callback when a task aborts.
@@ -192,6 +192,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     
     onTaskAbort(task, cause)
   }
+  // TODO check why invoking become/unbecome voids the guarantee
   /**
     * User overridable callback. Its called every time a task aborts.
     *
@@ -206,6 +207,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     *         context.become(computeCurrentBehavior() orElse yourBehavior)
     *       }}}
     *
+    * { @see onTaskStart} for a callback when a task starts.
     * { @see onTaskFinish } for a callback when a task finishes.
     *
     * @param task the task that aborted.
@@ -293,26 +295,17 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
     case Event.TaskAborted(taskIndex, cause) =>
       waitingTasks(taskIndex).abort(cause)
     case RecoveryCompleted =>
-      if (tasks.nonEmpty) {
-        val tasksString = tasks.map(t => t.withTaskPrefix(t.state.toString)).mkString("\n\t")
-        log.debug(withLogPrefix(s"""Recovery completed:
-                     |\t$tasksString
-                     |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin))
-      }
+      log.debug(withLogPrefix(s"""Recovery completed:${tasks.map(t => t.withTaskPrefix(t.state.toString)).mkString("\n\t", "\n\t", "\n")}
+                   |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin))
   }
 }
 
 /**
-  * @inheritdoc
-  *
   * In a simple orchestrator the same sequence number (of akka-persistence) is used for all the
   * destinations of the orchestrator. Because of this, ID = DeliveryId, and matchId only checks the deliveryId
   * as that will be enough information to disambiguate which task should handle the response.
   */
 abstract class Orchestrator[R](settings: Settings = new Settings()) extends AbstractOrchestrator[R](settings) {
-  /** This orchestrator uses DeliveryId directly because the same sequence number (of the akka-persistence)
-    * is used for all of its destinations. Which means the destinations of this orchestrator will see gaps
-    * in the delivery ids of the received messages.*/
   final type ID = DeliveryId
   
   final def computeID(destination: ActorPath, deliveryId: DeliveryId): DeliveryId = deliveryId
@@ -339,8 +332,6 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
 }
 
 /**
-  * @inheritdoc
-  *
   * In a DistinctIdsOrchestrator an independent sequence is used for each destination of the orchestrator.
   * In this orchestrator the delivery id is not sufficient to disambiguate which task should handle the message,
   * so the ID = CorrelationId and the matchId also needs to check the sender.
@@ -348,39 +339,25 @@ abstract class Orchestrator[R](settings: Settings = new Settings()) extends Abst
   * as well as translating a correlation id back to a delivery id.
   */
 abstract class DistinctIdsOrchestrator[R](settings: Settings = new Settings()) extends AbstractOrchestrator[R](settings) {
-  /** This orchestrator uses CorrelationId for its ID. This ensures every destination sees an independent
-    * sequence without gaps. */
   final type ID = CorrelationId
-  
-  protected val idsPerDestination: mutable.Map[ActorPath, SortedMap[CorrelationId, DeliveryId]] = mutable.Map.empty
-  
-  /** @return the relations between CorrelationId and DeliveryId for the given `destination`. */
-  protected def idsOf(destination: ActorPath): SortedMap[CorrelationId, DeliveryId] = {
-    idsPerDestination.getOrElse(destination, SortedMap.empty[CorrelationId, DeliveryId])
-  }
+
+  // By using a SortedMap as opposed to a Map we can also extract the latest correlationId per sender
+  private val idsPerDestination = mutable.Map.empty[ActorPath, SortedMap[CorrelationId, DeliveryId]]
+    .withDefaultValue(SortedMap.empty[CorrelationId, DeliveryId]) // We cannot use .withDefaultValue on the SortedMap :(
   
   final def computeID(destination: ActorPath, deliveryId: DeliveryId): CorrelationId = {
-    val correlationId: CorrelationId = idsOf(destination)
+    val correlationId: CorrelationId = idsPerDestination(destination)
       .keySet.lastOption
       .map[CorrelationId](_.self + 1L)
       .getOrElse(0L)
   
-    idsPerDestination(destination) = idsOf(destination) + (correlationId -> deliveryId)
+    idsPerDestination(destination) += correlationId -> deliveryId
     
-    log.debug(s"State for $destination is now:\n\t" + idsOf(destination).mkString("\n\t"))
+    log.debug(s"State for $destination is now:\n\t" + idsPerDestination(destination).mkString("\n\t"))
     
     correlationId
   }
-  final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = {
-    // While a Jedi waves his hand in the air: you cannot see a Option.get here.
-    idsPerDestination.get(destination).flatMap(_.get(id)).getOrElse {
-      // It seems these lines of code are not being covered. Yay :D
-      throw new IllegalArgumentException(
-        s"""Could not obtain the delivery id for:
-           |\tDestination: $destination
-           |\tCorrelationId: $id""".stripMargin)
-    }
-  }
+  final def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId = idsPerDestination(destination).getOrElse(id, 0L)
   final def matchId(task: Task[_], id: Long): Boolean = {
     val correlationId: CorrelationId = id
     lazy val destinationPath = task.destination.toStringWithoutAddress

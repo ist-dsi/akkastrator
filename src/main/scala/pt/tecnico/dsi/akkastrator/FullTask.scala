@@ -15,6 +15,11 @@ import shapeless.HList
 //  3) When the task is finished its description will be: "Creating entry for user User(5, "Simão")"
 //  4) Make this work with internationalization, aka, allow description to be used as a MessageKey for
 //     a internationalization framework.
+//  We could implement this with a function from hlist of options to string plus a list to be used for each of the orElses.
+//  The string is a format string (to be used in String.format). By default this could simply be description
+// abstract class FullTask[R, DL <: HList](val dependencies: DL, val timeout: Duration)(implicit val orchestrator: AbstractOrchestrator[_], val comapped: TaskComapped[DL]) {
+//   def createTask(results: comapped.Results): Task[R]
+//   def description(results: comapped.OptionResults, orElseValues: List[String]): String
 
 /**
   * A full task represents a task plus its dependencies. It ensures a Task is only created when all of its dependencies
@@ -31,6 +36,7 @@ import shapeless.HList
   */
 abstract class FullTask[R, DL <: HList](val description: String, val dependencies: DL, val timeout: Duration)
                                        (implicit val orchestrator: AbstractOrchestrator[_], val comapped: TaskComapped[DL]) {
+  
   // These fields are vars but once they are computed, they become "immutable", that is, they will no longer be modified.
   // Dependents = tasks that depend on this task. Used to notify them that this task has finished.
   private[this] final var dependents = Seq.empty[FullTask[_, _]]
@@ -72,31 +78,24 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   
   def createTask(results: comapped.Results): Task[R]
   
-  protected final def allDependenciesFinished: Boolean = finishedDependencies == dependenciesIndexes.length
-  
-  /** Computes the results HList from the dependencies HList.
-    * Every dependency must have finished, otherwise an exception will be thrown. */
-  protected final def buildResults(): comapped.Results = {
-    require(allDependenciesFinished, "All dependencies must have finished to be able to build their results.")
-    comapped.results(dependencies)
-  }
+  final def allDependenciesFinished: Boolean = finishedDependencies == dependenciesIndexes.length
   
   /**
     * Creates the `innerTask` using the results obtained from `buildResults` and returns it.
     * Also saves it in the innerTask field.
     */
   private[akkastrator] final def innerCreateTask(): Task[R] = {
-    val results = buildResults()
-    val task = createTask(results)
+    require(allDependenciesFinished, "All dependencies must have finished to be able to build their results.")
+    val task = createTask(comapped.results(dependencies))
     innerTask = Some(task)
     task
   }
   
   /** Starts this task. */
-  final def start(): Unit = innerCreateTask().start()
+  private[akkastrator] final def start(): Unit = innerCreateTask().start()
   
   /** Iterates through the dependents of this task and informs them that this task has finished. */
-  final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
+  private[akkastrator] final def notifyDependents(): Unit = dependents.foreach(_.dependencyFinished())
   
   /** When a dependency of this task finishes this method is invoked. */
   private final def dependencyFinished(): Unit = {
@@ -128,11 +127,11 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
   /**
     * Returns this task result if it already finished. Otherwise throws an exception.
     */
-  final def unsafeResult: R = result match {
-    case Some(result) => result
-    case None => throw new IllegalStateException("A task only has a result if it finished.")
+  final def unsafeResult: R = {
+    // At least fail with a better message
+    result.getOrElse(throw new IllegalStateException("A task only has a result if it finished."))
   }
-  
+
   /** The TaskReport of this task. */
   final def report: Report[R] = Report(index, description, dependenciesIndexes, state,
     innerTask.map(_.destination), result)

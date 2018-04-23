@@ -15,7 +15,7 @@ import shapeless.{::, =:!=, Generic, HList, HNil, _0}
 
 object DSL {
   type TaskBuilder[R] = FullTask[R, _] => Task[R]
-  
+    
   object FullTask {
     class PartialTask[DL <: HList, RL <: HList, RP] (description: String, dependencies: DL, timeout: Duration)
                                                     (implicit cm: TaskComapped.Aux[DL, RL], tupler: Tupler.Aux[RL, RP]) {
@@ -121,15 +121,17 @@ object DSL {
     }
   }
   object TaskBundle {
-    // In the future change tasksCreator to an implicit function type
-    def apply[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[Seq[R]] = {
-      new TaskBundle(_)(tasksCreator)
-    }
+    def apply[R](taskBuilders: Iterable[TaskBuilder[R]]): TaskBuilder[Seq[R]] = new TaskBundle(_)(taskBuilders)
+    // And this folks is how you get around type erasure with varargs. Yes I know its ugly.
+    def apply[R](b0: TaskBuilder[R], bn: TaskBuilder[R]*): TaskBuilder[Seq[R]] = TaskBundle(b0 +: bn)
   }
   object TaskQuorum {
-    // In the future change tasksCreator to an implicit function type
-    def apply[R](minimumVotes: MinimumVotes)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]]): TaskBuilder[R] = {
-      new TaskQuorum(_, minimumVotes)(tasksCreator)
+    def apply[R](minimumVotes: MinimumVotes, taskBuilders: Iterable[TaskBuilder[R]]): TaskBuilder[R] = {
+      new TaskQuorum(_)(minimumVotes, taskBuilders)
+    }
+    // However varargs and multiple parameters lists seems impossible.
+    def apply[R](minimumVotes: MinimumVotes, b0: TaskBuilder[R], bn: TaskBuilder[R]*): TaskBuilder[R] = {
+      TaskQuorum(minimumVotes, b0 +: bn)
     }
   }
   

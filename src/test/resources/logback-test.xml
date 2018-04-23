@@ -3,7 +3,7 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- With Colors -->
-            <pattern>%highlight([%-5level]) %message%n%nopex</pattern>
+            <pattern>[%X{akkaTimestamp}]%highlight([%-5level]) %message%n%nopex</pattern>
             <!--<pattern>[%date][%logger{1}]%n %highlight([%-5level]) %message%n%xException</pattern>-->
             <!-- Without Colors -->
             <!--<pattern>[%date][%logger{1}]%n [%-5level]%message%n%xException</pattern>-->

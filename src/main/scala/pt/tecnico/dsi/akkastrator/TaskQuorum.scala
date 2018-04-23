@@ -1,45 +1,54 @@
 package pt.tecnico.dsi.akkastrator
 
 import scala.collection.mutable
+import scala.util.Random
 
 import akka.actor.Props
+import pt.tecnico.dsi.akkastrator.DSL.{FullTask, TaskBuilder}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
-import shapeless.HNil
 
 /** Signals that every task in the Quorum has finished but a quorum has not achieved. */
 case object QuorumNotAchieved extends Exception
+
 /** Signals that the quorum is impossible to achieve since enough tasks have aborted that prevent the orchestrator
   * from achieving enough votes to satisfy the minimumVotes function. */
 case object QuorumImpossibleToAchieve extends Exception
+
 /** Exception used to abort waiting tasks when the quorum was already achieved. */
 case object QuorumAlreadyAchieved extends Exception
 
-class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]], minimumVotes: MinimumVotes,
-                outerOrchestratorPersistenceId: String) extends Orchestrator[R] {
+class Quorum[R](taskBuilders: Iterable[TaskBuilder[R]], minimumVotes: MinimumVotes, outerOrchestratorPersistenceId: String) extends Orchestrator[R] {
   def persistenceId: String = s"$outerOrchestratorPersistenceId-${self.path.name}"
   
   // Create the tasks and add them to this orchestrator
-  tasksCreator(this)
+  for ((task, i) <- taskBuilders.zipWithIndex) {
+    FullTask(i.toString).createTask(_ => task)
+  }
   
   // Check that every created task:
   // · Has a distinct destination
   // · Generates the same message
-  // Since we required the created tasks to have no dependencies we know they were added to the waitingTasks list.
-  waitingTasks.values.sliding(2).collectFirst {
-    case Seq(t1, t2) if t1.destination == t2.destination =>
-      new IllegalArgumentException(s"""TasksCreator must generate tasks with distinct destinations.
-                                      |Tasks "${t1.task.description}" and "${t2.task.description}" have the same destination:
-                                      |\t${t1.destination}""".stripMargin)
-    case Seq(t1, t2) if t1.createMessage(1L) != t2.createMessage(1L) => //TODO: This equality check might very easily fail
-      new IllegalArgumentException(s"""TasksCreator must generate tasks with the same message.
-                                      |Tasks "${t1.task.description}" and "${t2.task.description}" generate different messages:
-                                      |\t${t1.createMessage(1L)}
-                                      |\t${t2.createMessage(1L)}""".stripMargin)
-  } foreach { cause =>
-    // Makes it more obvious when debugging the application
-    log.error(withLogPrefix(cause.getMessage))
-    onAbort(Aborted(cause, startId))
-  }
+  // Since the tasks have no dependencies we know they were added to the waitingTasks list.
+  private val randomId = Random.nextLong
+  waitingTasks.values.toStream
+    .map(t => (t.task.description, t.destination, t.createMessage(randomId)))
+    .sliding(2)
+    .collectFirst {
+      case Stream((descriptionA, destA, _), (descriptionB, destB, _)) if destA == destB =>
+        new IllegalArgumentException( s"""Quorum tasks must have distinct destinations.
+                                         |Tasks "$descriptionA" and "$descriptionB" have the same destination:
+                                         |\t$destA""".stripMargin)
+      case Seq((descriptionA, _, messageA), (descriptionB, _, messageB)) if messageA != messageB =>
+        new IllegalArgumentException( s"""Quorum tasks must generate the same message.
+                                         |Tasks "$descriptionA" and "$descriptionB" generate different messages:
+                                         |\t$messageA
+                                         |\t$messageB""".stripMargin)
+    }
+    .foreach { cause =>
+      // Makes it more obvious when debugging the application
+      log.error(withLogPrefix(cause.getMessage))
+      onAbort(Aborted(cause, startId))
+    }
   
   final val votesToAchieveQuorum: Int = minimumVotes(tasks.length)
   
@@ -61,10 +70,10 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   }
   
   protected def pluralize(word: String, count: Int): String = s"$word${if (count > 1) "s" else ""}"
-  protected def quorumStatus: String = 
-    s"""
-       |\tWinning Result (with $winningResultCount ${pluralize("vote", winningResultCount)}: $winningResult
-       |\tExpecting ${waitingTasks.size} more ${pluralize("vote", waitingTasks.size)}, $tolerance ${pluralize("tasks", tolerance)} can fail""".stripMargin
+  
+  protected def quorumStatus: String = s"""
+                                          |\tWinning Result (with $winningResultCount ${pluralize("vote", winningResultCount)}: $winningResult
+                                          |\tExpecting ${waitingTasks.size} more ${pluralize("vote", waitingTasks.size)}, $tolerance ${pluralize("tasks", tolerance)} can fail""".stripMargin
   
   override def onTaskFinish(task: FullTask[_, _]): Unit = {
     val result = task.unsafeResult.asInstanceOf[R] // unsafeResult will be safe because the task has finished
@@ -98,7 +107,7 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
       tolerance -= 1
       // We cant do `super.onTaskAbort(task, cause)` because that would abort the orchestrator
       log.debug(task.withOrchestratorAndTaskPrefix("Aborted."))
-  
+      
       log.debug(withLogPrefix(quorumStatus))
       
       if (tolerance < 0) {
@@ -129,13 +138,15 @@ class Quorum[R](tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]],
   }
 }
 
-// In the future change tasksCreator to an implicit function type
 /**
   * A task that creates a variable number of tasks and succeeds when `n` tasks finish producing the same result.
   * `n` is calculated with the minimumVotes function.
   * The return type and the message of the tasks must be the same. And their destinations must be different.
+  *
+  * The last two restrictions are validated in runtime when the quorum is created. If they fail the task will abort.
+  * To validate the messages are the same, each task message is compared via `!=` against the other tasks messages.    
   */
-class TaskQuorum[R](task: FullTask[R, _], minimumVotes: MinimumVotes)(tasksCreator: AbstractOrchestrator[_] => Seq[FullTask[R, HNil]])
+class TaskQuorum[R](task: FullTask[R, _])(minimumVotes: MinimumVotes, taskBuilders: Iterable[TaskBuilder[R]])
   extends TaskSpawnOrchestrator[R, Quorum[R]](task)(
-    Props(classOf[Quorum[R]], tasksCreator, minimumVotes, task.orchestrator.persistenceId)
+    Props(classOf[Quorum[R]], taskBuilders, minimumVotes, task.orchestrator.persistenceId)
   )

@@ -23,8 +23,7 @@ object HListConstraints {
         def results(l: FullTask[H, DL] :: T): Results = l.head.unsafeResult :: tc.results(l.tail)
       }
     
-    /** This definition using existentials is needed for some methods of the DSL.
-      * It states that the dependencies of each FullTask in the Dependencies are irrelevant.
+    /** This definition using existentials states that the dependencies of each FullTask are irrelevant.
       * Or more concretely the induction case is defined for:
       *  `FullTask[H, _] :: T`
       *    as opposed to

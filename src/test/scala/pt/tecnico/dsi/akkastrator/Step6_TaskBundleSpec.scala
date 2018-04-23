@@ -3,7 +3,7 @@ package pt.tecnico.dsi.akkastrator
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.Random
 
-import akka.actor.{Actor, ActorPath, Props}
+import akka.actor.{Actor, Props}
 import akka.testkit.TestProbe
 import pt.tecnico.dsi.akkastrator.ActorSysSpec._
 import pt.tecnico.dsi.akkastrator.DSL.{FullTask, TaskBundle, TaskSpawnOrchestrator}
@@ -34,30 +34,13 @@ object Step6_TaskBundleSpec {
     // We created it because it serves us as a sort of incremental test ramping up to a "complex" orchestrator.
     // If this test fails then there is a problem that is inherent to task bundles and not to some sort of
     // interplay between some other akkastrator abstraction.
-    
-    FullTask("A") createTask { _ =>
-      // The implicit must be called `orchestrator` to shadow the variable `orchestrator` in AbstractOrchestrator.
-      // Otherwise (lets say you call it `myOrchestrator`) we would get ambiguous implicit values:
-      //  both value orchestrator in class AbstractOrchestrator of type => pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]
-      //  and value myOrchestrator of type pt.tecnico.dsi.akkastrator.AbstractOrchestrator[_]
-      // Alternatively you can pass the orchestrator explicitly see the `TaskBundleDependency` orchestrator below
-      TaskBundle { implicit orchestrator =>
-        startingFruits.zipWithIndex.map { case (fruit, i) =>
-          // Declaring the inner task directly in the body of the task bundle.
-          // NOTE: unfortunately its necessary to pass the orchestrator o explicitly.
-          // With implicit function types this will no longer be necessary
-          FullTask(fruit).createTaskWith[Int] { case HNil =>
-            new Task[Int](_) {
-              val destination: ActorPath = destinations(i).ref.path
-              def createMessage(id: Long): Serializable = SimpleMessage(id)
   
-              def behavior: Receive = {
-                case SimpleMessage(id) if matchId(id) => finish(fruit.length)
-              }
-            }
-          }
+    FullTask("A") createTask { _ =>
+      TaskBundle(
+        startingFruits.zipWithIndex.map { case (fruit, i) =>
+          task(destinationIndex = i, result = fruit.length)
         }
-      }
+      )
     }
   }
   
@@ -66,20 +49,11 @@ object Step6_TaskBundleSpec {
     val a = simpleMessageFulltask("A", 0, startingFruits)
   
     val b = FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      TaskBundle { implicit orchestrator =>
+      TaskBundle(
         fruits.zipWithIndex.map { case (fruit, i) =>
-          FullTask(fruit).createTaskWith[Int] { case HNil =>
-            new Task[Int](_) {
-              val destination: ActorPath = destinations(i + 1).ref.path
-              def createMessage(id: Long): Serializable = SimpleMessage(id)
-              def behavior: Receive = {
-                case SimpleMessage(id) if matchId(id) =>
-                  finish(fruit.length)
-              }
-            }
-          }
+          task(destinationIndex = i + 1, result = fruit.length)
         }
-      }
+      )
     }
   }
   
@@ -89,25 +63,25 @@ object Step6_TaskBundleSpec {
   class ComplexTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     val a = simpleMessageFulltask("A", 0, startingFruits)
     val b = FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      TaskBundle { implicit orchestrator =>
-        fruits.map { fruit =>
-          simpleMessageFulltask(s"B-$fruit", 1, fruit)
+      TaskBundle(
+        fruits map { fruit =>
+          task(destinationIndex =1, result = fruit)
         }
-      }
+      )
     }
     val c = FullTask("C", a :: HNil, Duration.Inf) createTaskWith { case fruits :: HNil =>
-      TaskBundle { implicit orchestrator =>
+      TaskBundle(
         fruits.map { fruit =>
-          simpleMessageFulltask(s"C-$fruit", 2, fruit)
+          task(destinationIndex = 2, result = fruit)
         }
-      }
+      )
     }
     val d = FullTask("D", (b, c)) createTask { case (fruitsB, fruitsC) =>
-      TaskBundle { implicit orchestrator =>
-        (fruitsB ++ fruitsC).map { fruit =>
-          simpleMessageFulltask(s"D-$fruit", 3, fruit)
+      TaskBundle(
+        (fruitsB ++ fruitsC) map { fruit =>
+          task(destinationIndex = 3, result = fruit)
         }
-      }
+      )
     }
   }
   class ComplexBFirstTaskBundle(destinations: Array[TestProbe]) extends ComplexTaskBundle(destinations)
@@ -120,21 +94,21 @@ object Step6_TaskBundleSpec {
     val abortingTask = Random.nextInt(5)
     
     FullTask("B", a) createTaskWith { case fruits :: HNil =>
-      TaskBundle { implicit orchestrator =>
+      TaskBundle(
         fruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"B-$fruit", i + 1, fruit, abortOnReceive = i == abortingTask)
+          task(destinationIndex = i + 1, result = fruit, abortOnReceive = i == abortingTask)
         }
-      }
+      )
     }
   }
   // N*A (A timeouts)
   class OuterTaskAbortingTaskBundle(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
-    FullTask("A", timeout = 50.millis) createTaskWith { _ =>
-      TaskBundle { implicit orchestrator =>
-        startingFruits.zipWithIndex.map { case (fruit, i) =>
-          simpleMessageFulltask(s"A-$fruit", i, fruit)
-        }
-      }
+    FullTask("A", timeout = 1.millis) createTaskWith { _ =>
+      TaskBundle (
+        task(destinationIndex = 0),
+        task(destinationIndex = 1),
+        task(destinationIndex = 2)
+      )
     }
   }
 }
@@ -465,10 +439,10 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
       }
       // N*A the bundle timeouts
       "the bundle timeouts" in {
-        val testCase = new TestCase[OuterTaskAbortingTaskBundle](numberOfDestinations = 5, Set("A")) {
+        val testCase = new TestCase[OuterTaskAbortingTaskBundle](numberOfDestinations = 3, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              startingFruits.indices.par.foreach { i =>
+              (0 until 3).par.foreach { i =>
                 // Just receive the messages without answering to ensure the outer task timeouts
                 // We are ignoring the expectMsgType timeout. See the test "there's a single bundle" to understand why.
                 try {
@@ -478,9 +452,6 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
                   // Purposefully ignored
                 }
               }
-          
-              // Ensure the timeout is triggered
-              Thread.sleep(100)
   
               import scala.concurrent.TimeoutException
               secondState.updatedStatuses(
@@ -489,7 +460,7 @@ class Step6_TaskBundleSpec extends ActorSysSpec {
             }, { thirdState =>
               // While recovering the bundle A will handle the MessageReceive. Or in other words its
               // spawner won't create the inner orchestrator and therefor the inner tasks will never send their messages.
-              startingFruits.indices.par.foreach { i =>
+              (0 until 3).indices.par.foreach { i =>
                 destinations(i).expectNoMessage()
               }
           
