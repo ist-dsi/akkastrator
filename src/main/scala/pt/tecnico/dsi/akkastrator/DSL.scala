@@ -34,6 +34,8 @@ object DSL {
                                           ev: T <:< TaskBuilder[R]): FullTask[R, DL] = {
         createTaskWith(fntp(builder) andThen ev)
       }
+
+      // We could add the methods: createTask{Bundle,Quorum}{,With}
     }
     /**
       * Allows creating a FullTask using HList syntax:

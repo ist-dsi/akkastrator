@@ -51,9 +51,9 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         val testCase1 = new TestCase[ExplicitTimeoutHandling](1, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              destinations(0).expectMsgType[SimpleMessage]
               // We purposefully do not reply causing the task to timeout
-  
+              pingPong(destinations(0), pong = false)
+
               // Ensure the timeout is triggered
               Thread.sleep(100)
               
@@ -71,8 +71,8 @@ class Step5_TimeoutSpec extends ActorSysSpec {
         val testCase2 = new TestCase[AutomaticTimeoutHandling](1, Set("A")) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              destinations(0).expectMsgType[SimpleMessage]
-              // We purposefully do not reply  causing the task to timeout
+              // We purposefully do not reply causing the task to timeout
+              pingPong(destinations(0), pong = false)
   
               // Ensure the timeout is triggered
               Thread.sleep(100)

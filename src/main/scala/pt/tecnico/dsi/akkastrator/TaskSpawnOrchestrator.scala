@@ -2,12 +2,12 @@ package pt.tecnico.dsi.akkastrator
 
 import java.util.concurrent.TimeoutException
 
-import scala.reflect.{ClassTag, classTag}
-
 import akka.actor.Actor.Receive
 import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef, Props, Terminated}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 import pt.tecnico.dsi.akkastrator.Task.Timeout
+
+import scala.reflect.{ClassTag, classTag}
 
 case class SpawnAndStart(props: Props, startId: Long)
 
@@ -18,7 +18,7 @@ case class SpawnAndStart(props: Props, startId: Long)
 //    had finished before the crash.
 class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
   log.debug(task.orchestrator.withLogPrefix(s"Created ${self.path.name}: $self"))
-  
+
   def receive: Receive = {
     case SpawnAndStart(props, startId) =>
       val innerOrchestrator = context.actorOf(props, s"${props.actorClass().getSimpleName}-${task.index}")
@@ -26,7 +26,7 @@ class Spawner(task: FullTask[_, _]) extends Actor with ActorLogging {
       log.debug(task.orchestrator.withLogPrefix(s"[${self.path.name}] Created ${innerOrchestrator.path.name}: $innerOrchestrator"))
       
       context watch innerOrchestrator
-      
+
       val startMessage = StartOrchestrator(startId)
       log.debug(task.orchestrator.withLogPrefix(s"[${self.path.name}] Sending $startMessage to $innerOrchestrator"))
       innerOrchestrator ! startMessage
@@ -77,9 +77,8 @@ class TaskSpawnOrchestrator[R, O <: AbstractOrchestrator[R]: ClassTag](task: Ful
   require(classTag[O].runtimeClass.isAssignableFrom(props.actorClass()),
     "TaskSpawnOrchestrator props.actorClass must conform to <: AbstractOrchestrator[R]")
   
-  // TODO if these two val are not lazy the TaskSpawnOrchestrator, TaskBundle and TaskQuorum fail. Debug why!
-  final lazy val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"Spawner-${task.index}")
-  final lazy val destination: ActorPath = spawner.path
+  final val spawner: ActorRef = task.orchestrator.context.actorOf(Props(classOf[Spawner], task), s"Spawner-${task.index}")
+  final val destination: ActorPath = spawner.path
   final def createMessage(id: Long): Serializable = SpawnAndStart(props, id)
   
   def behavior: Receive = {

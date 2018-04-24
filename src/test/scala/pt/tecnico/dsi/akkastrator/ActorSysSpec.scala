@@ -84,17 +84,17 @@ object ActorSysSpec {
       } else {
         // Having an extra last step to terminate the orchestrator allows us to test if the orchestrator
         // recovers to a good state if it crashes just before terminating.
-        context become (computeCurrentBehavior() orElse crashable orElse {
+        context become (computeCurrentBehavior() orElse {
           case FinishOrchestrator => terminate
         })
       }
     }
   
-    def crashable: Receive = { case "boom" => throw new IllegalArgumentException("BOOM\n") with NoStackTrace }
-    
-    override def extraCommands: Receive = crashable orElse {
+    override def extraCommands: Receive = {
       case GetDestinations =>
         sender() ! Destinations(destinationProbes)
+      case "boom" =>
+        throw new IllegalArgumentException("BOOM") with NoStackTrace
     }
   }
   
@@ -182,23 +182,18 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
       startTransformation +: transformations :+ finishTransformation
     }
     
-    def pingPong(destination: TestProbe, ignoreTimeoutError: Boolean = false): Unit = {
+    def pingPong(destination: TestProbe, ignoreTimeoutError: Boolean = false, pong: Boolean = true): Unit = {
       try {
         val m = destination.expectMsgType[SimpleMessage]
-        logger.info(s"$m: ${destination.sender()} <-> ${destination.ref}")
-        //system.actorSelection(destination.sender().path).tell(m, destination.ref)
-        destination reply m
+        logger.info(s"$m: ${destination.sender()} ${if (pong) "<" else ""}-> ${destination.ref}")
+        if (pong) destination reply m
       } catch {
         case e: AssertionError if e.getMessage.contains("timeout") && ignoreTimeoutError =>
           // Purposefully ignored
       }
     }
     def pingPong(taskDescription: String): Unit = pingPong(testProbeOfTask(taskDescription))
-    /** Alias to pingPong. But makes it obvious that we are handling a resend. */
-    // TODO shouldn't handling a resend only be expecting the message? As opposed to expecting the message, then give an answer.
-    def handleResend(destination: TestProbe, ignoreTimeoutError: Boolean = false): Unit = pingPong(destination, ignoreTimeoutError)
-    def handleResend(taskDescription: String): Unit = pingPong(taskDescription)
-    
+
     def sameTestPerState(test: State => Unit): Unit = {
       val sameTestRepeated = Seq.fill(transformations.size)(test)
       differentTestPerState(sameTestRepeated:_*)
@@ -212,8 +207,9 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
                        |EXPECTING:$expectedStateString""".stripMargin)
         test(lastState)
         i += 1
-        
-        logger.info("=== Computing next state ===========================")
+
+        logger.info(s"=== Apply transformation to get to State $i ===========================")
+
         val newState = transformation(lastState)
         logger.info("\n\n\n\n")
         newState
@@ -243,11 +239,11 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
         // Test that the orchestrator recovered to the expected state
         testStatus(state)
       }
-  
+
       probe expectTerminated orchestratorActor
     }
     
-    def expectInnerOrchestratorTermination(description: String, max: Duration = Duration.Undefined): Unit = {
+    def expectInnerOrchestratorTermination(description: String): Unit = {
       // We do not create Task{Quorum|Bundle}s via the fullTask of controllable orchestrator
       // so we cannot use the testProbeOfTask map to get the destination of the task
       orchestratorActor.tell(Status, probe.ref)
@@ -263,7 +259,7 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
               // So we just need to expect for its termination.
               logger.info(s"Task $description destination ActorRef $ref")
               probe watch ref
-              probe.expectTerminated(ref, max)
+              probe expectTerminated ref
             case _ =>
               // The innerOrchestrator already finished, so we don't need to do anything
           }

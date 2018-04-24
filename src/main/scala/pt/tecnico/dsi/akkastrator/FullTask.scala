@@ -2,21 +2,16 @@ package pt.tecnico.dsi.akkastrator
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.Duration
-
 import pt.tecnico.dsi.akkastrator.HListConstraints.{TaskComapped, taskHListOps}
 import pt.tecnico.dsi.akkastrator.Orchestrator.StartTask
 import pt.tecnico.dsi.akkastrator.Task._
 import shapeless.HList
 
-// TODO: implement description in a much more awesome way (probably we will need scala.meta for it):
-//  1) Define the description just once with something like:
-//        d"Creating entry for user $userId" // userId is the result of a dependent task
-//  2) When the task is unstarted its description will be: "Creating entry for user $userId"
-//  3) When the task is finished its description will be: "Creating entry for user User(5, "Simão")"
-//  4) Make this work with internationalization, aka, allow description to be used as a MessageKey for
-//     a internationalization framework.
-//  We could implement this with a function from hlist of options to string plus a list to be used for each of the orElses.
-//  The string is a format string (to be used in String.format). By default this could simply be description
+// We could implement description in a more reactive fashion:
+//  The description received in the constructor would be used inside a function which would receive an hlist of options
+//  and a list of default values. This function would return the description so far. Which would be computed using
+//  the constructor description as a MessageFormat string and the value would be Option from the hlist get or else the
+//  value fetched from the list of default values.
 
 /**
   * A full task represents a task plus its dependencies. It ensures a Task is only created when all of its dependencies
@@ -83,9 +78,11 @@ abstract class FullTask[R, DL <: HList](val description: String, val dependencie
     */
   private[akkastrator] final def innerCreateTask(): Task[R] = {
     require(allDependenciesFinished, "All dependencies must have finished to be able to build their results.")
-    val task = createTask(comapped.results(dependencies))
-    innerTask = Some(task)
-    task
+    innerTask.getOrElse {
+      val task = createTask(comapped.results(dependencies))
+      innerTask = Some(task)
+      task
+    }
   }
   
   /** Starts this task. */

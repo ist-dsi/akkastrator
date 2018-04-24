@@ -45,8 +45,6 @@ class Quorum[R](taskBuilders: Iterable[TaskBuilder[R]], minimumVotes: MinimumVot
                                          |\t$messageB""".stripMargin)
     }
     .foreach { cause =>
-      // Makes it more obvious when debugging the application
-      log.error(withLogPrefix(cause.getMessage))
       onAbort(Aborted(cause, startId))
     }
   

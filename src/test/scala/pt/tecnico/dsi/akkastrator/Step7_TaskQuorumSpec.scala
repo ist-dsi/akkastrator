@@ -298,8 +298,6 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 "B" -> Unstarted or Waiting
               )
             }, { thirdState =>
-              handleResend("A")
-          
               startingFruits.indices.par.foreach { i =>
                 // See the first test in this suite to understand why the timeout error is being ignored
                 pingPong(destinations(i + 1), ignoreTimeoutError = true)
@@ -328,8 +326,6 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 "B" -> Unstarted or Waiting
               )
             }, { thirdState =>
-              handleResend("A")
-    
               // Each task is just computing fruit.length, which will result in List(8, 6, 6, 6, 6)
               // The minimumVotes is Majority, which means we need at least 3 equal responses.
               // The first two tasks will abort which is in the threshold of the tolerance so the quorum will still be achieved.
@@ -364,8 +360,6 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 "C" -> Unstarted or Waiting
               )
             }, { thirdState =>
-              handleResend("A")
-    
               import scala.util.Random
               
               // For B tasks

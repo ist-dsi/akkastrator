@@ -42,8 +42,11 @@ object Task {
   */
 abstract class Task[R](val task: FullTask[R, _]) {
   import task.orchestrator
-  import task.orchestrator.{log, ID}
+  import task.orchestrator.ID
   import IdImplicits._
+
+  // Facility to allow logging from within Task
+  val log = orchestrator.log
   
   private[this] var _expectedID: ID = _ // Can you see the null? Blink and you'll miss it.
   final def expectedID: Option[ID] = Option(_expectedID) // Ensure the null does not escape
@@ -111,8 +114,7 @@ abstract class Task[R](val task: FullTask[R, _]) {
     *    This ensures the received message was in fact destined to this task.
     *    This choice of implementation allows the messages to have a free form, as it is the user that
     *    is responsible for extracting the `id` from the message.
-    *  · Either `finish`, `abort` or `timeout` must be invoked after handling each response.
-    *    However `timeout` cannot be invoked when handling the `Timeout` message.
+    *  · Either `finish` or `abort` must be invoked after handling each response.
     *
     * Example of a well formed behavior: {{{
     *   case Success(result, id) if matchId(id) =>

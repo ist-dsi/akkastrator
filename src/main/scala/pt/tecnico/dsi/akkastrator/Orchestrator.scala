@@ -2,7 +2,6 @@ package pt.tecnico.dsi.akkastrator
 
 import scala.collection.immutable.{HashMap, SortedMap}
 import scala.collection.{immutable, mutable}
-
 import akka.actor.{Actor, ActorLogging, ActorPath, PossiblyHarmful}
 import akka.persistence._
 import shapeless.HNil
@@ -101,11 +100,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   def deliveryIdOf(destination: ActorPath, id: ID): DeliveryId
   /** Ensures the received message was in fact destined to be received by `task`. */
   def matchId(task: Task[_], id: Long): Boolean
-  
-  /**
-    * INTERNAL API
-    * Only FullTask takes advantage of the private[akkastrator].
-    */
+
   private[akkastrator] def addTask(task: FullTask[_, _]): Int = {
     val index = tasks.length
     _tasks += task
@@ -290,12 +285,12 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   def receiveRecover: Actor.Receive = unstarted orElse {
     case Event.TaskStarted(taskIndex) =>
       tasks(taskIndex).start()
-    case f @ Event.TaskFinished(taskIndex, _) =>
-      f.finish(waitingTasks(taskIndex))
+    case Event.TaskFinished(taskIndex, result) =>
+      waitingTasks(taskIndex).asInstanceOf[Task[Any]].finish(result)
     case Event.TaskAborted(taskIndex, cause) =>
       waitingTasks(taskIndex).abort(cause)
     case RecoveryCompleted =>
-      log.debug(withLogPrefix(s"""Recovery completed:${tasks.map(t => t.withTaskPrefix(t.state.toString)).mkString("\n\t", "\n\t", "\n")}
+      log.debug(withLogPrefix(s"""Recovery completed:${tasks.map(t => t.withTaskPrefix(t.state.toString)).mkString("\n\t", "\n\t", "")}
                    |\tNumber of unconfirmed messages: $numberOfUnconfirmed""".stripMargin))
   }
 }
