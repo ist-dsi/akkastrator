@@ -17,9 +17,6 @@ import shapeless.HList
 //     a internationalization framework.
 //  We could implement this with a function from hlist of options to string plus a list to be used for each of the orElses.
 //  The string is a format string (to be used in String.format). By default this could simply be description
-// abstract class FullTask[R, DL <: HList](val dependencies: DL, val timeout: Duration)(implicit val orchestrator: AbstractOrchestrator[_], val comapped: TaskComapped[DL]) {
-//   def createTask(results: comapped.Results): Task[R]
-//   def description(results: comapped.OptionResults, orElseValues: List[String]): String
 
 /**
   * A full task represents a task plus its dependencies. It ensures a Task is only created when all of its dependencies

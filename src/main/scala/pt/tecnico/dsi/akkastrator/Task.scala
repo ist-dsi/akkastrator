@@ -51,7 +51,8 @@ abstract class Task[R](val task: FullTask[R, _]) {
   private[this] var _state: Task.State = Unstarted
   final def state: Task.State = _state
   
-  /** The [[akka.actor.ActorPath]] to whom this task will send the message(s). This must be a val because the destination cannot change. */
+  /** The [[akka.actor.ActorPath]] to whom this task will send the message(s).
+    * This must be a value because the destination cannot change. */
   val destination: ActorPath
   // It would be awesome if `id` had type ID. Unfortunately that breaks the reusability of Task.
   /** The constructor of the message to be sent. It must always return the same message, only the id must be different.
