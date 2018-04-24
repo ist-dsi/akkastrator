@@ -1,11 +1,29 @@
 language: scala
-scala: 2.12.0
-jdk: oraclejdk8
+sudo: false
+
+scala:
+  - 2.12.4
+
+jdk:
+  - oraclejdk8
+
 notifications:
   webbooks:
     urls:
       secure: 0Sm2MEEp5FUcSbhAEp/x0mrmfqm7GFOJKkFLNLEM6CzWsTYq3yA6UApJ1DTV+32wS8PdItP/bIZPn6kZ1aC4WJy+tmX7ftIyZ9D770IpJdYT8160UVrx5MHptux7+8VoZpz9NktFJjHR/3sAJIHuNkk6Tm2ukZCF9N00aAXCq+L4k6AOaxYrifAW89HDPMtYdiX5b17tEzSpk0vr1bNrVat+dFyEOL2Secsg4vKzEapbWyKMRE+FGiWhMgihPjmfnC0KLf7MC8roZIlZzofc13Xve6plrRYGHgUTt+B4fjgVAAGuT//vsZBiSKP07y8HV+GeI52wgpSgdxS+iH3ZWTBz15SlrzNJs8yaZFffOrALc742oZaEIztbapU5hOtS0q/3kHS2Qy6XQ1WRF/372yzcMNVl9TXVSQ8VruAZx0s3I2cqa0aCa0tqw/hkhavHDwcW0gLPYdM5RMiVAsqiCWBTkecqekorugs2C56CeYPsF1dexruN4OWQqXV2WJmt7WRebJtxJH/ghSNvCe6oF7sAJs9nHxjPU+XrzsHV96jIOziG89+wjQ3P1aJyUh57p3EKVGKXiPjlG8omMvJOZuy1P+iM4and5JmKi4xyIyj7ckooooaeZ+3zsgIIbERd3di3JQCXGRTt+SSsXXwH6k++5UZZ7QylSmbDzHgu1YI=
+
+before_cache:
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+  - find $HOME/.sbt -name "*.lock" -delete
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/
+
 script:
- - sbt clean coverage test coverageReport
+  - sbt coverage test
+
 after_success:
- - bash <(curl -s https://codecov.io/bash)
+  - sbt coverageReport codacyCoverage
+  - bash <(curl -s https://codecov.io/bash)

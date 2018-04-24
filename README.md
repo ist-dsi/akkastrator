@@ -4,9 +4,8 @@
 [![Dependency Status](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.12/badge.svg?style=plastic&maxAge=604800)](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.12/)
 [![Reference Status](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.12/reference_badge.svg?style=plastic&maxAge=604800)](https://www.versioneye.com/java/pt.tecnico.dsi:akkastrator_2.12/references)
 
-
 [![Build Status](https://travis-ci.org/ist-dsi/akkastrator.svg?branch=master&style=plastic&maxAge=604800)](https://travis-ci.org/ist-dsi/akkastrator)
-[![Codacy Badge](https://api.codacy.com/project/badge/coverage/75210854e9b945df97a8408e4975a067)](https://www.codacy.com/app/IST-DSI/akkastrator)
+[![codecov](https://codecov.io/gh/ist-dsi/akkastrator/branch/master/graph/badge.svg)](https://codecov.io/gh/ist-dsi/akkastrator)
 [![Codacy Badge](https://api.codacy.com/project/badge/grade/75210854e9b945df97a8408e4975a067)](https://www.codacy.com/app/IST-DSI/akkastrator)
 [![BCH compliance](https://bettercodehub.com/edge/badge/ist-dsi/akkastrator)](https://bettercodehub.com/)
 
