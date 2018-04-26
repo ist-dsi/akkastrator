@@ -109,10 +109,6 @@ git.remoteRepo := s"git@github.com:ist-dsi/${name.value}.git"
 //======================================================================================================================
 //==== Deployment ======================================================================================================
 //======================================================================================================================
-/*def artifactsDsiRepo(status: String): Resolver = {
-  MavenRepository(s"maven-$status", s"https://artifacts.dsi.tecnico.ulisboa.pt/nexus_deploy/repository/maven-$status")
-}
-publishTo := Some(artifactsDsiRepo(if (isSnapshot.value) "snapshots" else "releases"))*/
 publishTo := Some(if (isSnapshot.value) Opts.resolver.sonatypeSnapshots else Opts.resolver.sonatypeStaging)
 sonatypeProfileName := organization.value
 
@@ -124,8 +120,8 @@ developers += Developer("Lasering", "Simão Martins", "", new URL("https://githu
 // Will fail the build/release if updates for the dependencies are found
 dependencyUpdatesFailBuild := true
 
-//coverageFailOnMinimum := true
-//coverageMinimum := 90
+coverageFailOnMinimum := true
+coverageMinimum := 95
 
 import ReleaseTransformations._
 releaseProcess := Seq[ReleaseStep](
