@@ -8,9 +8,7 @@ import shapeless.HNil
 
 object Step3_RecoverSpec {
   class NoTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations)
-  /**
-    * A
-    */
+  /** A */
   class SingleTask(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     simpleMessageFulltask("A", 0)
   }
@@ -23,10 +21,7 @@ object Step3_RecoverSpec {
     simpleMessageFulltask("A", 0)
     simpleMessageFulltask("B", 0)
   }
-  /**
-    * A → B
-    * Both tasks have the same destination.
-    */
+  /** A → B */
   class TwoLinearTasks(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
     val a = simpleMessageFulltask("A", 0)
     simpleMessageFulltask("B", 1, dependencies = a :: HNil)
@@ -95,9 +90,9 @@ object Step3_RecoverSpec {
   }
 }
 class Step3_RecoverSpec extends ActorSysSpec {
-  //Ensure that when the orchestrator crashes
-  // · the correct state of the tasks is recovered
-  // · the correct idsPerSender is re-computed. If its not the tasks will not recover to the correct state
+  // Ensure that when the orchestrator crashes
+  //  · the correct state of the tasks is recovered
+  //  · the correct idsPerSender is re-computed. If its not the tasks will not recover to the correct state
   
   "A crashing orchestrator" should {
     "recover the correct state" when {
@@ -109,13 +104,13 @@ class Step3_RecoverSpec extends ActorSysSpec {
         testCase0.testExpectedStatusWithRecovery()
       }
       "there is only a single task: A" in {
-        val testCase1 = new TestCase[SingleTask](1, Set("A")) {
+        val testCase1 = new TestCase[SingleTask](1, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
 
               secondState.updatedStatuses(
-                "A" -> Finished("finished")
+                0 -> Finished("finished")
               )
             }
           )
@@ -125,15 +120,15 @@ class Step3_RecoverSpec extends ActorSysSpec {
       """there are two independent tasks:
         |  A
         |  B""".stripMargin in {
-        val testCase2 = new TestCase[TwoTasks](numberOfDestinations = 1, Set("A", "B")) {
+        val testCase2 = new TestCase[TwoTasks](numberOfDestinations = 1, Set(0, 1)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
-              pingPong("B")
-    
+              pingPong(destinations(0)) // Destination of Task "A"
+              pingPong(destinations(0)) // Destination of Task "B"
+
               secondState.updatedStatuses(
-                "A" -> Finished("finished"),
-                "B" -> Finished("finished")
+                0 -> Finished("finished"),
+                1 -> Finished("finished")
               )
             }
           )
@@ -141,20 +136,20 @@ class Step3_RecoverSpec extends ActorSysSpec {
         testCase2.testExpectedStatusWithRecovery()
       }
       "there are two linear tasks: A → B" in {
-        val testCase3 = new TestCase[TwoLinearTasks](numberOfDestinations = 2, Set("A")) {
+        val testCase3 = new TestCase[TwoLinearTasks](numberOfDestinations = 2, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
 
               secondState.updatedStatuses(
-                "A" -> Finished("finished"),
-                "B" -> Unstarted or Waiting
+                0 -> Finished("finished"),
+                1 -> Unstarted or Waiting
               )
             }, { thirdState =>
-              pingPong("B")
+              pingPong(destinations(1)) // Destination of Task "B"
 
               thirdState.updatedStatuses(
-                "B" -> Finished("finished")
+                0 -> Finished("finished")
               )
             }
           )
@@ -165,26 +160,26 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |  A
         |   ⟩→ C
         |  B""".stripMargin in {
-        val testCase4 = new TestCase[TasksInT](numberOfDestinations = 3, Set("A", "B")) {
+        val testCase4 = new TestCase[TasksInT](numberOfDestinations = 3, Set(0, 1)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("B")
+              pingPong(destinations(1)) // Destination of Task "B"
         
               secondState.updatedStatuses(
-                "B" -> Finished("finished")
+                1 -> Finished("finished")
               )
             }, { thirdState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
 
               thirdState.updatedStatuses(
-                "A" -> Finished("finished"),
-                "C" -> Unstarted or Waiting
+                0 -> Finished("finished"),
+                2 -> Unstarted or Waiting
               )
             }, { fourthState =>
-              pingPong("C")
+              pingPong(destinations(2)) // Destination of Task "C"
 
               fourthState.updatedStatuses(
-                "C" -> Finished("finished")
+                2 -> Finished("finished")
               )
             }
           )
@@ -197,32 +192,32 @@ class Step3_RecoverSpec extends ActorSysSpec {
         | A → C
         |   ↘
         |     D""".stripMargin in {
-        val testCase5 = new TestCase[FanOutTasks](numberOfDestinations = 4, Set("A")) {
+        val testCase5 = new TestCase[FanOutTasks](numberOfDestinations = 4, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
           
               secondState.updatedStatuses(
-                "A" -> Finished("finished"),
-                "B" -> Unstarted or Waiting,
-                "C" -> Unstarted or Waiting,
-                "D" -> Unstarted or Waiting
+                0 -> Finished("finished"),
+                1 -> Unstarted or Waiting,
+                2 -> Unstarted or Waiting,
+                3 -> Unstarted or Waiting
               )
             }, { thirdState =>
-              pingPong("B")
+              pingPong(destinations(1)) // Destination of Task "B"
           
               thirdState.updatedStatuses(
-                "B" -> Finished("finished"),
-                "C" -> Waiting or Finished("finished"),
-                "D" -> Waiting or Finished("finished")
+                1 -> Finished("finished"),
+                2 -> Waiting or Finished("finished"),
+                3 -> Waiting or Finished("finished")
               )
             }, { fourthState =>
-              pingPong("C")
-              pingPong("D")
+              pingPong(destinations(2)) // Destination of Task "C"
+              pingPong(destinations(3)) // Destination of Task "D"
 
               fourthState.updatedStatuses(
-                "C" -> Finished("finished"),
-                "D" -> Finished("finished")
+                2 -> Finished("finished"),
+                3 -> Finished("finished")
               )
             }
           )
@@ -233,27 +228,27 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |    B
         |   ↗ ↘
         |  A → C""".stripMargin in {
-        val testCase6 = new TestCase[TasksInTriangle](numberOfDestinations = 3, Set("A")) {
+        val testCase6 = new TestCase[TasksInTriangle](numberOfDestinations = 3, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
 
               secondState.updatedStatuses(
-                "A" -> Finished("finished"),
-                "B" -> Unstarted or Waiting
+                0 -> Finished("finished"),
+                1 -> Unstarted or Waiting
               )
             }, { thirdState =>
-              pingPong("B")
-        
+              pingPong(destinations(1)) // Destination of Task "B"
+
               thirdState.updatedStatuses(
-                "B" -> Finished("finished"),
-                "C" -> Unstarted or Waiting
+                1 -> Finished("finished"),
+                2 -> Unstarted or Waiting
               )
             }, { fourthState =>
-              pingPong("C")
+              pingPong(destinations(2)) // Destination of Task "C"
 
               fourthState.updatedStatuses(
-                "C" -> Finished("finished")
+                2 -> Finished("finished")
               )
             }
           )
@@ -264,40 +259,40 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |  A → C
         |    ↘  ⟩→ E
         |  B → D""".stripMargin in {
-        val testCase7 = new TestCase[FiveTasksNoDepsB](numberOfDestinations = 5, Set("A", "B")) {
+        val testCase7 = new TestCase[FiveTasksNoDepsB](numberOfDestinations = 5, Set(0, 1)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
-        
+              pingPong(destinations(0)) // Destination of Task "A"
+
               secondState.updatedStatuses(
-                "A" -> Finished("finished"),
-                "C" -> Unstarted or Waiting
+                0 -> Finished("finished"),
+                2 -> Unstarted or Waiting
               )
             }, { thirdState =>
-              pingPong("C")
+              pingPong(destinations(2)) // Destination of Task "C"
 
               thirdState.updatedStatuses(
-                "C" -> Finished("finished")
+                2 -> Finished("finished")
               )
             }, { fourthState =>
-              pingPong("B")
-        
+              pingPong(destinations(1)) // Destination of Task "B"
+
               fourthState.updatedStatuses(
-                "B" -> Finished("finished"),
-                "D" -> Unstarted or Waiting
+                1 -> Finished("finished"),
+                3 -> Unstarted or Waiting
               )
             }, { fifthState =>
-              pingPong("D")
+              pingPong(destinations(3)) // Destination of Task "D"
 
               fifthState.updatedStatuses(
-                "D" -> Finished("finished"),
-                "E" -> Unstarted or Waiting
+                3 -> Finished("finished"),
+                4 -> Unstarted or Waiting
               )
             }, { sixthState =>
-              pingPong("E")
+              pingPong(destinations(4)) // Destination of Task "E"
 
               sixthState.updatedStatuses(
-                "E" -> Finished("finished")
+                4 -> Finished("finished")
               )
             }
           )
@@ -308,40 +303,40 @@ class Step3_RecoverSpec extends ActorSysSpec {
         |  A → B
         |    ↘  ⟩→ E
         |  C → D""".stripMargin in {
-        val testCase8 = new TestCase[FiveTasksNoDepsC](numberOfDestinations = 5, Set("A", "B")) {
+        val testCase8 = new TestCase[FiveTasksNoDepsC](numberOfDestinations = 5, Set(0, 1)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
-          
+              pingPong(destinations(0)) // Destination of Task "A"
+
               secondState.updatedStatuses(
-                "A" -> Finished("finished"),
-                "B" -> Unstarted or Waiting
+                0 -> Finished("finished"),
+                1 -> Unstarted or Waiting
               )
             }, { thirdState =>
-              pingPong("C")
-          
+              pingPong(destinations(1)) // Destination of Task "C"
+
               thirdState.updatedStatuses(
-                "C" -> Finished("finished"),
-                "D" -> Unstarted or Waiting
+                2 -> Finished("finished"),
+                3 -> Unstarted or Waiting
               )
             }, { fourthState =>
-              pingPong("B")
+              pingPong(destinations(2)) // Destination of Task "B"
 
               fourthState.updatedStatuses(
-                "B" -> Finished("finished")
+                1 -> Finished("finished")
               )
             }, { fifthState =>
-              pingPong("D")
+              pingPong(destinations(3)) // Destination of Task "D"
 
               fifthState.updatedStatuses(
-                "D" -> Finished("finished"),
-                "E" -> Unstarted or Waiting
+                3 -> Finished("finished"),
+                4 -> Unstarted or Waiting
               )
             }, { sixthState =>
-              pingPong("E")
+              pingPong(destinations(4)) // Destination of Task "E"
 
               sixthState.updatedStatuses(
-                "E" -> Finished("finished")
+                4 -> Finished("finished")
               )
             }
           )

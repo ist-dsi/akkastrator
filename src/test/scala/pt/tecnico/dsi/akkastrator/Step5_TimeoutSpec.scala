@@ -13,7 +13,6 @@ import pt.tecnico.dsi.akkastrator.Task.{Aborted, Finished, Timeout}
 
 object Step5_TimeoutSpec {
   class ExplicitTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
-    destinationProbes += "A" -> destinations(0)
     FullTask("A", timeout = 50.millis) createTaskWith[String] { _ =>
       new Task[String](_) {
         val destination: ActorPath = destinations(0).ref.path
@@ -28,27 +27,22 @@ object Step5_TimeoutSpec {
     }
   }
   class AutomaticTimeoutHandling(destinations: Array[TestProbe]) extends ControllableOrchestrator(destinations) {
-    destinationProbes += "A" -> destinations(0)
     FullTask("A", timeout = 50.millis) createTaskWith { _ =>
       task(0)
     }
   }
 }
 class Step5_TimeoutSpec extends ActorSysSpec {
-  //Test:
-  // Timeout = Duration.Inf => does not cause any timeout
-  // Timeout = FiniteDuration causes a timeout, sending a Task.Timeout to the task behavior.
-  //  · If the task handles that message, check that it is correctly handled
-  //  · If the task does not handle it then check if the task aborts with cause = TimeoutException
-  // Timeouts inside inner orchestrators are tested in their own suites.
-  
-  // The case where timeout = Duration.Inf cannot be tested since we can't wait forever.
-  // However all the other tests prove the timeout is not "thrown" when it is set as Duration.Inf
-  
+  // Ensure the following happens:
+  //  Timeout = FiniteDuration causes a timeout, sending a Task.Timeout to the task behavior.
+  //   · If the task handles that message, check that it is correctly handled
+  //   · If the task does not handle it then check if the task aborts with cause = TimeoutException
+  //  Timeouts inside inner orchestrators are tested in their own suites.
+
   "A orchestrator with timeouts" should {
     "execute the behavior" when {
       "it handles the Timeout message" in {
-        val testCase1 = new TestCase[ExplicitTimeoutHandling](1, Set("A")) {
+        val testCase1 = new TestCase[ExplicitTimeoutHandling](1, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               // We purposefully do not reply causing the task to timeout
@@ -58,7 +52,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
               Thread.sleep(100)
               
               secondState.updatedStatuses(
-                "A" -> Finished("A special error message")
+                0 -> Finished("A special error message")
               )
             }
           )
@@ -68,7 +62,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
     }
     "abort" when {
       "behavior does not handle the Timeout message" in {
-        val testCase2 = new TestCase[AutomaticTimeoutHandling](1, Set("A")) {
+        val testCase2 = new TestCase[AutomaticTimeoutHandling](1, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               // We purposefully do not reply causing the task to timeout
@@ -78,7 +72,7 @@ class Step5_TimeoutSpec extends ActorSysSpec {
               Thread.sleep(100)
               
               secondState.updatedStatuses(
-                "A" -> Aborted(new TimeoutException())
+                0 -> Aborted(new TimeoutException())
               )
             }
           )

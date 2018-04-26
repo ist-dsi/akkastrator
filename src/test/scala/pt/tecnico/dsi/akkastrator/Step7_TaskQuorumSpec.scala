@@ -158,13 +158,13 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
   "An orchestrator with task quorum" should {
     "fail" when {
       "the tasksCreator generates tasks with the same destination" in {
-        val testCase = new TestCase[TasksWithSameDestinationQuorum](1, Set("A")) {
+        val testCase = new TestCase[TasksWithSameDestinationQuorum](1, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               parentProbe expectMsg OrchestratorAborted
               
               secondState.updatedStatuses(
-                "A" -> Aborted(new IllegalArgumentException("TasksCreator must generate tasks with distinct destinations."))
+                0 -> Aborted(new IllegalArgumentException("TasksCreator must generate tasks with distinct destinations."))
               )
             }
           )
@@ -172,13 +172,13 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
         testCase.testExpectedStatusWithRecovery()
       }
       "the tasksCreator generates tasks with different messages" in {
-        val testCase = new TestCase[TasksWithDifferentMessagesQuorum](2, Set("A")) {
+        val testCase = new TestCase[TasksWithDifferentMessagesQuorum](2, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               parentProbe expectMsg OrchestratorAborted
           
               secondState.updatedStatuses(
-                "A" -> Aborted(new IllegalArgumentException("TasksCreator must generate tasks with the same message."))
+                0 -> Aborted(new IllegalArgumentException("TasksCreator must generate tasks with the same message."))
               )
             }
           )
@@ -189,7 +189,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
     "execute the necessary tasks of the inner orchestrator" when {
       // 5*A
       "there's a single quorum" in {
-        val testCase = new TestCase[SingleTaskQuorum](numberOfDestinations = 5, Set("A")) {
+        val testCase = new TestCase[SingleTaskQuorum](numberOfDestinations = 5, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               startingFruits.indices.par.foreach { i =>
@@ -197,7 +197,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
               }
           
               secondState.updatedStatuses(
-                "A" -> Waiting or Finished(6)
+                0 -> Waiting or Finished(6)
               )
             }, { thirdState =>
               // By this time some of the inner tasks of A might have already finished (we don't know which, if any).
@@ -210,10 +210,10 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 pingPong(destinations(i), ignoreTimeoutError = true)
               }
           
-              expectInnerOrchestratorTermination("A")
+              expectInnerOrchestratorTermination(0)
           
               thirdState.updatedStatuses(
-                "A" -> Finished(6)
+                0 -> Finished(6)
               )
             }
           )
@@ -223,7 +223,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
       
       // 5*A two random destinations won't send an answer
       "there's a single quorum two random destinations won't send an answer" in {
-        val testCase = new TestCase[SingleTaskQuorumWithoutSomeAnswers](numberOfDestinations = 5, Set("A")) {
+        val testCase = new TestCase[SingleTaskQuorumWithoutSomeAnswers](numberOfDestinations = 5, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               // Each task is just computing fruit.length, which will result in List(8, 6, 6, 6, 6)
@@ -235,7 +235,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
               }
           
               secondState.updatedStatuses(
-                "A" -> Waiting or Finished(6)
+                0 -> Waiting or Finished(6)
               )
             }, { thirdState =>
               // See the first test in this suite to understand why the timeout error is being ignored
@@ -243,10 +243,10 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 pingPong(destinations(i), ignoreTimeoutError = true)
               }
           
-              expectInnerOrchestratorTermination("A")
+              expectInnerOrchestratorTermination(0)
           
               thirdState.updatedStatuses(
-                "A" -> Finished(6)
+                0 -> Finished(6)
               )
             }
           )
@@ -256,7 +256,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
   
       // 5*A QuorumNotAchieved
       "there's a single quorum that is impossible to be achieved (all inner task will get different answers)" in {
-        val testCase = new TestCase[QuorumNotAchieved](numberOfDestinations = 5, Set("A")) {
+        val testCase = new TestCase[QuorumNotAchieved](numberOfDestinations = 5, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               // The tasks will get as answers: 0, 1, 2, 3, 4, respectively.
@@ -267,7 +267,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
               }
           
               secondState.updatedStatuses(
-                "A" -> Waiting or Aborted(QuorumNotAchieved)
+                0 -> Waiting or Aborted(QuorumNotAchieved)
               )
             }, { thirdState =>
               // See the first test in this suite to understand why the timeout error is being ignored
@@ -275,10 +275,10 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 pingPong(destinations(i), ignoreTimeoutError = true)
               }
           
-              expectInnerOrchestratorTermination("A")
+              expectInnerOrchestratorTermination(0)
           
               thirdState.updatedStatuses(
-                "A" -> Aborted(QuorumNotAchieved)
+                0 -> Aborted(QuorumNotAchieved)
               )
             }
           )
@@ -288,14 +288,14 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
       
       // A -> 5*B
       "there's a single quorum as a dependency" in {
-        val testCase = new TestCase[TaskQuorumDependency](numberOfDestinations = 6, Set("A")) {
+        val testCase = new TestCase[TaskQuorumDependency](numberOfDestinations = 6, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
           
               secondState.updatedStatuses(
-                "A" -> Finished(startingFruits),
-                "B" -> Unstarted or Waiting
+                0 -> Finished(startingFruits),
+                1 -> Unstarted or Waiting
               )
             }, { thirdState =>
               startingFruits.indices.par.foreach { i =>
@@ -303,10 +303,10 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 pingPong(destinations(i + 1), ignoreTimeoutError = true)
               }
           
-              expectInnerOrchestratorTermination("B")
+              expectInnerOrchestratorTermination(1)
           
               thirdState.updatedStatuses(
-                "B" -> Finished(startingFruits.map(_.length))
+                1 -> Finished(startingFruits.map(_.length))
               )
             }
           )
@@ -316,14 +316,14 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
       
       // A -> 5*B the first 2 tasks abort
       "there's a single quorum as a dependency, the first 2 tasks abort" in {
-        val testCase = new TestCase[TaskQuorumDependencyWithAborts](numberOfDestinations = 6, Set("A")) {
+        val testCase = new TestCase[TaskQuorumDependencyWithAborts](numberOfDestinations = 6, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
               
               secondState.updatedStatuses(
-                "A" -> Finished(startingFruits),
-                "B" -> Unstarted or Waiting
+                0 -> Finished(startingFruits),
+                1 -> Unstarted or Waiting
               )
             }, { thirdState =>
               // Each task is just computing fruit.length, which will result in List(8, 6, 6, 6, 6)
@@ -334,10 +334,10 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 pingPong(destinations(i + 1), ignoreTimeoutError = true)
               }
     
-              expectInnerOrchestratorTermination("B")
+              expectInnerOrchestratorTermination(1)
     
               thirdState.updatedStatuses(
-                "B" -> Finished(startingFruits.map(_.length))
+                1 -> Finished(startingFruits.map(_.length))
               )
             }
           )
@@ -349,15 +349,15 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
       // A →⟨   ⟩→ 2*D
       //     5*C
       "there are a complex web of quorums:" in {
-        val testCase = new TestCase[ComplexTaskQuorum](numberOfDestinations = 13, Set("A")) {
+        val testCase = new TestCase[ComplexTaskQuorum](numberOfDestinations = 13, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
               
               secondState.updatedStatuses(
-                "A" -> Finished(startingFruits),
-                "B" -> Unstarted or Waiting,
-                "C" -> Unstarted or Waiting
+                0 -> Finished(startingFruits),
+                1 -> Unstarted or Waiting,
+                2 -> Unstarted or Waiting
               )
             }, { thirdState =>
               import scala.util.Random
@@ -373,23 +373,23 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 pingPong(destinations(i), ignoreTimeoutError = true)
               }
               
-              expectInnerOrchestratorTermination("C")
-              expectInnerOrchestratorTermination("B")
+              expectInnerOrchestratorTermination(2)
+              expectInnerOrchestratorTermination(1)
               
               thirdState.updatedStatuses(
-                "B" -> Finished(6),
-                "C" -> Finished(6),
-                "D" -> Unstarted or Waiting
+                1 -> Finished(6),
+                2 -> Finished(6),
+                3 -> Unstarted or Waiting
               )
             }, { fourthState =>
               // D Tasks+
               pingPong(destinations(11))
               pingPong(destinations(12))
               
-              expectInnerOrchestratorTermination("D")
+              expectInnerOrchestratorTermination(3)
               
               fourthState.updatedStatuses(
-                "D" -> Finished(6)
+                3 -> Finished(6)
               )
             }
           )
@@ -401,7 +401,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
       import scala.reflect.ClassTag
       def runTestWithTimeoutTask[T <: ControllableOrchestrator : ClassTag](timeoutTaskId: Int): Unit = {
         s"the task $timeoutTaskId surpasses tolerance" in {
-          val testCase = new TestCase[T](numberOfDestinations = 3, Set("A")) {
+          val testCase = new TestCase[T](numberOfDestinations = 3, Set(0)) {
             val transformations = withStartAndFinishTransformations(
               { secondState =>
                 // The minimumVotes is All, which means we need at least 3 equal responses.
@@ -411,7 +411,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 }
           
                 secondState.updatedStatuses(
-                  "A" -> Waiting or Aborted(QuorumImpossibleToAchieve)
+                  0 -> Waiting or Aborted(QuorumImpossibleToAchieve)
                 )
               }, { thirdState =>
                 // See the first test in this suite to understand why the timeout error is being ignored
@@ -419,10 +419,10 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                   pingPong(destinations(i), ignoreTimeoutError = true)
                 }
           
-                expectInnerOrchestratorTermination("A")
+                expectInnerOrchestratorTermination(0)
           
                 thirdState.updatedStatuses(
-                  "A" -> Aborted(QuorumImpossibleToAchieve)
+                  0 -> Aborted(QuorumImpossibleToAchieve)
                 )
               }
             )
@@ -436,7 +436,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
       
       // 5*A QuorumNotAchieved in the last aborting task
       "the last task, which aborts, reaches the tolerance threshold" in {
-        val testCase = new TestCase[QuorumNotAchievedInLastAbortingTask](numberOfDestinations = 5, Set("A")) {
+        val testCase = new TestCase[QuorumNotAchievedInLastAbortingTask](numberOfDestinations = 5, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
               // Not in parallel on purpose
@@ -445,7 +445,7 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
               }
           
               secondState.updatedStatuses(
-                "A" -> Waiting or Aborted(QuorumNotAchieved)
+                0 -> Waiting or Aborted(QuorumNotAchieved)
               )
             }, { thirdState =>
               // Not in parallel on purpose
@@ -453,10 +453,10 @@ class Step7_TaskQuorumSpec extends ActorSysSpec {
                 pingPong(destinations(i), ignoreTimeoutError = true)
               }
           
-              expectInnerOrchestratorTermination("A")
+              expectInnerOrchestratorTermination(0)
           
               thirdState.updatedStatuses(
-                "A" -> Aborted(QuorumNotAchieved)
+                0 -> Aborted(QuorumNotAchieved)
               )
             }
           )

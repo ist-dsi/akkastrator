@@ -100,7 +100,7 @@ abstract class Task[R](val task: FullTask[R, _]) {
         orchestrator.self.tell(Timeout(id.self), orchestrator.self)
       }(system.dispatcher)
     case f: FiniteDuration =>
-      log.warning(withOrchestratorAndTaskPrefix(s"Invalid timeout = $f. Expected a finite duration > 0. Interpreting as Duration.Inf."))
+      log.warning(withOrchestratorAndTaskPrefix(s"Invalid timeout = $f. Expected a finite duration > Duration.Zero. Interpreting as Duration.Inf."))
     case _ => // We do nothing because the timeout is infinite.
   }
   

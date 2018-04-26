@@ -25,23 +25,23 @@ object Step4_AbortSpec {
   }
 }
 class Step4_AbortSpec extends ActorSysSpec {
-  //Ensure the following happens:
-  // 1. The task that aborted will change its state to `Aborted`.
-  // 2. Every unstarted task that depends on the aborted task will never be started.
-  // 3. Waiting tasks or tasks which do not have the aborted task as a dependency will remain untouched.
-  // 4. The method `onTaskAbort` will be invoked in the orchestrator.
-  // 5. The method `onFinish` in the orchestrator will never be invoked since this task did not finish.
+  // Ensure the following happens:
+  //  1. The task that aborted will change its state to `Aborted`.
+  //  2. Every unstarted task that depends on the aborted task will never be started.
+  //  3. Waiting tasks or tasks which do not have the aborted task as a dependency will remain untouched.
+  //  4. The method `onTaskAbort` will be invoked in the orchestrator.
+  //  5. The method `onFinish` in the orchestrator will never be invoked since this task did not finish.
   
   "An orchestrator with tasks that abort" should {
     "behave according to the documentation" when {
       "there is only a single task: A" in {
-        val testCase = new TestCase[AbortSingleTask](1, Set("A")) {
+        val testCase = new TestCase[AbortSingleTask](1, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
 
               secondState.updatedStatuses(
-                "A" -> Aborted(testsAbortReason)
+                0 -> Aborted(testsAbortReason)
               )
             }
           )
@@ -70,20 +70,20 @@ class Step4_AbortSpec extends ActorSysSpec {
         )
       }
       "there are two independent tasks: A B" in {
-        val testCase = new TestCase[AbortTwoIndependentTasks](2, Set("A", "B")) {
+        val testCase = new TestCase[AbortTwoIndependentTasks](2, Set(0, 1)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
 
               secondState.updatedStatuses(
-                "A" -> Aborted(testsAbortReason),
-                "B" -> Waiting
+                0 -> Aborted(testsAbortReason),
+                1 -> Waiting
               )
             }, { thirdState =>
-              pingPong("B")
+              pingPong(destinations(1)) // Destination of Task "B"
 
               thirdState.updatedStatuses(
-                "B" -> Finished("finished")
+                1 -> Finished("finished")
               )
             }
           )
@@ -117,13 +117,13 @@ class Step4_AbortSpec extends ActorSysSpec {
         )
       }
       "there are two dependent tasks: A → B" in {
-        val testCase = new TestCase[AbortTwoLinearTasks](2, Set("A")) {
+        val testCase = new TestCase[AbortTwoLinearTasks](2, Set(0)) {
           val transformations = withStartAndFinishTransformations(
             { secondState =>
-              pingPong("A")
+              pingPong(destinations(0)) // Destination of Task "A"
 
               secondState.updatedStatuses(
-                "A" -> Aborted(testsAbortReason)
+                0 -> Aborted(testsAbortReason)
               )
             }
           )
@@ -137,7 +137,7 @@ class Step4_AbortSpec extends ActorSysSpec {
             parentProbe expectMsg OrchestratorAborted
 
             // This confirms that every unstarted task that depends on the aborted task will never be started
-            testProbeOfTask("B").expectNoMessage()
+            destinations(1).expectNoMessage() // Destination of Task "B"
   
             // Confirm A -> Aborted and B -> Unstarted
             testStatus(thirdState)

@@ -20,21 +20,15 @@ import pt.tecnico.dsi.akkastrator.Task.{Unstarted, Waiting}
 import shapeless.ops.hlist.Tupler
 import shapeless.{HList, HNil}
 
-// TODO: we are identifying tasks by their description. This looks brittle. Maybe we should use the task Id to identify tasks
-
 object ActorSysSpec {
   case object FinishOrchestrator
   case object OrchestratorFinished
   case object OrchestratorAborted
-  case object GetDestinations
-  case class Destinations(destinations: Map[String, TestProbe])
-  
-  val testsAbortReason = new Exception()
+
+  val testsAbortReason = new Exception() with NoStackTrace
   
   abstract class ControllableOrchestrator(destinations: Array[TestProbe], startAndTerminateImmediately: Boolean = false)
     extends DistinctIdsOrchestrator {
-    var destinationProbes = Map.empty[String, TestProbe]
-
     def task[R](destinationIndex: Int, result: R = "finished", abortOnReceive: Boolean = false): TaskBuilder[R] = {
       new Task[R](_) {
         val destination: ActorPath = destinations(destinationIndex).ref.path
@@ -56,7 +50,6 @@ object ActorSysSpec {
                                                               (implicit orchestrator: AbstractOrchestrator[_],
                                                                tc: TaskComapped.Aux[DL, RL] = TaskComapped.nil,
                                                                tupler: Tupler.Aux[RL, RP] = Tupler.hnilTupler): FullTask[R, DL] = {
-      destinationProbes += description -> destinations(destinationIndex)
       FullTask(description, dependencies, timeout) createTaskWith { _ =>
         task(destinationIndex, result, abortOnReceive)
       }
@@ -91,8 +84,6 @@ object ActorSysSpec {
     }
   
     override def extraCommands: Receive = {
-      case GetDestinations =>
-        sender() ! Destinations(destinationProbes)
       case "boom" =>
         throw new IllegalArgumentException("BOOM") with NoStackTrace
     }
@@ -100,10 +91,10 @@ object ActorSysSpec {
   
   // Quite ugly but makes the tests more readable
   implicit def state2SetOfState[S <: Task.State](s: S): Set[Task.State] = Set(s)
-  implicit class RichTaskState(val tuple: (String, Task.State)) extends AnyVal {
-    def or(other: Task.State): (String, Set[Task.State]) = {
+  implicit class RichTaskState(val tuple: (Int, Task.State)) extends AnyVal {
+    def or(other: Task.State): (Int, Set[Task.State]) = {
       tuple match {
-        case (taskDescription, firstState) => (taskDescription, Set(firstState, other))
+        case (taskIndex, firstState) => (taskIndex, Set(firstState, other))
       }
     }
   }
@@ -130,41 +121,38 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
     shutdown(verifySystemShutdown = true)
   }
   
-  case class State(expectedStatus: Map[String, Set[Task.State]]) {
-    def updatedStatuses(newStatuses: (String, Set[Task.State])*): State = {
+  case class State(expectedStatus: Map[Int, Set[Task.State]]) {
+    def updatedStatuses(newStatuses: (Int, Set[Task.State])*): State = {
       val newExpectedStatus = newStatuses.foldLeft(expectedStatus) {
-        case (statuses, (taskDescription, possibleStatus)) =>
-          statuses.updated(taskDescription, possibleStatus)
+        case (statuses, (taskIndex, possibleStatus)) =>
+          statuses.updated(taskIndex, possibleStatus)
       }
       this.copy(expectedStatus = newExpectedStatus)
     }
   }
-  abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int, startingTasks: Set[String]) {
+  abstract class TestCase[O <: ControllableOrchestrator : ClassTag](numberOfDestinations: Int, startingTasksIndexes: Set[Int]) {
     private val probe = TestProbe()
-    
+
     val parentProbe = TestProbe("parent-probe")
     val destinations = Array.fill(numberOfDestinations)(TestProbe("dest"))
-    
+
     val orchestratorActor = system.actorOf(Props(new Actor {
       val orchestratorClass = implicitly[ClassTag[O]].runtimeClass
       val child = context.actorOf(Props(orchestratorClass, destinations), orchestratorClass.getSimpleName)
-  
+
       context watch child
-  
+
       def receive: Actor.Receive = {
         case Terminated(`child`) => context stop self
         case m if sender == child => parentProbe.ref forward m
         case m => child forward m
       }
     }))
-    
-    orchestratorActor.tell(GetDestinations, probe.ref)
-    val testProbeOfTask = probe.expectMsgType[Destinations].destinations
-    
+
     probe watch orchestratorActor
-    
+
     val firstState: State = State(SortedMap.empty).updatedStatuses (
-      startingTasks.toSeq.map(startingTask => (startingTask, Set[Task.State](Unstarted))):_*
+      startingTasksIndexes.toSeq.map(startingTask => (startingTask, Set[Task.State](Unstarted))):_*
     )
     
     val startTransformation: State => State = { firstState =>
@@ -192,7 +180,6 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
           // Purposefully ignored
       }
     }
-    def pingPong(taskDescription: String): Unit = pingPong(testProbeOfTask(taskDescription))
 
     def sameTestPerState(test: State => Unit): Unit = {
       val sameTestRepeated = Seq.fill(transformations.size)(test)
@@ -220,12 +207,12 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
       orchestratorActor.tell(Status, probe.ref)
       val taskState = probe.expectMsgType[StatusResponse](max)
         .tasks
-        .map(t => (t.description, t.state))
+        .map(t => (t.index, t.state))
         .toMap
-      for((description, expected) <- state.expectedStatus) {
+      for((index, expected) <- state.expectedStatus) {
         // expected should contain (taskState(description))
         // does not work for the Aborted state because Exception does not implement its own equals.
-        expected contains taskState(description)
+        expected contains taskState(index)
       }
       logger.info("Status matched!")
     }
@@ -243,21 +230,19 @@ abstract class ActorSysSpec(config: Option[Config] = None) extends TestKit(Actor
       probe expectTerminated orchestratorActor
     }
     
-    def expectInnerOrchestratorTermination(description: String): Unit = {
-      // We do not create Task{Quorum|Bundle}s via the fullTask of controllable orchestrator
-      // so we cannot use the testProbeOfTask map to get the destination of the task
+    def expectInnerOrchestratorTermination(taskIndex: Int): Unit = {
       orchestratorActor.tell(Status, probe.ref)
       probe.expectMsgType[StatusResponse].tasks.foreach {
-        case Report(_, `description`, _, Task.Unstarted, _, _) =>
+        case Report(`taskIndex`, _, _, Task.Unstarted, _, _) =>
           throw new IllegalStateException("Cannot expect for inner orchestrator termination if the inner orchestrator hasn't started.")
-        case Report(_, `description`, _, Task.Waiting, Some(destination), _) =>
+        case Report(`taskIndex`, _, _, Task.Waiting, Some(destination), _) =>
           // To be able to watch an actor we need its ActorRef first
           system.actorSelection(destination).tell(Identify(1L), probe.ref)
           probe.expectMsgType[ActorIdentity] match {
             case ActorIdentity(1L, Some(ref)) =>
               // We know that when an orchestrator finishes or aborts it stops it self.
               // So we just need to expect for its termination.
-              logger.info(s"Task $description destination ActorRef $ref")
+              logger.info(s"Task $taskIndex destination ActorRef $ref")
               probe watch ref
               probe expectTerminated ref
             case _ =>
