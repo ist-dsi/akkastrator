@@ -78,8 +78,7 @@ sealed abstract class AbstractOrchestrator[R](val settings: Settings)
   private[this] final val _tasks = mutable.Buffer.empty[FullTask[_, _]]
   final def tasks: immutable.Seq[FullTask[_, _]] = _tasks.toVector // To make sure the mutability does not escape
   
-  /** We use a [[scala.collection.immutable.HashMap]] to ensure remove/insert operations are very fast O(eC).
-    * The keys are the task indexes. */
+  /** We use a HashMap to ensure remove/insert operations are very fast O(eC). The keys are the task indexes. */
   protected[this] final var _waitingTasks = HashMap.empty[Int, Task[_]]
   final def waitingTasks: HashMap[Int, Task[_]] = _waitingTasks
   

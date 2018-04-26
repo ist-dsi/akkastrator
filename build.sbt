@@ -11,6 +11,8 @@ name := "akkastrator"
 //======================================================================================================================
 javacOptions ++= Seq("-Xlint", "-encoding", "UTF-8", "-Dfile.encoding=utf-8")
 scalaVersion := "2.12.5"
+crossScalaVersions := Seq("2.11.12", "2.12.5")
+
 scalacOptions ++= Seq(
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -24,19 +26,23 @@ scalacOptions ++= Seq(
   "-Xfuture",                          // Turn on future language features.
   "-Ypartial-unification",             // Enable partial unification in type constructor inference
   "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
-  //"-Xlint",                            // Enables every warning. scala -Xlint:help for a list and explanation
-  "-Xlint:_,-unused",                  // Enables every warning except "unused". scala -Xlint:help for a list and explanation
+  "-Xlint",                            // Enables every warning. scala -Xlint:help for a list and explanation
   "-Ywarn-dead-code",                  // Warn when dead code is identified.
-  "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
   "-Ywarn-numeric-widen",              // Warn when numerics are widened.
-  "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
-  "-Ywarn-unused:privates",            // Warn if a private member is unused.
-  "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-  "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
-  "-Ywarn-unused:params",              // Warn if a value parameter is unused.
-  "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
   //"-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
-)
+) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((2, 12)) => Seq(
+    "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
+    "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
+    "-Ywarn-unused:privates",            // Warn if a private member is unused.
+    "-Ywarn-unused:locals",              // Warn if a local definition is unused.
+    "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+    "-Ywarn-unused:params",              // Warn if a value parameter is unused.
+    "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+  )
+  case _ => Nil
+})
+
 // These lines ensure that in sbt console or sbt test:console the -Ywarn* and the -Xfatal-warning are not bothersome.
 // https://stackoverflow.com/questions/26940253/in-sbt-how-do-you-override-scalacoptions-for-console-in-all-configurations
 scalacOptions in (Compile, console) ~= (_ filterNot { option =>
