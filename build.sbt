@@ -1,7 +1,8 @@
 import java.net.URL
 
-import ExtraReleaseKeys._
 import sbt.{Developer, ScmInfo}
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
+import xerial.sbt.Sonatype.SonatypeCommand
 
 organization := "pt.tecnico.dsi"
 name := "akkastrator"
@@ -11,7 +12,7 @@ name := "akkastrator"
 //======================================================================================================================
 javacOptions ++= Seq("-Xlint", "-encoding", "UTF-8", "-Dfile.encoding=utf-8")
 scalaVersion := "2.12.5"
-crossScalaVersions := Seq("2.11.12", "2.12.5")
+crossScalaVersions := Seq("2.11.12", scalaVersion.value, "2.13.0-M3")
 
 scalacOptions ++= Seq(
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
@@ -20,14 +21,16 @@ scalacOptions ++= Seq(
   "-feature",                          // Emit warning and location for usages of features that should be imported explicitly.
   "-language:implicitConversions",     // Explicitly enables the implicit conversions feature
   "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
-  // This causes akka to fail. https://github.com/akka/akka/issues/23453
   //"-Xcheckinit",                       // Wrap field accessors to throw an exception on uninitialized access.
   "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
-  "-Xfuture",                          // Turn on future language features.
-  "-Ypartial-unification",             // Enable partial unification in type constructor inference
-  "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
   "-Xlint",                            // Enables every warning. scala -Xlint:help for a list and explanation
+  "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
+  "-Ypartial-unification",             // Enable partial unification in type constructor inference
   "-Ywarn-dead-code",                  // Warn when dead code is identified.
+  "-Ywarn-inaccessible",               // Warn about inaccessible types in method signatures.
+  "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
+  "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
+  "-Ywarn-nullary-unit",               // Warn when nullary methods return Unit.
   "-Ywarn-numeric-widen",              // Warn when numerics are widened.
   //"-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
 ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -75,12 +78,6 @@ libraryDependencies ++= Seq(
 
   "commons-io" % "commons-io" % "2.6" % Test
 )
-// Good advice for Scala compiler errors: tells you when you need to provide implicit instances
-/*addSbtPlugin("com.softwaremill.clippy" % "plugin-sbt" % "0.3.5")
-addCompilerPlugin("com.softwaremill.clippy" %% "plugin" % "0.5.1" classifier "bundle")*/
-// Removes some of the redundancy of the compiler output and prints additional info for implicit resolution errors.
-/*resolvers += Resolver.bintrayRepo("tek", "maven")
-addCompilerPlugin("tryp" %% "splain" % "0.1.21")*/
 
 // This is needed for LevelDB to work in tests
 fork in Test := true
@@ -88,11 +85,17 @@ fork in Test := true
 //======================================================================================================================
 //==== Scaladoc ========================================================================================================
 //======================================================================================================================
+val latestReleasedVersion = SettingKey[String]("latest released version")
+git.useGitDescribe := true
+latestReleasedVersion := git.gitDescribedVersion.value.getOrElse("0.1.0")
+
 autoAPIMappings := true //Tell scaladoc to look for API documentation of managed dependencies in their metadata.
 scalacOptions in (Compile, doc) ++= Seq(
   "-diagrams",    // Create inheritance diagrams for classes, traits and packages.
   "-groups",      // Group similar functions together (based on the @group annotation)
   "-implicits",   // Document members inherited by implicit conversions.
+  "-doc-title", name.value.capitalize,
+  "-doc-version", latestReleasedVersion.value,
   "-doc-source-url", s"${homepage.value.get}/tree/v${latestReleasedVersion.value}€{FILE_PATH}.scala",
   "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath
 )
@@ -101,18 +104,20 @@ scalacOptions in (Compile, doc) ++= Seq(
 apiURL := Some(url(s"${homepage.value.get}/${latestReleasedVersion.value}/api/"))
 
 enablePlugins(GhpagesPlugin)
-enablePlugins(SiteScaladocPlugin)
+siteSubdirName in SiteScaladoc := s"api/${version.value}"
+envVars in ghpagesPushSite := Map("SBT_GHPAGES_COMMIT_MESSAGE" -> s"Add Scaladocs for version ${latestReleasedVersion.value}")
 git.remoteRepo := s"git@github.com:ist-dsi/${name.value}.git"
 
 //======================================================================================================================
 //==== Deployment ======================================================================================================
 //======================================================================================================================
-publishTo := Some(if (isSnapshot.value) Opts.resolver.sonatypeSnapshots else Opts.resolver.sonatypeStaging)
-sonatypeProfileName := organization.value
+//publishTo := Some(if (isSnapshot.value) Opts.resolver.sonatypeSnapshots else Opts.resolver.sonatypeStaging)
+//sonatypeProfileName := organization.value
+publishTo := sonatypePublishTo.value
 
 licenses += "MIT" -> url("http://opensource.org/licenses/MIT")
 homepage := Some(url(s"https://github.com/ist-dsi/${name.value}"))
-scmInfo := Some(ScmInfo(homepage.value.get, s"git@github.com:ist-dsi/${name.value}.git"))
+scmInfo := Some(ScmInfo(homepage.value.get, git.remoteRepo.value))
 developers += Developer("Lasering", "Simão Martins", "", new URL("https://github.com/Lasering"))
 
 // Will fail the build/release if updates for the dependencies are found
@@ -121,19 +126,20 @@ dependencyUpdatesFailBuild := true
 coverageFailOnMinimum := true
 coverageMinimum := 95
 
-import ReleaseTransformations._
+releaseCrossBuild := true
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
 releaseProcess := Seq[ReleaseStep](
-  releaseStepCommand("dependencyUpdates"),
+  releaseStepTask(dependencyUpdates),
   checkSnapshotDependencies,
   inquireVersions,
   runClean,
-  releaseStepCommand("doc"),
+  releaseStepTask(doc),
   runTest,
   setReleaseVersion,
   tagRelease,
-  releaseStepCommand("ghpagesPushSite"),
-  releaseStepCommand("publishSigned"),
-  releaseStepCommand("sonatypeRelease"),
+  releaseStepTask(ghpagesPushSite),
+  publishArtifacts,
+  releaseStepCommand(SonatypeCommand.sonatypeReleaseAll),
   pushChanges,
-  writeVersions
+  setNextVersion
 )

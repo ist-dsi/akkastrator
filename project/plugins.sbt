@@ -13,4 +13,5 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.12")
 
-addCompilerPlugin("io.tryp" % "splain" % "0.2.7" cross CrossVersion.patch)
+// Removes some of the redundancy of the compiler output and prints additional info for implicit resolution errors.
+addCompilerPlugin("io.tryp" % "splain" % "0.3.1" cross CrossVersion.patch)
