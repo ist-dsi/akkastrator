@@ -1,5 +1,5 @@
 # Akkastrator [![license](http://img.shields.io/:license-MIT-blue.svg)](LICENSE)
-[![Scaladoc](http://javadoc-badge.appspot.com/pt.tecnico.dsi/akkastrator_2.12.svg?label=scaladoc&style=plastic&maxAge=604800)](https://ist-dsi.github.io/akkastrator/latest/api/#pt.tecnico.dsi.akkastrator.package)
+[![Scaladoc](http://javadoc-badge.appspot.com/pt.tecnico.dsi/akkastrator_2.12.svg?label=scaladoc&style=plastic&maxAge=604800)](https://ist-dsi.github.io/akkastrator/api/latest/pt/tecnico/dsi/akkastrator/index.html)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/pt.tecnico.dsi/akkastrator_2.12/badge.svg?maxAge=604800)](https://maven-badges.herokuapp.com/maven-central/pt.tecnico.dsi/akkastrator_2.12)
 [![Build Status](https://travis-ci.org/ist-dsi/akkastrator.svg?branch=master&style=plastic&maxAge=604800)](https://travis-ci.org/ist-dsi/akkastrator)
 [![codecov](https://codecov.io/gh/ist-dsi/akkastrator/branch/master/graph/badge.svg)](https://codecov.io/gh/ist-dsi/akkastrator)
