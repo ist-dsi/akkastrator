@@ -6,7 +6,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/grade/75210854e9b945df97a8408e4975a067)](https://www.codacy.com/app/IST-DSI/akkastrator)
 [![BCH compliance](https://bettercodehub.com/edge/badge/ist-dsi/akkastrator)](https://bettercodehub.com/)
 
-[Latest scaladoc documentation](https://ist-dsi.github.io/akkastrator/latest/api/pt/tecnico/dsi/akkastrator/index.html)
+[Latest scaladoc documentation](https://ist-dsi.github.io/akkastrator/api/latest/pt/tecnico/dsi/akkastrator/index.html)
 
 ## Install
 Add the following dependency to your `build.sbt`:
