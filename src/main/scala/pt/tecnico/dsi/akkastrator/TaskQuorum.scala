@@ -7,7 +7,7 @@ import akka.actor.Props
 import pt.tecnico.dsi.akkastrator.DSL.{FullTask, TaskBuilder}
 import pt.tecnico.dsi.akkastrator.Orchestrator._
 
-/** Signals that every task in the Quorum has finished but a quorum has not achieved. */
+/** Signals that every task in the Quorum has finished but a quorum was not achieved. */
 case object QuorumNotAchieved extends Exception
 
 /** Signals that the quorum is impossible to achieve since enough tasks have aborted that prevent the orchestrator
@@ -115,8 +115,7 @@ class Quorum[R](taskBuilders: Iterable[TaskBuilder[R]], minimumVotes: MinimumVot
         waitingTasks.values.foreach(_.abort(QuorumImpossibleToAchieve))
         onAbort(Aborted(QuorumImpossibleToAchieve, startId))
       } else if (tolerance == 0 && waitingTasks.isEmpty) {
-        // This was the last task and the tolerance has not surpassed.
-        // So onFinish is invoked directly, it will terminate the Quorum with a QuorumNotAchieved.
+        // This was the last task and the tolerance has not surpassed, so we invoke onFinish directly.
         onFinish()
       }
     }
